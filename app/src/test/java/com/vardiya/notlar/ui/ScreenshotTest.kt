@@ -1,0 +1,117 @@
+package com.vardiya.notlar.ui
+
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
+import com.github.takahirom.roborazzi.captureRoboImage
+import com.vardiya.notlar.domain.ChecklistItem
+import com.vardiya.notlar.domain.Note
+import com.vardiya.notlar.domain.NoteColor
+import com.vardiya.notlar.domain.Section
+import com.vardiya.notlar.ui.screens.EditorScreen
+import com.vardiya.notlar.ui.screens.MainScreen
+import com.vardiya.notlar.ui.theme.NotlarTheme
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.time.LocalDateTime
+import java.time.ZoneId
+
+/**
+ * Renders every screen, light and dark, into `app/src/test/screenshots/`.
+ * Record with `./gradlew recordRoborazziDebug`, check with `./gradlew verifyRoborazziDebug`.
+ */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+// SDK 34: newer Robolectric images need JDK 21 and extra --add-opens; CI runs JDK 17.
+@Config(sdk = [34], qualifiers = RobolectricDeviceQualifiers.Pixel7)
+class ScreenshotTest {
+
+    @get:Rule
+    val compose = createComposeRule()
+
+    private val now = LocalDateTime.of(2026, 10, 16, 14, 32).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    private val day = 24L * 60 * 60 * 1000
+
+    private val market = Note(
+        id = 1,
+        title = "Market",
+        isChecklist = true,
+        items = listOf(
+            ChecklistItem(1, "Süt"),
+            ChecklistItem(2, "Ekmek"),
+            ChecklistItem(3, "Domates, salatalık"),
+            ChecklistItem(4, "Yumurta", checked = true),
+        ),
+        color = NoteColor.YELLOW,
+        pinned = true,
+        updatedAt = now - 1_000,
+    )
+    private val notes = listOf(
+        market,
+        Note(
+            id = 2,
+            title = "Vardiya planı",
+            body = "Pazartesi sabah, çarşamba gece.\nCuma izin.",
+            color = NoteColor.GREEN,
+            pinned = true,
+            updatedAt = now - 2_000,
+        ),
+        Note(3, title = "Fikirler", body = "Not uygulamasına ana ekran widget'ı eklensin.", updatedAt = now - 3_000),
+        Note(4, title = "Kira", body = "Ayın 5'inde ödenecek.", color = NoteColor.SAND, updatedAt = now - 4_000),
+        Note(5, body = "Akşam annemi ara.", updatedAt = now - 5_000),
+        Note(6, title = "Kitaplar", body = "Kürk Mantolu Madonna\nSimyacı\nTutunamayanlar", color = NoteColor.RED, updatedAt = now - 6_000),
+        Note(7, title = "Eski adres", body = "Atatürk Cad. No 12", archived = true, updatedAt = now - 7_000),
+        Note(8, title = "Toplantı notu", body = "Pazartesi 10:00", trashedAt = now - 2 * day, updatedAt = now - 8_000),
+    )
+
+    @Test fun notes() = capture("notes") { Main(Section.NOTES) }
+
+    @Test @Config(qualifiers = "+night")
+    fun notesDark() = capture("notes_dark") { Main(Section.NOTES) }
+
+    @Test fun archive() = capture("archive") { Main(Section.ARCHIVE) }
+
+    @Test fun trash() = capture("trash") { Main(Section.TRASH) }
+
+    @Test fun empty() = capture("empty") { Main(Section.NOTES, emptyList()) }
+
+    @Test fun editorChecklist() = capture("editor_checklist") { Editor(market) }
+
+    @Test @Config(qualifiers = "+night")
+    fun editorTextDark() = capture("editor_text_dark") { Editor(notes[1]) }
+
+    @Composable
+    private fun Main(section: Section, list: List<Note> = notes) {
+        MainScreen(
+            notes = list,
+            loaded = true,
+            section = section,
+            onSectionChange = {},
+            onOpen = {},
+            onNewNote = {},
+            onRestore = {},
+            onDeleteForever = {},
+            onEmptyTrash = {},
+            snackbarHostState = SnackbarHostState(),
+            nowMillis = now,
+        )
+    }
+
+    @Composable
+    private fun Editor(note: Note) {
+        EditorScreen(initial = note, onSave = {}, onClose = {}, onShare = {}, onArchive = {}, onTrash = {})
+    }
+
+    private fun capture(name: String, screen: @Composable () -> Unit) {
+        compose.mainClock.autoAdvance = false
+        compose.setContent { NotlarTheme { screen() } }
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.onRoot().captureRoboImage("src/test/screenshots/$name.png")
+    }
+}

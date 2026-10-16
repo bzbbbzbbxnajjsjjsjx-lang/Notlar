@@ -1,0 +1,69 @@
+# Notlar
+
+Single-module Android app (`:app`, package `com.vardiya.notlar`) for notes and to-do lists.
+Jetpack Compose + Material 3 Expressive, no DI framework, no navigation library. Built on the same
+stack and conventions as the Vardiya app (bzbbbzbbxnajjsjjsjx-lang/Androidharnwss).
+
+## Commands
+
+```bash
+./gradlew testDebugUnitTest      # JVM unit tests (domain logic) and screenshot tests
+./gradlew recordRoborazziDebug   # re-record screenshots after an intended UI change
+./gradlew verifyRoborazziDebug   # compare screens with app/src/test/screenshots/ (CI runs this)
+./gradlew detekt                 # static analysis, incl. Compose rules
+./gradlew lintDebug              # Android lint
+./gradlew assembleDebug assembleRelease
+```
+
+CI (`.github/workflows/android.yml`) runs detekt, lint, unit and screenshot tests and both APK
+builds on every push. Cloud sessions can build locally if the Android SDK (platform 37) is
+installed and `ANDROID_HOME` points at it; Maven Central rate-limits the session proxy (HTTP 429),
+so pass `-I .claude/gradle/maven-central-mirror.gradle`. Still read the GitHub Actions result
+before calling a change done.
+
+## Layout
+
+- `domain/` — pure Kotlin, unit-tested. `Note.kt` (`Note`, `ChecklistItem`, `NoteColor`,
+  `Section`, `NoteFilter`), `NoteRules.kt` (list order, search, filters, 30-day trash, text ↔
+  checklist conversion, share text).
+- `data/NoteRepository.kt` — all notes as one JSON list in Preferences DataStore.
+- `ui/NotesViewModel.kt` — single `AndroidViewModel`; saving a blank note removes it.
+- `ui/NotlarApp.kt` — switches between the lists and the editor, snackbars with undo, sharing.
+- `ui/screens/` — `MainScreen` (notes / archive / trash behind a `ShortNavigationBar`, large
+  flexible app bar, staggered grid), `TrashList`, `EditorScreen` (autosave, floating toolbar,
+  checklist editor).
+- `ui/components/` — `NoteCard`, `Format.kt` (Turkish dates).
+- `ui/theme/Theme.kt` — amber brand scheme (seed #7C5800) with `MaterialExpressiveTheme`; note
+  colors map to container roles so they follow light and dark.
+
+## Design
+
+Screens were sketched first in M3E Canvas; `docs/m3e-canvas.json` is the document (open it with
+*Open project* on https://lnkiai.github.io/m3e-canvas/). Sketch new screens there before building
+them when the layout is not obvious.
+
+## Conventions
+
+- Code, comments, commit messages: English. User-facing text (UI strings, `README.md`,
+  `.github/release-notes.md`): Turkish. UI strings are inline in Kotlin, not in `strings.xml`.
+- Search and dates use the Turkish locale (`tr-TR`), never the default one.
+- Accessibility: icon-only buttons have a `contentDescription`, headings are marked, touch
+  targets ≥ 48dp.
+- Build: AGP 9 (built-in Kotlin), Gradle 9, compileSdk 37, targetSdk 36, material3
+  `1.5.0-beta01` ahead of the Compose BOM. Expressive opt-ins are set in `app/build.gradle.kts`.
+  Icons come from `material-icons-extended` 1.7.8 (R8 strips unused ones).
+- Detekt config is in `config/detekt/detekt.yml`; fix findings, there is no baseline.
+- Screenshot tests (`ui/ScreenshotTest.kt`, Roborazzi + Robolectric SDK 34) must be re-recorded
+  and committed after a UI change; look at the PNGs first.
+
+## Releasing
+
+Bump `versionCode` and `versionName` in `app/build.gradle.kts` and add a "Yenilikler (x.y.z)"
+section at the top of `.github/release-notes.md`. Pushing a `v*` tag, or running the workflow
+with `release_tag`, publishes the release APK as a GitHub release.
+
+## Skills
+
+`.claude/skills/` holds Compose UI, performance audit, accessibility and testing guidance, plus
+`material3-expressive`: the full Material 3 Expressive reference for material3 1.5.0-beta01.
+Load the matching skill before working in that area.

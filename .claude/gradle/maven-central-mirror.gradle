@@ -1,0 +1,17 @@
+// Init script for cloud sessions: Maven Central often answers 429 to the session proxy, so
+// resolve it through Google's mirror instead. Use: ./gradlew -I .claude/gradle/maven-central-mirror.gradle …
+def mirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+def redirect = { RepositoryHandler repos ->
+    repos.withType(MavenArtifactRepository).configureEach { 
+        r -> if (r.url.toString().contains('repo.maven.apache.org')) r.url = mirror
+    }
+}
+beforeSettings { s -> redirect(s.pluginManagement.repositories); redirect(s.buildscript.repositories)
+    s.pluginManagement.repositories.maven { it.url = mirror }
+}
+settingsEvaluated { s -> redirect(s.dependencyResolutionManagement.repositories) }
+allprojects { redirect(buildscript.repositories); redirect(repositories) }
+// Robolectric downloads its android-all jars itself, outside Gradle's repositories.
+allprojects {
+    tasks.withType(Test).configureEach { t -> t.systemProperty('robolectric.dependency.repo.url', mirror) }
+}

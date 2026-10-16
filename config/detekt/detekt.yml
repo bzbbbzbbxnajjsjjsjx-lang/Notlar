@@ -1,0 +1,19 @@
+# Only the differences from detekt's default config (buildUponDefaultConfig = true).
+
+complexity:
+  # Composable screens are long, branchy layout code; splitting them only for the metric hurts readability.
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+style:
+  MaxLineLength:
+    maxLineLength: 150
+  # dp, sp, alpha and animation values in UI code are design values, not magic numbers.
+  MagicNumber:
+    ignoreAnnotated: ['Composable']

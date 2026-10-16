@@ -1,0 +1,11 @@
+The files in api/, samples/ and tokens.md are derived from, or copied from, the Android Open
+Source Project's androidx repository (compose/material3/material3, commit
+19991f2c0858aadfcb442ce02b2c8e4743c96898, material3 1.5.0-beta01):
+
+  Copyright The Android Open Source Project
+  Licensed under the Apache License, Version 2.0
+  https://www.apache.org/licenses/LICENSE-2.0
+
+changelog.md reproduces the material3 release notes from developer.android.com, whose content is
+licensed under the Apache License 2.0 (code samples) and Creative Commons Attribution 4.0
+(text). The sample files keep their original license headers.

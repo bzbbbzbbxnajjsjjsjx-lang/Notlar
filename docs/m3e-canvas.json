@@ -1,0 +1,58 @@
+{
+  "title": "Notlar",
+  "brief": "Hızlı not ve yapılacak listesi tutan, Material 3 Expressive bir Android not uygulaması.",
+  "frame": "phone",
+  "platform": "android",
+  "paletteKey": "amber",
+  "theme": { "dark": false, "bothModes": true, "contrast": "standard", "shape": "rounded", "font": "roboto", "emphasized": true, "motion": "expressive" },
+  "frames": [
+    { "id": "home", "name": "Notlar", "x": 0, "y": 0, "note": "Tüm notlar iki sütunlu kartlarda; sabitlenenler üstte, sonra en son düzenlenenler. Arama başlık ve içerikte arar." },
+    { "id": "edit", "name": "Not", "x": 492, "y": 0, "note": "Notu yazma ve düzenleme ekranı; değişiklikler otomatik kaydedilir." },
+    { "id": "archive", "name": "Arşiv", "x": 984, "y": 0, "note": "Arşivlenen notlar; dokununca açılır, oradan arşivden çıkarılabilir." },
+    { "id": "trash", "name": "Çöp kutusu", "x": 1476, "y": 0, "note": "Silinen notlar 30 gün burada kalır; geri yüklenebilir ya da kalıcı silinebilir." }
+  ],
+  "groups": [
+    { "id": "h1", "x": 0, "y": 0, "axis": "x", "items": [ { "id": "hbar", "kind": "topAppBar", "label": "Notlar", "icon": null, "variant": "filled" } ] },
+    { "id": "h2", "x": 16, "y": 96, "axis": "x", "items": [ { "id": "hsearch", "kind": "searchBar", "label": "Notlarda ara", "icon": null, "variant": "filled" } ] },
+    { "id": "h3", "x": 16, "y": 168, "axis": "x", "items": [
+      { "id": "c1", "kind": "chip", "label": "Tümü", "icon": null, "variant": "filled", "checked": true },
+      { "id": "c2", "kind": "chip", "label": "Notlar", "icon": "notes", "variant": "filled" },
+      { "id": "c3", "kind": "chip", "label": "Yapılacaklar", "icon": "checklist", "variant": "filled" }
+    ] },
+    { "id": "h4", "x": 16, "y": 216, "axis": "x", "items": [ { "id": "n1", "kind": "card", "label": "Market", "supporting": "☐ Süt  ☐ Ekmek  ☑ Yumurta", "icon": "push_pin", "variant": "filled", "noImage": true, "size": 182, "size2": 140, "fill": "tertiaryContainer", "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "h5", "x": 214, "y": 216, "axis": "x", "items": [ { "id": "n2", "kind": "card", "label": "Vardiya planı", "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.", "icon": "push_pin", "variant": "filled", "noImage": true, "size": 182, "size2": 140, "fill": "primaryContainer", "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "h6", "x": 16, "y": 372, "axis": "x", "items": [ { "id": "n3", "kind": "card", "label": "Fikirler", "supporting": "Not uygulamasına widget eklensin.", "icon": null, "variant": "outlined", "noImage": true, "size": 182, "size2": 140, "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "h7", "x": 214, "y": 372, "axis": "x", "items": [ { "id": "n4", "kind": "card", "label": "Kira", "supporting": "Ayın 5'inde ödenecek.", "icon": null, "variant": "outlined", "noImage": true, "size": 182, "size2": 140, "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "h8", "x": 254, "y": 692, "axis": "x", "items": [ { "id": "hfab", "kind": "extendedFab", "label": "Not", "icon": "add", "variant": "filled", "note": "Yeni boş not açar.", "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "h9", "x": 0, "y": 788, "axis": "x", "items": [ { "id": "hnav", "kind": "bottomNav", "label": "", "icon": null, "variant": "filled",
+      "tabs": [ { "icon": "notes", "label": "Notlar" }, { "icon": "archive", "label": "Arşiv" }, { "icon": "delete", "label": "Çöp kutusu" } ], "selected": 0,
+      "actions": { "tab:1": { "to": "archive", "transition": "fade" }, "tab:2": { "to": "trash", "transition": "fade" } } } ] },
+
+    { "id": "e1", "x": 492, "y": 0, "axis": "x", "items": [ { "id": "ebar", "kind": "topAppBar", "label": "", "icon": "arrow_back", "icon2": "push_pin", "variant": "filled", "note": "Geri ok notu kaydedip listeye döner; raptiye notu sabitler.", "actions": { "icon": { "to": "back", "transition": "expand" } } } ] },
+    { "id": "e2", "x": 508, "y": 100, "axis": "x", "items": [ { "id": "etitle", "kind": "text", "label": "Market", "icon": null, "variant": "filled", "size": 28, "bold": true, "note": "Başlık alanı." } ] },
+    { "id": "e3", "x": 508, "y": 156, "axis": "y", "items": [
+      { "id": "i1", "kind": "checkbox", "label": "Süt", "icon": null, "variant": "filled" },
+      { "id": "i2", "kind": "checkbox", "label": "Ekmek", "icon": null, "variant": "filled" },
+      { "id": "i3", "kind": "checkbox", "label": "Yumurta", "icon": null, "variant": "filled", "checked": true }
+    ] },
+    { "id": "e4", "x": 508, "y": 296, "axis": "x", "items": [ { "id": "eadd", "kind": "button", "label": "Öğe ekle", "icon": "add", "variant": "text", "note": "Yapılacak listesine yeni satır ekler." } ] },
+    { "id": "e5", "x": 562, "y": 708, "axis": "x", "items": [ { "id": "etool", "kind": "toolbar", "label": "", "icon": null, "variant": "tonal",
+      "tabs": [ { "icon": "checklist", "label": "" }, { "icon": "palette", "label": "" }, { "icon": "archive", "label": "" }, { "icon": "share", "label": "" }, { "icon": "delete", "label": "" } ],
+      "note": "Sırasıyla: düz metin ile yapılacak listesi arasında geçiş, renk seçimi, arşivle, paylaş, çöp kutusuna taşı." } ] },
+
+    { "id": "a1", "x": 984, "y": 0, "axis": "x", "items": [ { "id": "abar", "kind": "topAppBar", "label": "Arşiv", "icon": null, "variant": "filled" } ] },
+    { "id": "a2", "x": 1000, "y": 104, "axis": "x", "items": [ { "id": "a_n1", "kind": "card", "label": "Eski adres", "supporting": "Atatürk Cad. No 12", "icon": null, "variant": "outlined", "noImage": true, "size": 182, "size2": 140, "action": { "to": "edit", "transition": "expand" } } ] },
+    { "id": "a3", "x": 984, "y": 788, "axis": "x", "items": [ { "id": "anav", "kind": "bottomNav", "label": "", "icon": null, "variant": "filled",
+      "tabs": [ { "icon": "notes", "label": "Notlar" }, { "icon": "archive", "label": "Arşiv" }, { "icon": "delete", "label": "Çöp kutusu" } ], "selected": 1,
+      "actions": { "tab:0": { "to": "home", "transition": "fade" }, "tab:2": { "to": "trash", "transition": "fade" } } } ] },
+
+    { "id": "t1", "x": 1476, "y": 0, "axis": "x", "items": [ { "id": "tbar", "kind": "topAppBar", "label": "Çöp kutusu", "icon": null, "variant": "filled" } ] },
+    { "id": "t2", "x": 1492, "y": 104, "axis": "y", "items": [
+      { "id": "tr1", "kind": "listItem", "label": "Toplantı notu", "supporting": "28 gün sonra silinecek", "icon": "restore_from_trash", "icon2": "delete_forever", "variant": "filled", "note": "Soldaki simge geri yükler, sağdaki onay sorup kalıcı siler." }
+    ] },
+    { "id": "t3", "x": 1492, "y": 700, "axis": "x", "items": [ { "id": "tempty", "kind": "button", "label": "Çöpü boşalt", "icon": "delete_sweep", "variant": "tonal", "size": 380, "note": "Onay sorup tüm çöpü kalıcı siler." } ] },
+    { "id": "t4", "x": 1476, "y": 788, "axis": "x", "items": [ { "id": "tnav", "kind": "bottomNav", "label": "", "icon": null, "variant": "filled",
+      "tabs": [ { "icon": "notes", "label": "Notlar" }, { "icon": "archive", "label": "Arşiv" }, { "icon": "delete", "label": "Çöp kutusu" } ], "selected": 2,
+      "actions": { "tab:0": { "to": "home", "transition": "fade" }, "tab:1": { "to": "archive", "transition": "fade" } } } ] }
+  ]
+}

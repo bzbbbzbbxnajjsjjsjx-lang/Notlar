@@ -1,0 +1,96 @@
+# material3 1.5.0-beta01 API index
+
+One page per source file; top-level public names listed.
+
+- [AndroidAlertDialog.android.kt](AndroidAlertDialog.android.md): `AlertDialog`
+- [AndroidMenu.android.kt](AndroidMenu.android.md): `DropdownMenu`, `DropdownMenuItem`
+- [DatePickerDialog.android.kt](DatePickerDialog.android.md): `DatePickerDialog`
+- [DynamicTonalPalette.android.kt](DynamicTonalPalette.android.md): `dynamicDarkColorScheme`, `dynamicLightColorScheme`
+- [ModalBottomSheet.android.kt](ModalBottomSheet.android.md): `ModalBottomSheetDefaults`, `ModalBottomSheetProperties`
+- [WideNavigationRail.android.kt](WideNavigationRail.android.md): `ModalWideNavigationRailProperties`
+- [AlertDialog.kt](AlertDialog.md): `AlertDialog`, `AlertDialogDefaults`, `BasicAlertDialog`
+- [AppBar.kt](AppBar.md): `BottomAppBar`, `BottomAppBarDefaults`, `BottomAppBarScrollBehavior`, `BottomAppBarState`, `CenterAlignedTopAppBar`, `FlexibleBottomAppBar`, `LargeFlexibleTopAppBar`, `LargeTopAppBar`, `MediumFlexibleTopAppBar`, `MediumTopAppBar`, `TopAppBar`, `TopAppBarColors`, `TopAppBarDefaults`, `TopAppBarScrollBehavior`, `TopAppBarState`, `TwoRowsTopAppBar`, `rememberBottomAppBarState`, `rememberTopAppBarState`
+- [AppBarColumn.kt](AppBarColumn.md): `AppBarColumn`, `AppBarColumnScope`
+- [AppBarDsl.kt](AppBarDsl.md): `AppBarMenuState`, `AppBarOverflowIndicator`, `AppBarScope`
+- [AppBarRow.kt](AppBarRow.md): `AppBarRow`, `AppBarRowScope`
+- [Badge.kt](Badge.md): `Badge`, `BadgeDefaults`, `BadgedBox`
+- [BottomSheet.kt](BottomSheet.md): `BottomSheet`
+- [BottomSheetScaffold.kt](BottomSheetScaffold.md): `BottomSheetScaffold`, `BottomSheetScaffoldState`, `rememberBottomSheetScaffoldState`, `rememberStandardBottomSheetState`
+- [Button.kt](Button.md): `Button`, `ButtonColors`, `ButtonDefaults`, `ButtonElevation`, `ButtonShapes`, `ElevatedButton`, `FilledTonalButton`, `OutlinedButton`, `TextButton`
+- [ButtonGroup.kt](ButtonGroup.md): `ButtonGroup`, `ButtonGroupDefaults`, `ButtonGroupMenuState`, `ButtonGroupScope`
+- [CalendarLocale.kt](CalendarLocale.md): `CalendarLocale`
+- [Card.kt](Card.md): `Card`, `CardColors`, `CardDefaults`, `CardElevation`, `ElevatedCard`, `OutlinedCard`
+- [Checkbox.kt](Checkbox.md): `Checkbox`, `CheckboxColors`, `CheckboxDefaults`, `TriStateCheckbox`
+- [Chip.kt](Chip.md): `AssistChip`, `AssistChipDefaults`, `ChipBorder`, `ChipColors`, `ChipElevation`, `ChipShapes`, `ElevatedAssistChip`, `ElevatedFilterChip`, `ElevatedSuggestionChip`, `FilterChip`, `FilterChipDefaults`, `InputChip`, `InputChipDefaults`, `SelectableChipColors`, `SelectableChipElevation`, `SuggestionChip`, `SuggestionChipDefaults`
+- [ColorScheme.kt](ColorScheme.md): `ColorScheme`, `LocalTonalElevationEnabled`, `contentColorFor`, `darkColorScheme`, `expressiveLightColorScheme`, `lightColorScheme`, `surfaceColorAtElevation`
+- [ComposeMaterial3Flags.kt](ComposeMaterial3Flags.md): `ComposeMaterial3Flags`
+- [ContentColor.kt](ContentColor.md): `LocalContentColor`
+- [DatePicker.kt](DatePicker.md): `DatePicker`, `DatePickerColors`, `DatePickerDefaults`, `DatePickerFormatter`, `DatePickerState`, `DisplayMode`, `SelectableDates`, `rememberDatePickerState`
+- [DatePickerDialog.kt](DatePickerDialog.md): `DatePickerDialog`
+- [DateRangePicker.kt](DateRangePicker.md): `DateRangePicker`, `DateRangePickerDefaults`, `DateRangePickerState`, `rememberDateRangePickerState`
+- [Divider.kt](Divider.md): `Divider`, `DividerDefaults`, `HorizontalDivider`, `VerticalDivider`
+- [DragHandle.kt](DragHandle.md): `DragHandleColors`, `DragHandleShapes`, `DragHandleSizes`, `VerticalDragHandle`, `VerticalDragHandleDefaults`
+- [ExperimentalMaterial3Api.kt](ExperimentalMaterial3Api.md): `ExperimentalMaterial3Api`
+- [ExperimentalMaterial3ExpressiveApi.kt](ExperimentalMaterial3ExpressiveApi.md): `ExperimentalMaterial3ExpressiveApi`
+- [ExposedDropdownMenu.kt](ExposedDropdownMenu.md): `ExposedDropdownMenu`, `ExposedDropdownMenuAnchorType`, `ExposedDropdownMenuBox`, `ExposedDropdownMenuBoxScope`, `ExposedDropdownMenuDefaults`
+- [FloatingActionButton.kt](FloatingActionButton.md): `ExtendedFloatingActionButton`, `FloatingActionButton`, `FloatingActionButtonDefaults`, `FloatingActionButtonElevation`, `LargeExtendedFloatingActionButton`, `LargeFloatingActionButton`, `MediumExtendedFloatingActionButton`, `MediumFloatingActionButton`, `SmallExtendedFloatingActionButton`, `SmallFloatingActionButton`, `animateFloatingActionButton`
+- [FloatingActionButtonMenu.kt](FloatingActionButtonMenu.md): `FloatingActionButtonMenu`, `FloatingActionButtonMenuItem`, `FloatingActionButtonMenuScope`, `ToggleFloatingActionButton`, `ToggleFloatingActionButtonDefaults`, `ToggleFloatingActionButtonScope`
+- [FloatingToolbar.kt](FloatingToolbar.md): `FloatingToolbarColors`, `FloatingToolbarDefaults`, `FloatingToolbarExitDirection`, `FloatingToolbarHorizontalFabPosition`, `FloatingToolbarScrollBehavior`, `FloatingToolbarState`, `FloatingToolbarVerticalFabPosition`, `HorizontalFloatingToolbar`, `VerticalFloatingToolbar`, `rememberFloatingToolbarState`
+- [Icon.kt](Icon.md): `Icon`
+- [IconButton.kt](IconButton.md): `FilledIconButton`, `FilledIconToggleButton`, `FilledTonalIconButton`, `FilledTonalIconToggleButton`, `IconButton`, `IconButtonColors`, `IconButtonShapes`, `IconToggleButton`, `IconToggleButtonColors`, `IconToggleButtonShapes`, `OutlinedIconButton`, `OutlinedIconToggleButton`
+- [IconButtonDefaults.kt](IconButtonDefaults.md): `IconButtonDefaults`
+- [InteractiveComponentSize.kt](InteractiveComponentSize.md): `LocalMinimumInteractiveComponentEnforcement`, `LocalMinimumInteractiveComponentSize`, `MinimumInteractiveLeftAlignmentLine`, `MinimumInteractiveTopAlignmentLine`, `minimumInteractiveComponentSize`
+- [Label.kt](Label.md): `Label`
+- [ListItem.kt](ListItem.md): `ListItem`, `SegmentedListItem`
+- [ListItemDefaults.kt](ListItemDefaults.md): `ListItemColors`, `ListItemDefaults`, `ListItemElevation`, `ListItemShapes`
+- [LoadingIndicator.kt](LoadingIndicator.md): `ContainedLoadingIndicator`, `LoadingIndicator`, `LoadingIndicatorDefaults`
+- [MaterialShapes.kt](MaterialShapes.md): `MaterialShapes`, `toPath`, `toShape`
+- [MaterialTheme.kt](MaterialTheme.md): `MaterialExpressiveTheme`, `MaterialTheme`
+- [Menu.kt](Menu.md): `CheckableDropdownMenuItem`, `DropdownMenu`, `DropdownMenuGroup`, `DropdownMenuItem`, `DropdownMenuPopup`, `DropdownMenuPopupPositionProvider`, `MenuAnchorPosition`, `MenuGroupShapes`, `MenuItemColors`, `MenuItemShapes`, `MenuPositionScope`, `SelectableDropdownMenuItem`, `SelectableMenuItemColors`
+- [MenuDefaults.kt](MenuDefaults.md): `MenuDefaults`
+- [ModalBottomSheet.kt](ModalBottomSheet.md): `ModalBottomSheet`, `ModalBottomSheetDefaults`, `ModalBottomSheetProperties`, `rememberModalBottomSheetState`
+- [MotionScheme.kt](MotionScheme.md): `MotionScheme`
+- [NavigationBar.kt](NavigationBar.md): `NavigationBar`, `NavigationBarDefaults`, `NavigationBarItem`, `NavigationBarItemColors`, `NavigationBarItemDefaults`
+- [NavigationDrawer.kt](NavigationDrawer.md): `DismissibleDrawerSheet`, `DismissibleNavigationDrawer`, `DrawerDefaults`, `DrawerState`, `DrawerValue`, `ModalDrawerSheet`, `ModalNavigationDrawer`, `NavigationDrawerItem`, `NavigationDrawerItemColors`, `NavigationDrawerItemDefaults`, `PermanentDrawerSheet`, `PermanentNavigationDrawer`, `rememberDrawerState`
+- [NavigationItem.kt](NavigationItem.md): `NavigationItemColors`, `NavigationItemIconPosition`
+- [NavigationRail.kt](NavigationRail.md): `NavigationRail`, `NavigationRailDefaults`, `NavigationRailItem`, `NavigationRailItemColors`, `NavigationRailItemDefaults`
+- [OutlinedTextField.kt](OutlinedTextField.md): `OutlinedTextField`
+- [ProgressIndicator.kt](ProgressIndicator.md): `CircularProgressIndicator`, `LinearProgressIndicator`, `ProgressIndicatorDefaults`
+- [RadioButton.kt](RadioButton.md): `RadioButton`, `RadioButtonColors`, `RadioButtonDefaults`
+- [Ripple.kt](Ripple.md): `LocalRippleConfiguration`, `LocalRippleThemeConfiguration`, `RippleConfiguration`, `RippleDefaults`, `RippleThemeConfiguration`, `ripple`
+- [Scaffold.kt](Scaffold.md): `FabPosition`, `Scaffold`, `ScaffoldDefaults`
+- [Scrim.kt](Scrim.md): `Scrim`, `ScrimDefaults`
+- [ScrollField.kt](ScrollField.md): `ScrollField`, `ScrollFieldColors`, `ScrollFieldDefaults`, `ScrollFieldState`, `rememberScrollFieldState`
+- [Scrollbar.kt](Scrollbar.md): `NonInteractiveScrollbarDefaults`, `nonInteractiveScrollbar`
+- [SearchBar.kt](SearchBar.md): `AppBarWithSearch`, `AppBarWithSearchColors`, `DockedSearchBar`, `ExpandedDockedSearchBar`, `ExpandedDockedSearchBarWithGap`, `ExpandedFullScreenContainedSearchBar`, `ExpandedFullScreenSearchBar`, `SearchBar`, `SearchBarColors`, `SearchBarDefaults`, `SearchBarScrollBehavior`, `SearchBarScrollState`, `SearchBarState`, `SearchBarValue`, `TopSearchBar`, `rememberContainedSearchBarState`, `rememberSearchBarScrollState`, `rememberSearchBarState`, `rememberSearchBarWithGapState`
+- [SecureTextField.kt](SecureTextField.md): `OutlinedSecureTextField`, `SecureTextField`
+- [SegmentedButton.kt](SegmentedButton.md): `MultiChoiceSegmentedButtonRow`, `MultiChoiceSegmentedButtonRowScope`, `SegmentedButton`, `SegmentedButtonColors`, `SegmentedButtonDefaults`, `SingleChoiceSegmentedButtonRow`, `SingleChoiceSegmentedButtonRowScope`
+- [Shapes.kt](Shapes.md): `ShapeDefaults`, `Shapes`
+- [SheetDefaults.kt](SheetDefaults.md): `BottomSheetDefaults`, `SheetState`, `SheetValue`, `rememberBottomSheetState`
+- [ShortNavigationBar.kt](ShortNavigationBar.md): `ShortNavigationBar`, `ShortNavigationBarArrangement`, `ShortNavigationBarDefaults`, `ShortNavigationBarItem`, `ShortNavigationBarItemDefaults`
+- [Slider.kt](Slider.md): `RangeSlider`, `RangeSliderState`, `Slider`, `SliderColors`, `SliderDefaults`, `SliderPositions`, `SliderState`, `VerticalSlider`, `rememberRangeSliderState`, `rememberSliderState`
+- [Snackbar.kt](Snackbar.md): `Snackbar`, `SnackbarDefaults`
+- [SnackbarHost.kt](SnackbarHost.md): `SnackbarData`, `SnackbarDuration`, `SnackbarHost`, `SnackbarHostState`, `SnackbarResult`, `SnackbarVisuals`
+- [SplitButton.kt](SplitButton.md): `SplitButtonDefaults`, `SplitButtonLayout`, `SplitButtonShapes`
+- [Surface.kt](Surface.md): `LocalAbsoluteTonalElevation`, `Surface`
+- [SwipeToDismissBox.kt](SwipeToDismissBox.md): `SwipeToDismissBox`, `SwipeToDismissBoxDefaults`, `SwipeToDismissBoxState`, `SwipeToDismissBoxValue`, `rememberSwipeToDismissBoxState`
+- [Switch.kt](Switch.md): `Switch`, `SwitchColors`, `SwitchDefaults`
+- [Tab.kt](Tab.md): `LeadingIconTab`, `Tab`
+- [TabRow.kt](TabRow.md): `PrimaryScrollableTabRow`, `PrimaryTabRow`, `ScrollableTabRow`, `SecondaryScrollableTabRow`, `SecondaryTabRow`, `TabIndicatorScope`, `TabPosition`, `TabRow`, `TabRowDefaults`
+- [Text.kt](Text.md): `LocalTextStyle`, `ProvideTextStyle`, `Text`
+- [TextField.kt](TextField.md): `TextField`
+- [TextFieldDefaults.kt](TextFieldDefaults.md): `OutlinedTextFieldDefaults`, `TextFieldColors`, `TextFieldDefaults`, `TextFieldLabelPosition`, `TextFieldLabelScope`
+- [TimePicker.kt](TimePicker.md): `TimeInput`, `TimeInputColors`, `TimeInputDefaults`, `TimePicker`, `TimePickerColors`, `TimePickerDefaults`, `TimePickerLayoutType`, `TimePickerSelectionMode`, `TimePickerShapes`, `TimePickerState`, `TimeScroll`, `isHourInputValid`, `isInputValid`, `isMinuteInputValid`, `isPm`, `rememberTimePickerState`
+- [TimePickerDialog.kt](TimePickerDialog.md): `TimePickerDialog`, `TimePickerDialogDefaults`, `TimePickerDisplayMode`, `VibrantTimePickerDialog`
+- [ToggleButton.kt](ToggleButton.md): `ElevatedToggleButton`, `ElevatedToggleButtonDefaults`, `FilledTonalToggleButton`, `FilledTonalToggleButtonDefaults`, `OutlinedToggleButton`, `OutlinedToggleButtonDefaults`, `ToggleButton`, `ToggleButtonColors`, `ToggleButtonDefaults`, `ToggleButtonElevation`, `ToggleButtonShapes`, `ToggleButtonSize`
+- [Tooltip.kt](Tooltip.md): `DefaultTooltipCaretShape`, `PlainTooltip`, `RichTooltip`, `RichTooltipColors`, `TooltipAnchorPosition`, `TooltipBox`, `TooltipDefaults`, `TooltipScope`, `TooltipState`, `rememberTooltipState`
+- [Typography.kt](Typography.md): `Typography`
+- [WavyProgressIndicator.kt](WavyProgressIndicator.md): `CircularWavyProgressIndicator`, `LinearWavyProgressIndicator`, `WavyProgressIndicatorDefaults`
+- [WideNavigationRail.kt](WideNavigationRail.md): `ModalWideNavigationRail`, `ModalWideNavigationRailProperties`, `WideNavigationRail`, `WideNavigationRailColors`, `WideNavigationRailDefaults`, `WideNavigationRailItem`, `WideNavigationRailItemDefaults`
+- [WideNavigationRailState.kt](WideNavigationRailState.md): `WideNavigationRailState`, `WideNavigationRailValue`, `rememberWideNavigationRailState`
+- [carousel/Carousel.kt](carousel_Carousel.md): `CarouselDefaults`, `HorizontalCenteredHeroCarousel`, `HorizontalMultiBrowseCarousel`, `HorizontalUncontainedCarousel`
+- [carousel/CarouselItemScope.kt](carousel_CarouselItemScope.md): `CarouselItemScope`
+- [carousel/CarouselParallaxScrollEffect.kt](carousel_CarouselParallaxScrollEffect.md): `CarouselParallaxScrollEffectItemInfo`, `CarouselParallaxScrollEffectState`, `carouselParallaxScrollEffect`
+- [carousel/CarouselState.kt](carousel_CarouselState.md): `CarouselItemDrawInfo`, `CarouselState`, `rememberCarouselState`
+- [carousel/KeylineSnapPosition.kt](carousel_KeylineSnapPosition.md): 
+- [pulltorefresh/PullToRefresh.kt](pulltorefresh_PullToRefresh.md): `PullToRefreshBox`, `PullToRefreshDefaults`, `PullToRefreshState`, `pullToRefresh`, `rememberPullToRefreshState`
