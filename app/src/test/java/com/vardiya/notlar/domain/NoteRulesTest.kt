@@ -72,4 +72,66 @@ class NoteRulesTest {
         assertTrue(Note(1, items = listOf(ChecklistItem(1, " "))).isBlank)
         assertFalse(Note(1, title = "x").isBlank)
     }
+
+    @Test
+    fun sortKeepsPinnedOnTop() {
+        val list = listOf(
+            Note(1, title = "Çay", createdAt = 3, updatedAt = 1),
+            Note(2, title = "ayva", createdAt = 1, updatedAt = 3),
+            Note(3, title = "", createdAt = 2, updatedAt = 2),
+            Note(4, title = "Zil", pinned = true, createdAt = 0, updatedAt = 0),
+        )
+        assertEquals(listOf(4L, 2L, 3L, 1L), NoteRules.visible(list, Section.NOTES, sort = NoteSort.EDITED).map { it.id })
+        assertEquals(listOf(4L, 1L, 3L, 2L), NoteRules.visible(list, Section.NOTES, sort = NoteSort.CREATED).map { it.id })
+        // Turkish alphabet order (Ç after C), untitled notes last.
+        assertEquals(listOf(4L, 2L, 1L, 3L), NoteRules.visible(list, Section.NOTES, sort = NoteSort.TITLE).map { it.id })
+    }
+
+    @Test
+    fun progressCountsNonBlankItems() {
+        assertEquals(1 to 2, NoteEdits.progress(notes[0]))
+        assertEquals(null, NoteEdits.progress(notes[1]))
+        assertEquals(null, NoteEdits.progress(Note(1, isChecklist = true, items = listOf(ChecklistItem(1, " ")))))
+    }
+
+    @Test
+    fun wordCountCoversTitleAndContent() {
+        assertEquals(4, NoteEdits.wordCount(notes[1]))
+        assertEquals(3, NoteEdits.wordCount(notes[0]))
+        assertEquals(0, NoteEdits.wordCount(Note(1, body = "  \n ")))
+    }
+
+    @Test
+    fun duplicateIsAnUnpinnedCopy() {
+        val copy = NoteEdits.duplicate(notes[1], id = 99, nowMillis = 50)
+        assertEquals(99L, copy.id)
+        assertFalse(copy.pinned)
+        assertEquals(50L, copy.updatedAt)
+        assertTrue(copy.sameContentAs(notes[1].copy(id = 99, pinned = false)))
+    }
+
+    @Test
+    fun checklistBulkActions() {
+        assertTrue(NoteEdits.uncheckAll(notes[0]).items.none { it.checked })
+        assertEquals(listOf("Süt"), NoteEdits.removeChecked(notes[0]).items.map { it.text })
+    }
+
+    @Test
+    fun sharedTextBecomesANote() {
+        val note = NoteEdits.fromSharedText("  https://ornek.com \n", "Bağlantı", id = 7, nowMillis = 7)
+        assertEquals("Bağlantı", note.title)
+        assertEquals("https://ornek.com", note.body)
+        assertEquals("", NoteEdits.fromSharedText("x", null, 1, 1).title)
+    }
+
+    @Test
+    fun mergeKeepsNewestVersionOfEachNote() {
+        val merged = NoteEdits.merge(
+            current = listOf(Note(1, title = "eski", updatedAt = 1), Note(2, title = "yerel", updatedAt = 9)),
+            imported = listOf(Note(1, title = "yeni", updatedAt = 5), Note(2, title = "yedek", updatedAt = 3), Note(3, title = "ek")),
+        ).associateBy { it.id }
+        assertEquals("yeni", merged.getValue(1).title)
+        assertEquals("yerel", merged.getValue(2).title)
+        assertEquals("ek", merged.getValue(3).title)
+    }
 }

@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Notlar</string>
+    <!-- Launcher shortcuts are resources because the system reads them from XML. -->
+    <string name="shortcut_new_note">Yeni not</string>
+    <string name="shortcut_new_checklist">Yeni liste</string>
 </resources>

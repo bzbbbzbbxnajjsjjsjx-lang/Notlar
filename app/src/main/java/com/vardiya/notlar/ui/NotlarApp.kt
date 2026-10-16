@@ -12,10 +12,12 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -30,8 +32,19 @@ import kotlinx.coroutines.launch
 
 private const val EDITOR_START_SCALE = 0.92f
 
+/** What the app was opened for from outside: a launcher shortcut or text shared by another app. */
+sealed interface LaunchAction {
+    data object NewNote : LaunchAction
+    data object NewChecklist : LaunchAction
+    data class Shared(val text: String, val subject: String?) : LaunchAction
+}
+
 @Composable
-fun NotlarApp(viewModel: NotesViewModel = viewModel()) {
+fun NotlarApp(
+    viewModel: NotesViewModel = viewModel(),
+    launchAction: LaunchAction? = null,
+    onLaunchActionConsume: () -> Unit = {},
+) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     var section by rememberSaveable { mutableStateOf(Section.NOTES) }
@@ -41,6 +54,26 @@ fun NotlarApp(viewModel: NotesViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val motion = MaterialTheme.motionScheme
+    // A note opened before its first save lands in the stored list (a new list, a copy, a share).
+    var pending by remember { mutableStateOf<Note?>(null) }
+
+    fun open(note: Note) {
+        pending = note
+        openId = note.id
+    }
+
+    val currentOnConsume by rememberUpdatedState(onLaunchActionConsume)
+    LaunchedEffect(launchAction) {
+        val action = launchAction ?: return@LaunchedEffect
+        open(
+            when (action) {
+                LaunchAction.NewNote -> viewModel.newNote()
+                LaunchAction.NewChecklist -> viewModel.newChecklist()
+                is LaunchAction.Shared -> viewModel.createFromShare(action.text, action.subject)
+            },
+        )
+        currentOnConsume()
+    }
 
     fun undoable(message: String, undo: () -> Unit) {
         scope.launch {
@@ -65,7 +98,7 @@ fun NotlarApp(viewModel: NotesViewModel = viewModel()) {
                 section = section,
                 onSectionChange = { section = it },
                 onOpen = { openId = it.id },
-                onNewNote = { openId = viewModel.newNote().id },
+                onNewNote = { open(viewModel.newNote()) },
                 onRestore = { note ->
                     viewModel.restore(note.id)
                     undoable("Not geri yüklendi") { viewModel.moveToTrash(note.id) }
@@ -75,7 +108,9 @@ fun NotlarApp(viewModel: NotesViewModel = viewModel()) {
                 snackbarHostState = snackbar,
             )
         } else {
-            val initial = notes.firstOrNull { it.id == id } ?: Note(id = id, createdAt = id, updatedAt = id)
+            val initial = notes.firstOrNull { it.id == id }
+                ?: pending?.takeIf { it.id == id }
+                ?: Note(id = id, createdAt = id, updatedAt = id)
             EditorScreen(
                 initial = initial,
                 onSave = viewModel::save,

@@ -1,12 +1,19 @@
 package com.vardiya.notlar.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import com.vardiya.notlar.domain.NoteColor
 
 // Amber brand scheme (seed #7C5800): warm paper tones for a notes app.
@@ -74,13 +81,47 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = Color(0xFF39342B),
 )
 
+/** Wallpaper colors (Material You) exist from Android 12. */
+val DynamicColorAvailable: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+private val LocalNotePalette = staticCompositionLocalOf { LightColors }
+
+/**
+ * Scheme the note colors are taken from. With dynamic colors the app chrome follows the wallpaper,
+ * but Sarı, Kum, Yeşil and Kırmızı keep their amber-scheme tones so a note keeps the color its name says.
+ */
+val notePalette: ColorScheme
+    @Composable @ReadOnlyComposable
+    get() = LocalNotePalette.current
+
 @Composable
 fun NotlarTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    // Expressive theme: spring-based expressive motion scheme and the emphasized type styles.
-    MaterialExpressiveTheme(colorScheme = if (darkTheme) DarkColors else LightColors, content = content)
+    val brand = if (darkTheme) DarkColors else LightColors
+    val scheme = if (dynamicColor && DynamicColorAvailable) {
+        val context = LocalContext.current
+        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    } else {
+        brand
+    }
+    val palette = if (scheme === brand) {
+        brand
+    } else {
+        // The default note color is the plain surface, which should follow the wallpaper too.
+        brand.copy(
+            surfaceContainerLow = scheme.surfaceContainerLow,
+            onSurface = scheme.onSurface,
+            outline = scheme.outline,
+            outlineVariant = scheme.outlineVariant,
+        )
+    }
+    CompositionLocalProvider(LocalNotePalette provides palette) {
+        // Expressive theme: spring-based expressive motion scheme and the emphasized type styles.
+        MaterialExpressiveTheme(colorScheme = scheme, content = content)
+    }
 }
 
 /** Card background for a note color; follows light and dark through the scheme roles. */

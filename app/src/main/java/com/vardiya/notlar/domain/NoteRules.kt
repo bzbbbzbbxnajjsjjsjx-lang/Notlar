@@ -1,5 +1,6 @@
 package com.vardiya.notlar.domain
 
+import java.text.Collator
 import java.util.Locale
 
 object NoteRules {
@@ -18,6 +19,7 @@ object NoteRules {
         section: Section,
         query: String = "",
         filter: NoteFilter = NoteFilter.ALL,
+        sort: NoteSort = NoteSort.EDITED,
     ): List<Note> {
         val needle = query.trim().lowercase(Turkish)
         return notes
@@ -32,7 +34,7 @@ object NoteRules {
             .sortedWith(
                 when (section) {
                     Section.TRASH -> compareByDescending { it.trashedAt }
-                    else -> compareByDescending<Note> { it.pinned }.thenByDescending { it.updatedAt }
+                    else -> compareByDescending<Note> { it.pinned }.then(sort.comparator)
                 },
             )
     }
@@ -71,6 +73,15 @@ object NoteRules {
         }
         return listOf(note.title.trim(), content).filter { it.isNotEmpty() }.joinToString("\n\n")
     }
+
+    private val NoteSort.comparator: Comparator<Note>
+        get() = when (this) {
+            NoteSort.EDITED -> compareByDescending { it.updatedAt }
+            NoteSort.CREATED -> compareByDescending { it.createdAt }
+            NoteSort.TITLE -> compareBy<Note> { it.title.isBlank() }
+                .thenBy(Collator.getInstance(Turkish)) { it.title.trim() }
+                .thenByDescending { it.updatedAt }
+        }
 
     private fun NoteFilter.accepts(note: Note): Boolean = when (this) {
         NoteFilter.ALL -> true

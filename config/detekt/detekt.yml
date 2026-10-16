@@ -1,6 +1,9 @@
 # Only the differences from detekt's default config (buildUponDefaultConfig = true).
 
 complexity:
+  # NotesViewModel is the app's single ViewModel and exposes one function per user action.
+  TooManyFunctions:
+    allowedFunctionsPerClass: 20
   # Composable screens are long, branchy layout code; splitting them only for the metric hurts readability.
   LongMethod:
     ignoreAnnotated: ['Composable']
@@ -17,3 +20,8 @@ style:
   # dp, sp, alpha and animation values in UI code are design values, not magic numbers.
   MagicNumber:
     ignoreAnnotated: ['Composable']
+
+Compose:
+  # LocalNotePalette keeps note colors on the amber scheme while dynamic colors restyle the app.
+  CompositionLocalAllowlist:
+    allowedCompositionLocals: ['LocalNotePalette']

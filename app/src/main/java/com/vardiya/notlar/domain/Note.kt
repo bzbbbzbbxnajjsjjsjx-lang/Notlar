@@ -48,3 +48,20 @@ enum class Section { NOTES, ARCHIVE, TRASH }
 
 /** Chips above the main list. */
 enum class NoteFilter { ALL, TEXT, CHECKLIST }
+
+/** Order of the notes and archive lists; pinned notes stay on top in every order. */
+@Serializable
+enum class NoteSort { EDITED, CREATED, TITLE }
+
+/** Light or dark appearance; [SYSTEM] follows the device. */
+@Serializable
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
+/** App preferences; [dynamicColor] takes the colors from the wallpaper on Android 12 and later. */
+@Serializable
+data class Settings(
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val dynamicColor: Boolean = false,
+    val listView: Boolean = false,
+    val sort: NoteSort = NoteSort.EDITED,
+)

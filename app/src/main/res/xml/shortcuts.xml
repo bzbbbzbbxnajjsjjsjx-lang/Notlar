@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon: start a note or a to-do list straight away. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_note"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_note"
+        android:shortcutShortLabel="@string/shortcut_new_note">
+        <intent
+            android:action="com.vardiya.notlar.NEW_NOTE"
+            android:targetClass="com.vardiya.notlar.MainActivity"
+            android:targetPackage="com.vardiya.notlar" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_checklist"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_checklist"
+        android:shortcutShortLabel="@string/shortcut_new_checklist">
+        <intent
+            android:action="com.vardiya.notlar.NEW_CHECKLIST"
+            android:targetClass="com.vardiya.notlar.MainActivity"
+            android:targetPackage="com.vardiya.notlar" />
+    </shortcut>
+</shortcuts>

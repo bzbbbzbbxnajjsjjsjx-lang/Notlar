@@ -4,8 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vardiya.notlar.data.NoteRepository
+import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
+import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.domain.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +22,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     val notes: StateFlow<List<Note>> =
         repository.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val settings: StateFlow<Settings> =
+        repository.settings.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
 
     /** False until the stored notes are loaded, so the list does not flash "empty" on start. */
     private val _loaded = MutableStateFlow(false)
@@ -52,11 +58,47 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun moveToTrash(id: Long) = update(id) { it.copy(trashedAt = now(), pinned = false) }
+    /** An empty to-do list with one row to type into; like [newNote] it is kept once something is written. */
+    fun newChecklist(): Note = newNote().copy(isChecklist = true, items = listOf(ChecklistItem(1)))
 
-    fun restore(id: Long) = update(id) { it.copy(trashedAt = null) }
+    /** Stores a note made from text shared by another app and returns it. */
+    fun createFromShare(text: String, subject: String?): Note {
+        val now = now()
+        return NoteEdits.fromSharedText(text, subject, now, now).also(::save)
+    }
 
-    fun setArchived(id: Long, archived: Boolean) = update(id) { it.copy(archived = archived, pinned = false) }
+    /** Stores a copy of [note] and returns the copy. */
+    fun duplicate(note: Note): Note {
+        val now = now()
+        return NoteEdits.duplicate(note, now, now).also(::save)
+    }
+
+    fun moveToTrash(id: Long) = moveToTrash(setOf(id))
+
+    fun moveToTrash(ids: Set<Long>) = update(ids) { it.copy(trashedAt = now(), pinned = false) }
+
+    fun restore(id: Long) = restore(setOf(id))
+
+    fun restore(ids: Set<Long>) = update(ids) { it.copy(trashedAt = null) }
+
+    fun setArchived(id: Long, archived: Boolean) = setArchived(setOf(id), archived)
+
+    fun setArchived(ids: Set<Long>, archived: Boolean) = update(ids) { it.copy(archived = archived, pinned = false) }
+
+    fun setPinned(ids: Set<Long>, pinned: Boolean) = update(ids) { it.copy(pinned = pinned) }
+
+    fun updateSettings(transform: (Settings) -> Settings) {
+        viewModelScope.launch { repository.saveSettings(transform(settings.value)) }
+    }
+
+    fun exportBackup(): String = repository.encodeBackup(notes.value)
+
+    /** Adds the notes of a backup file; returns how many it held, or null if it is not a backup. */
+    suspend fun importBackup(raw: String): Int? {
+        val imported = repository.decodeBackup(raw) ?: return null
+        repository.edit { NoteEdits.merge(it, imported) }
+        return imported.size
+    }
 
     fun deleteForever(id: Long) {
         viewModelScope.launch { repository.edit { list -> list.filterNot { it.id == id } } }
@@ -66,9 +108,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { repository.edit { list -> list.filterNot { it.isTrashed } } }
     }
 
-    private fun update(id: Long, transform: (Note) -> Note) {
+    private fun update(ids: Set<Long>, transform: (Note) -> Note) {
         viewModelScope.launch {
-            repository.edit { list -> list.map { if (it.id == id) transform(it) else it } }
+            repository.edit { list -> list.map { if (it.id in ids) transform(it) else it } }
         }
     }
 
