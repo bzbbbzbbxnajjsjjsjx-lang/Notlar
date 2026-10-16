@@ -62,6 +62,16 @@ Bump `versionCode` and `versionName` in `app/build.gradle.kts` and add a "Yenili
 section at the top of `.github/release-notes.md`. Pushing a `v*` tag, or running the workflow
 with `release_tag`, publishes the release APK as a GitHub release.
 
+## Agents
+
+`.claude/agents/` holds three subagents; use them, in this order, for every change:
+
+- `dal-bekcisi` - at the start of a task: confirms the branch contains the latest release.
+- `tasarimci` - for any new screen or vague UI request: sketches it in M3E Canvas and returns a
+  link; get the user's approval before writing code.
+- `kontrolcu` - after the change and before every push or release: detekt, lint, tests, release
+  build, and a look at every changed screenshot against the request.
+
 ## Skills
 
 `.claude/skills/` holds Compose UI, performance audit, accessibility and testing guidance, plus
