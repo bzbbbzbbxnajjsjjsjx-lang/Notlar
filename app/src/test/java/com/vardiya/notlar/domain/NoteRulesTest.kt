@@ -140,5 +140,8 @@ class NoteRulesTest {
         assertEquals(listOf(0..2, 7..9), NoteEdits.matchRanges("Süt ve süt", "SÜT"))
         assertEquals(listOf(5..8), NoteEdits.matchRanges("Ayın kira günü", " KİRA "))
         assertTrue(NoteEdits.matchRanges("Süt", "  ").isEmpty())
+        // Turkish: "kira" is not "KIRA" (kıra), but "İ" is the capital of "i".
+        assertTrue(NoteEdits.matchRanges("KIRA", "kira").isEmpty())
+        assertEquals(listOf(0..3), NoteEdits.matchRanges("KİRA", "kira"))
     }
 }

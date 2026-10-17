@@ -12,6 +12,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,11 +52,16 @@ fun SwipeActions(
 ) {
     val haptic = LocalHapticFeedback.current
     val state = rememberSwipeToDismissBoxState()
+    // The grid saves this state under the note's key. When an undo brings the note back, it would
+    // come back still swiped off screen; start it from rest instead.
+    LaunchedEffect(state) {
+        if (state.currentValue != SwipeToDismissBoxValue.Settled) state.snapTo(SwipeToDismissBoxValue.Settled)
+    }
     val shape = MaterialTheme.shapes.large
     SwipeToDismissBox(
         state = state,
         modifier = modifier.semantics {
-            customActions = listOfNotNull(startAction, endAction).map { action ->
+            customActions = listOfNotNull(startAction, endAction).filter { enabled }.map { action ->
                 CustomAccessibilityAction(action.label) {
                     action.onSwipe()
                     true

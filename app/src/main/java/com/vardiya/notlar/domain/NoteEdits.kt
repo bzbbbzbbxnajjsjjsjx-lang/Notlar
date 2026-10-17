@@ -4,6 +4,7 @@ package com.vardiya.notlar.domain
 object NoteEdits {
 
     private val whitespace = Regex("\\s+")
+    private val turkish = java.util.Locale.forLanguageTag("tr-TR")
 
     /** Done and total to-do items, blank rows left out; null for a text note or an empty list. */
     fun progress(note: Note): Pair<Int, Int>? {
@@ -48,15 +49,20 @@ object NoteEdits {
         return byId.values.toList()
     }
 
-    /** Where [query] occurs in [text], ignoring case; empty for a blank query. */
+    /**
+     * Where [query] occurs in [text], ignoring case the Turkish way (I/ı and İ/i are different
+     * letters), as the search itself does; empty for a blank query.
+     */
     fun matchRanges(text: String, query: String): List<IntRange> {
-        val needle = query.trim()
-        if (needle.isEmpty()) return emptyList()
+        val needle = query.trim().lowercase(turkish)
+        val haystack = text.lowercase(turkish)
+        // Lowercasing that changes the length would shift every index; such text is not highlighted.
+        if (needle.isEmpty() || haystack.length != text.length) return emptyList()
         val ranges = mutableListOf<IntRange>()
-        var from = text.indexOf(needle, ignoreCase = true)
+        var from = haystack.indexOf(needle)
         while (from >= 0) {
             ranges += from until from + needle.length
-            from = text.indexOf(needle, from + needle.length, ignoreCase = true)
+            from = haystack.indexOf(needle, from + needle.length)
         }
         return ranges
     }

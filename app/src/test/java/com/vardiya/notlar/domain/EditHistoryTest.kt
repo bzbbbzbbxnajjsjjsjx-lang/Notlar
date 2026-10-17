@@ -50,4 +50,16 @@ class EditHistoryTest {
         assertFalse(history.canUndo)
         assertEquals(7, history.current)
     }
+
+    @Test
+    fun longTypingIsSplitIntoSteps() {
+        val history = EditHistory("", mergeWindowMillis = 1_000, maxStepMillis = 5_000)
+        var text = ""
+        (0..20).forEach { second ->
+            text += "a"
+            history.record(text, nowMillis = second * 500L)
+        }
+        // 10 seconds of steady typing: undone in parts, not all at once.
+        assertTrue(history.undo()!!.isNotEmpty())
+    }
 }

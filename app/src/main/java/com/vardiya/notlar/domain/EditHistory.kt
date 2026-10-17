@@ -2,13 +2,20 @@ package com.vardiya.notlar.domain
 
 /**
  * Undo and redo for the editor. Changes recorded within [mergeWindowMillis] of each other count as
- * one step, so a typed word is undone at once rather than letter by letter.
+ * one step, so a typed word is undone at once rather than letter by letter; a step never spans more
+ * than [maxStepMillis], so a long stretch of typing is undone in parts.
  */
-class EditHistory<T>(initial: T, private val mergeWindowMillis: Long = 1_000, private val limit: Int = 100) {
+class EditHistory<T>(
+    initial: T,
+    private val mergeWindowMillis: Long = 1_000,
+    private val maxStepMillis: Long = 5_000,
+    private val limit: Int = 100,
+) {
 
     private val undoStack = ArrayDeque<T>()
     private val redoStack = ArrayDeque<T>()
     private var lastRecordedAt: Long? = null
+    private var stepStartedAt: Long = 0
 
     var current: T = initial
         private set
@@ -20,9 +27,12 @@ class EditHistory<T>(initial: T, private val mergeWindowMillis: Long = 1_000, pr
     fun record(next: T, nowMillis: Long) {
         if (next == current) return
         val last = lastRecordedAt
-        if (last == null || nowMillis - last > mergeWindowMillis || undoStack.isEmpty()) {
+        val newStep = last == null || undoStack.isEmpty() ||
+            nowMillis - last > mergeWindowMillis || nowMillis - stepStartedAt > maxStepMillis
+        if (newStep) {
             undoStack.addLast(current)
             if (undoStack.size > limit) undoStack.removeFirst()
+            stepStartedAt = nowMillis
         }
         current = next
         redoStack.clear()

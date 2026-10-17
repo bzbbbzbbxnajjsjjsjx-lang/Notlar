@@ -210,11 +210,11 @@ fun NotlarApp(
                         onSwipeArchive = { note ->
                             viewModel.setArchived(note.id, !note.archived)
                             val text = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
-                            undoable(text) { viewModel.putBack(note) }
+                            undoable(text) { viewModel.refile(note) }
                         },
                         onSwipeTrash = { note ->
                             viewModel.moveToTrash(note.id)
-                            undoable("Not çöp kutusuna taşındı") { viewModel.putBack(note) }
+                            undoable("Not çöp kutusuna taşındı") { viewModel.refile(note) }
                         },
                         snackbarHostState = snackbar,
                     )
