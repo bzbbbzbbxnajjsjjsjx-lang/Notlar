@@ -32,6 +32,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,6 +48,7 @@ import com.vardiya.notlar.ui.theme.onContainer
 
 private const val PREVIEW_ITEMS = 6
 private const val PREVIEW_LINES = 10
+private const val HIGHLIGHT_ALPHA = 0.22f
 
 /**
  * A note in the grid or list: title, then the start of its text or its first to-do items.
@@ -56,6 +61,7 @@ fun NoteCard(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     selected: Boolean = false,
+    highlight: String = "",
 ) {
     val palette = notePalette
     val shape = MaterialTheme.shapes.large
@@ -88,7 +94,7 @@ fun NoteCard(
             if (note.title.isNotBlank() || note.pinned || selected) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
-                        note.title,
+                        highlighted(note.title, highlight),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -108,9 +114,9 @@ fun NoteCard(
                 }
             }
             when {
-                note.isChecklist -> ChecklistPreview(note)
+                note.isChecklist -> ChecklistPreview(note, highlight)
                 note.body.isNotBlank() -> Text(
-                    note.body.trim(),
+                    highlighted(note.body.trim(), highlight),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = PREVIEW_LINES,
                     overflow = TextOverflow.Ellipsis,
@@ -121,7 +127,7 @@ fun NoteCard(
 }
 
 @Composable
-private fun ChecklistPreview(note: Note) {
+private fun ChecklistPreview(note: Note, highlight: String) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         NoteEdits.progress(note)?.let { (done, total) ->
             val content = LocalContentColor.current
@@ -156,7 +162,7 @@ private fun ChecklistPreview(note: Note) {
                         .size(18.dp),
                 )
                 Text(
-                    item.text,
+                    highlighted(item.text, highlight),
                     style = MaterialTheme.typography.bodyMedium,
                     textDecoration = if (item.checked) TextDecoration.LineThrough else null,
                     maxLines = 1,
@@ -167,5 +173,20 @@ private fun ChecklistPreview(note: Note) {
         if (items.size > PREVIEW_ITEMS) {
             Text("+${items.size - PREVIEW_ITEMS} öğe daha", style = MaterialTheme.typography.labelMedium)
         }
+    }
+}
+
+/** [text] with every match of the search marked on a tinted background. */
+@Composable
+private fun highlighted(text: String, query: String): AnnotatedString {
+    val ranges = NoteEdits.matchRanges(text, query)
+    if (ranges.isEmpty()) return AnnotatedString(text)
+    val mark = SpanStyle(
+        background = LocalContentColor.current.copy(alpha = HIGHLIGHT_ALPHA),
+        fontWeight = FontWeight.Bold,
+    )
+    return buildAnnotatedString {
+        append(text)
+        ranges.forEach { addStyle(mark, it.first, it.last + 1) }
     }
 }

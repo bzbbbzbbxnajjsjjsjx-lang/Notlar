@@ -134,4 +134,11 @@ class NoteRulesTest {
         assertEquals("yerel", merged.getValue(2).title)
         assertEquals("ek", merged.getValue(3).title)
     }
+
+    @Test
+    fun matchRangesFindEveryOccurrence() {
+        assertEquals(listOf(0..2, 7..9), NoteEdits.matchRanges("Süt ve süt", "SÜT"))
+        assertEquals(listOf(5..8), NoteEdits.matchRanges("Ayın kira günü", " KİRA "))
+        assertTrue(NoteEdits.matchRanges("Süt", "  ").isEmpty())
+    }
 }

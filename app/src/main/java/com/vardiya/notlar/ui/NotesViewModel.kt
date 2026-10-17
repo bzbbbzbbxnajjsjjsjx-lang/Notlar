@@ -85,6 +85,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setArchived(ids: Set<Long>, archived: Boolean) = update(ids) { it.copy(archived = archived, pinned = false) }
 
+    /** Puts [note] back exactly as it was, e.g. to undo a swipe. */
+    fun putBack(note: Note) = update(setOf(note.id)) { note }
+
     fun setPinned(ids: Set<Long>, pinned: Boolean) = update(ids) { it.copy(pinned = pinned) }
 
     fun updateSettings(transform: (Settings) -> Settings) {

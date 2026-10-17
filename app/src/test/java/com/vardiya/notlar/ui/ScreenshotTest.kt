@@ -132,6 +132,8 @@ class ScreenshotTest {
             onPinSelection = {},
             onArchiveSelection = {},
             onTrashSelection = {},
+            onSwipeArchive = {},
+            onSwipeTrash = {},
             snackbarHostState = SnackbarHostState(),
             nowMillis = now,
         )

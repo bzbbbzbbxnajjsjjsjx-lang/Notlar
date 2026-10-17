@@ -47,4 +47,17 @@ object NoteEdits {
         }
         return byId.values.toList()
     }
+
+    /** Where [query] occurs in [text], ignoring case; empty for a blank query. */
+    fun matchRanges(text: String, query: String): List<IntRange> {
+        val needle = query.trim()
+        if (needle.isEmpty()) return emptyList()
+        val ranges = mutableListOf<IntRange>()
+        var from = text.indexOf(needle, ignoreCase = true)
+        while (from >= 0) {
+            ranges += from until from + needle.length
+            from = text.indexOf(needle, from + needle.length, ignoreCase = true)
+        }
+        return ranges
+    }
 }

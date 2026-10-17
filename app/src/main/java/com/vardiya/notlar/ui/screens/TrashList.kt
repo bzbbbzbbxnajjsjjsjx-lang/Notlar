@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.ui.components.SwipeAction
+import com.vardiya.notlar.ui.components.SwipeActions
 
 /** Trashed notes with restore and delete-for-good actions; they expire after 30 days. */
 @Composable
@@ -86,22 +88,35 @@ internal fun TrashList(
             }
         }
         items(notes, key = { it.id }) { note ->
-            OutlinedCard(Modifier.animateItem()) {
-                ListItem(
-                    headlineContent = { Text(note.displayTitle(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    supportingContent = { Text("${NoteRules.daysLeft(note, nowMillis)} gün sonra silinecek") },
-                    trailingContent = {
-                        Row {
-                            IconButton(onClick = { onRestore(note) }, shapes = IconButtonDefaults.shapes()) {
-                                Icon(Icons.Filled.RestoreFromTrash, contentDescription = "Geri yükle")
+            // Swipe right to bring a note back; deleting for good keeps its confirmation dialog.
+            SwipeActions(
+                startAction = SwipeAction(
+                    icon = Icons.Filled.RestoreFromTrash,
+                    label = "Geri yükle",
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onSwipe = { onRestore(note) },
+                ),
+                endAction = null,
+                modifier = Modifier.animateItem(),
+            ) {
+                OutlinedCard {
+                    ListItem(
+                        headlineContent = { Text(note.displayTitle(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        supportingContent = { Text("${NoteRules.daysLeft(note, nowMillis)} gün sonra silinecek") },
+                        trailingContent = {
+                            Row {
+                                IconButton(onClick = { onRestore(note) }, shapes = IconButtonDefaults.shapes()) {
+                                    Icon(Icons.Filled.RestoreFromTrash, contentDescription = "Geri yükle")
+                                }
+                                IconButton(onClick = { confirmDeleteId = note.id }, shapes = IconButtonDefaults.shapes()) {
+                                    Icon(Icons.Filled.DeleteForever, contentDescription = "Kalıcı olarak sil")
+                                }
                             }
-                            IconButton(onClick = { confirmDeleteId = note.id }, shapes = IconButtonDefaults.shapes()) {
-                                Icon(Icons.Filled.DeleteForever, contentDescription = "Kalıcı olarak sil")
-                            }
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.vardiya.notlar.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
@@ -62,6 +65,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -81,6 +85,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.ChecklistItem
+import com.vardiya.notlar.domain.EditHistory
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
@@ -116,6 +121,25 @@ fun EditorScreen(
     today: LocalDate = LocalDate.now(),
 ) {
     var draft by remember(initial.id) { mutableStateOf(initial) }
+    val history = remember(initial.id) { EditHistory(initial) }
+    // Bumped after every recorded change so the undo and redo buttons recompose.
+    var historyVersion by remember(initial.id) { mutableIntStateOf(0) }
+    LaunchedEffect(initial.id) {
+        snapshotFlow { draft }.collect {
+            if (it != history.current) {
+                history.record(it, System.currentTimeMillis())
+                historyVersion++
+            }
+        }
+    }
+    // Reading historyVersion makes these follow the history, which is not snapshot state itself.
+    val canUndo = historyVersion >= 0 && history.canUndo
+    val canRedo = historyVersion >= 0 && history.canRedo
+    fun step(to: Note?) {
+        to ?: return
+        draft = to
+        historyVersion++
+    }
     val currentSave by rememberUpdatedState(onSave)
     LaunchedEffect(initial.id) {
         snapshotFlow { draft }.collectLatest {
@@ -148,6 +172,17 @@ fun EditorScreen(
                     }
                 },
                 actions = {
+                    // Undo and redo show up after the first change.
+                    AnimatedVisibility(visible = canUndo || canRedo) {
+                        Row {
+                            IconButton(onClick = { step(history.undo()) }, enabled = canUndo, shapes = IconButtonDefaults.shapes()) {
+                                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Geri al")
+                            }
+                            IconButton(onClick = { step(history.redo()) }, enabled = canRedo, shapes = IconButtonDefaults.shapes()) {
+                                Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Yinele")
+                            }
+                        }
+                    }
                     if (!draft.archived) {
                         IconToggleButton(
                             checked = draft.pinned,

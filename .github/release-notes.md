@@ -4,6 +4,12 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.3.0)
+- **Yeni alt menü:** Daha yüksek alt menü; seçili sekmenin simgesi geniş bir hapın içinde, etiketi altında.
+- **Kaydırarak işlem:** Bir notu sağa kaydır, arşivlensin (arşivde: arşivden çıksın); sola kaydır, çöp kutusuna gitsin. İkisi de "Geri al" ile notun önceki hâline döner. Çöp kutusunda sağa kaydırınca not geri yüklenir.
+- **Arama vurgusu:** Aradığın kelime kartlarda başlıkta, metinde ve yapılacaklarda işaretlenir.
+- **Geri al / Yinele:** Yazma ekranında ilk değişiklikten sonra üstte geri al ve yinele düğmeleri belirir. Art arda yazılan harfler tek adımda geri alınır.
+
 ### Yenilikler (1.2.0)
 - **Nottan editöre geçiş:** Bir nota dokununca kart büyüyerek yazma ekranına dönüşür, geri dönünce kartına küçülür. Yeni not ortadan büyüyerek açılır.
 - **Alt menü animasyonları:** Notlar simgesi zıplar, Arşiv kutusu içine bir şey konmuş gibi düşüp esner, Çöp kutusu kapağı sallanır.

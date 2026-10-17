@@ -89,6 +89,8 @@ import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.ui.components.AnimatedIcon
 import com.vardiya.notlar.ui.components.IconMotion
 import com.vardiya.notlar.ui.components.NoteCard
+import com.vardiya.notlar.ui.components.SwipeAction
+import com.vardiya.notlar.ui.components.SwipeActions
 import com.vardiya.notlar.ui.components.sharedNoteBounds
 
 // Lists slide by a sixth of their width when the section changes.
@@ -152,6 +154,8 @@ fun MainScreen(
     onPinSelection: (pinned: Boolean) -> Unit,
     onArchiveSelection: () -> Unit,
     onTrashSelection: () -> Unit,
+    onSwipeArchive: (Note) -> Unit,
+    onSwipeTrash: (Note) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     nowMillis: Long = System.currentTimeMillis(),
@@ -291,6 +295,8 @@ fun MainScreen(
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onSelectionChange(if (note.id in selection) selection - note.id else selection + note.id)
                     },
+                    onSwipeArchive = onSwipeArchive,
+                    onSwipeTrash = onSwipeTrash,
                     contentPadding = padding,
                 )
             }
@@ -342,6 +348,8 @@ private fun NoteGrid(
     selection: Set<Long>,
     onOpen: (Note) -> Unit,
     onSelect: (Note) -> Unit,
+    onSwipeArchive: (Note) -> Unit,
+    onSwipeTrash: (Note) -> Unit,
     contentPadding: PaddingValues,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -394,11 +402,12 @@ private fun NoteGrid(
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Sabitlenenler") }
         }
-        items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect) }
+        val swipe = SwipeSetup(section, query, swipeEnabled = selection.isEmpty(), onSwipeArchive, onSwipeTrash)
+        items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Diğerleri") }
         }
-        items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect) }
+        items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
         if (loaded && visible.isEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 EmptyState(
@@ -414,22 +423,53 @@ private fun NoteGrid(
     }
 }
 
+/** What every card in one list shares: the search to highlight and what a swipe does. */
+private class SwipeSetup(
+    val section: Section,
+    val query: String,
+    val swipeEnabled: Boolean,
+    val onArchive: (Note) -> Unit,
+    val onTrash: (Note) -> Unit,
+)
+
 @Composable
 private fun LazyStaggeredGridItemScope.GridCard(
     note: Note,
     selected: Boolean,
     onOpen: (Note) -> Unit,
     onSelect: (Note) -> Unit,
+    swipe: SwipeSetup,
 ) {
-    NoteCard(
-        note,
-        onClick = { onOpen(note) },
-        onLongClick = { onSelect(note) },
-        selected = selected,
-        modifier = Modifier
-            .animateItem()
-            .sharedNoteBounds(note.id),
-    )
+    val scheme = MaterialTheme.colorScheme
+    val inArchive = swipe.section == Section.ARCHIVE
+    // Right: archive (or bring back from the archive); left: trash.
+    SwipeActions(
+        startAction = SwipeAction(
+            icon = if (inArchive) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
+            label = if (inArchive) "Arşivden çıkar" else "Arşivle",
+            containerColor = scheme.tertiaryContainer,
+            contentColor = scheme.onTertiaryContainer,
+            onSwipe = { swipe.onArchive(note) },
+        ),
+        endAction = SwipeAction(
+            icon = Icons.Outlined.Delete,
+            label = "Çöp kutusuna taşı",
+            containerColor = scheme.errorContainer,
+            contentColor = scheme.onErrorContainer,
+            onSwipe = { swipe.onTrash(note) },
+        ),
+        enabled = swipe.swipeEnabled,
+        modifier = Modifier.animateItem(),
+    ) {
+        NoteCard(
+            note,
+            onClick = { onOpen(note) },
+            onLongClick = { onSelect(note) },
+            selected = selected,
+            highlight = swipe.query,
+            modifier = Modifier.sharedNoteBounds(note.id),
+        )
+    }
 }
 
 @Composable

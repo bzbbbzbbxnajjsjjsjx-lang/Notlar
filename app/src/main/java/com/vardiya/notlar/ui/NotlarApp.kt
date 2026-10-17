@@ -207,6 +207,15 @@ fun NotlarApp(
                             selection = emptyList()
                             undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
                         },
+                        onSwipeArchive = { note ->
+                            viewModel.setArchived(note.id, !note.archived)
+                            val text = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
+                            undoable(text) { viewModel.putBack(note) }
+                        },
+                        onSwipeTrash = { note ->
+                            viewModel.moveToTrash(note.id)
+                            undoable("Not çöp kutusuna taşındı") { viewModel.putBack(note) }
+                        },
                         snackbarHostState = snackbar,
                     )
                 } else {
