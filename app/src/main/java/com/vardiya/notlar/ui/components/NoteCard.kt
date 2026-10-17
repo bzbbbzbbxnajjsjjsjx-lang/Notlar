@@ -77,6 +77,8 @@ fun NoteCard(
     onLongClick: (() -> Unit)? = null,
     selected: Boolean = false,
     highlight: String = "",
+    textScale: Float = 1f,
+    nowMillis: Long = System.currentTimeMillis(),
 ) {
     val palette = notePalette
     val interactions = remember { MutableInteractionSource() }
@@ -135,14 +137,15 @@ fun NoteCard(
                 }
             }
             when {
-                note.isChecklist -> ChecklistPreview(note, highlight)
+                note.isChecklist -> ChecklistPreview(note, highlight, textScale)
                 note.body.isNotBlank() -> Text(
                     highlighted(note.body.trim(), highlight),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.scaled(textScale),
                     maxLines = PREVIEW_LINES,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            NoteChips(note, nowMillis = nowMillis)
         }
     }
 }
@@ -174,7 +177,7 @@ private fun SelectedBadge() {
 }
 
 @Composable
-private fun ChecklistPreview(note: Note, highlight: String) {
+private fun ChecklistPreview(note: Note, highlight: String, textScale: Float) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         NoteEdits.progress(note)?.let { (done, total) ->
             val content = LocalContentColor.current
@@ -212,7 +215,7 @@ private fun ChecklistPreview(note: Note, highlight: String) {
                 )
                 Text(
                     highlighted(item.text, highlight),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.scaled(textScale),
                     textDecoration = if (item.checked) TextDecoration.LineThrough else null,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

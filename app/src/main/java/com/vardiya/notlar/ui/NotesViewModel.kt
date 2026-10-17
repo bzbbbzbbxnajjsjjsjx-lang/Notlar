@@ -8,7 +8,15 @@ import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.domain.Reminders
 import com.vardiya.notlar.domain.Settings
+import com.vardiya.notlar.reminders.ReminderScheduler
+import com.vardiya.notlar.widget.NotlarWidgets
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +24,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+private const val WIDGET_REFRESH_DELAY_MS = 1_000L
+
+@OptIn(FlowPreview::class)
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = NoteRepository.get(application)
+    private val scheduler = ReminderScheduler(application)
 
     val notes: StateFlow<List<Note>> =
         repository.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -46,7 +58,31 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             repository.edit { NoteRules.purgeExpired(it, now()) }
             _loaded.value = true
         }
+        // Alarms follow the stored reminders: set when one is added or moved, cancelled when it goes.
+        viewModelScope.launch {
+            var scheduled = emptySet<Long>()
+            repository.notes
+                .distinctUntilChangedBy { notes -> Reminders.scheduled(notes).map { Triple(it.id, it.reminderAt, it.reminderRepeat) } }
+                .collect { notes ->
+                    val ids = Reminders.scheduled(notes).map { it.id }.toSet()
+                    scheduler.sync(notes, goneIds = scheduled - ids)
+                    scheduled = ids
+                }
+        }
+        // Home screen widgets show the lists and hide them while the app lock is on.
+        viewModelScope.launch {
+            combine(repository.notes, repository.settings, repository.lock) { _, _, _ -> }
+                .drop(1)
+                .debounce(WIDGET_REFRESH_DELAY_MS)
+                .collect { NotlarWidgets.refresh(application) }
+        }
     }
+
+    /** Adds, renames and deletes labels. */
+    val labels = LabelEditor(repository, viewModelScope)
+
+    /** The stored note [id], once the notes are loaded; null if there is no such note. */
+    suspend fun find(id: Long): Note? = repository.notes.first().firstOrNull { it.id == id && !it.isTrashed }
 
     fun newNote(): Note {
         val now = now()
@@ -133,6 +169,6 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             repository.edit { list -> list.map { if (it.id in ids) transform(it) else it } }
         }
     }
-
-    private fun now() = System.currentTimeMillis()
 }
+
+private fun now() = System.currentTimeMillis()

@@ -31,6 +31,11 @@ data class Note(
     val trashedAt: Long? = null,
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
+    /** When to remind about the note, in epoch millis; null when no reminder is set. */
+    val reminderAt: Long? = null,
+    val reminderRepeat: ReminderRepeat = ReminderRepeat.NONE,
+    /** Names of the labels the note carries, in the order they were added. */
+    val labels: List<String> = emptyList(),
 ) {
     val isTrashed: Boolean get() = trashedAt != null
 
@@ -42,6 +47,14 @@ data class Note(
     fun sameContentAs(other: Note): Boolean =
         copy(createdAt = 0L, updatedAt = 0L) == other.copy(createdAt = 0L, updatedAt = 0L)
 }
+
+/** How a reminder comes back after it fires. */
+@Serializable
+enum class ReminderRepeat { NONE, DAILY, WEEKLY, MONTHLY }
+
+/** Size of the note text in the editor (and on the cards if asked), as a factor of the body style. */
+@Serializable
+enum class TextSize(val scale: Float) { SMALL(0.875f), NORMAL(1f), LARGE(1.25f), HUGE(1.5f) }
 
 /** The three lists the bottom bar switches between. */
 enum class Section { NOTES, ARCHIVE, TRASH }
@@ -69,4 +82,8 @@ data class Settings(
     val biometricUnlock: Boolean = false,
     val lockTimeout: LockTimeout = LockTimeout.IMMEDIATE,
     val hideContent: Boolean = false,
+    /** Labels in the order the user made them; a label can exist before any note carries it. */
+    val labels: List<String> = emptyList(),
+    val textSize: TextSize = TextSize.NORMAL,
+    val textSizeOnCards: Boolean = false,
 )

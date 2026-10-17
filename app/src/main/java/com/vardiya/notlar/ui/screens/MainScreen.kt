@@ -14,6 +14,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -35,6 +37,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Add
@@ -46,10 +49,13 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Unarchive
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -86,10 +92,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.domain.Labels
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteFilter
 import com.vardiya.notlar.domain.NoteRules
@@ -173,6 +181,7 @@ fun MainScreen(
     onForgetSearch: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    onManageLabels: () -> Unit = {},
     nowMillis: Long = System.currentTimeMillis(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -186,6 +195,10 @@ fun MainScreen(
     val query = rememberTextFieldState()
     val queryText = query.text.toString()
     var filter by rememberSaveable { mutableStateOf(NoteFilter.ALL) }
+    val labels = Labels.all(settings.labels, notes)
+    // The label chosen above the list; forgotten once the label is renamed or deleted.
+    var chosenLabel by rememberSaveable { mutableStateOf<String?>(null) }
+    val label = chosenLabel?.takeIf { chosen -> labels.any { Labels.same(it, chosen) } }
     val searchState = rememberSearchBarState()
     val searchScroll = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     // Each list starts unsearched; a rotation keeps the search.
@@ -331,6 +344,8 @@ fun MainScreen(
                     query = queryText,
                     filter = filter,
                     onFilterChange = { filter = it },
+                    labels = LabelFilter(labels, label, onLabelChange = { chosenLabel = it }, onManage = onManageLabels),
+                    nowMillis = nowMillis,
                     contentPadding = padding,
                 )
             }
@@ -405,6 +420,8 @@ private fun NoteGrid(
     query: String,
     filter: NoteFilter,
     onFilterChange: (NoteFilter) -> Unit,
+    labels: LabelFilter,
+    nowMillis: Long,
     contentPadding: PaddingValues,
 ) {
     val visible = NoteRules.visible(
@@ -413,6 +430,7 @@ private fun NoteGrid(
         query,
         if (section == Section.NOTES) filter else NoteFilter.ALL,
         settings.sort,
+        label = if (section == Section.NOTES) labels.selected else null,
     )
     val pinned = visible.filter { it.pinned }
     val others = visible.filterNot { it.pinned }
@@ -443,11 +461,22 @@ private fun NoteGrid(
         }
         if (section == Section.NOTES) {
             item(span = StaggeredGridItemSpan.FullLine) { FilterChips(filter, onFilterChange) }
+            if (labels.all.isNotEmpty()) {
+                item(span = StaggeredGridItemSpan.FullLine) { LabelChips(labels) }
+            }
         }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Sabitlenenler") }
         }
-        val swipe = SwipeSetup(section, query, swipeEnabled = selection.isEmpty(), onSwipeArchive, onSwipeTrash)
+        val swipe = SwipeSetup(
+            section,
+            query,
+            swipeEnabled = selection.isEmpty(),
+            onSwipeArchive,
+            onSwipeTrash,
+            textScale = if (settings.textSizeOnCards) settings.textSize.scale else 1f,
+            nowMillis = nowMillis,
+        )
         items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Diğerleri") }
@@ -466,6 +495,7 @@ private fun NoteGrid(
                     icon = section.icon,
                     text = when {
                         query.isNotBlank() -> "\"${query.trim()}\" ile eşleşen not yok."
+                        labels.selected != null && section == Section.NOTES -> "\"${labels.selected}\" etiketli not yok."
                         section == Section.ARCHIVE -> "Arşivlenen notlar burada görünür."
                         else -> "Henüz not yok.\nSağ alttaki + ile ilk notunu yaz."
                     },
@@ -475,13 +505,15 @@ private fun NoteGrid(
     }
 }
 
-/** What every card in one list shares: the search to highlight and what a swipe does. */
+/** What every card in one list shares: the search to highlight, what a swipe does and the text size. */
 private class SwipeSetup(
     val section: Section,
     val query: String,
     val swipeEnabled: Boolean,
     val onArchive: (Note) -> Unit,
     val onTrash: (Note) -> Unit,
+    val textScale: Float,
+    val nowMillis: Long,
 )
 
 @Composable
@@ -519,6 +551,8 @@ private fun LazyStaggeredGridItemScope.GridCard(
             onLongClick = { onSelect(note) },
             selected = selected,
             highlight = swipe.query,
+            textScale = swipe.textScale,
+            nowMillis = swipe.nowMillis,
             modifier = Modifier.sharedNoteBounds(note.id),
         )
     }
@@ -562,4 +596,44 @@ internal fun EmptyState(icon: ImageVector, text: String, modifier: Modifier = Mo
             )
         }
     }
+}
+
+/** The labels above the notes list, the one chosen, and the way to the label editor. */
+internal class LabelFilter(
+    val all: List<String>,
+    val selected: String?,
+    val onLabelChange: (String?) -> Unit,
+    val onManage: () -> Unit,
+)
+
+/** One scrollable row: "Tüm etiketler", then every label, then "Düzenle". */
+@Composable
+private fun LabelChips(labels: LabelFilter) {
+    Row(
+        Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LabelChip("Tüm etiketler", selected = labels.selected == null, icon = null) { labels.onLabelChange(null) }
+        labels.all.forEach { name ->
+            val selected = labels.selected?.let { Labels.same(it, name) } == true
+            LabelChip(name, selected, Icons.AutoMirrored.Outlined.Label) { labels.onLabelChange(if (selected) null else name) }
+        }
+        AssistChip(
+            onClick = labels.onManage,
+            label = { Text("Düzenle") },
+            leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null, Modifier.size(AssistChipDefaults.IconSize)) },
+            modifier = Modifier.semantics { contentDescription = "Etiketleri düzenle" },
+        )
+    }
+}
+
+@Composable
+private fun LabelChip(text: String, selected: Boolean, icon: ImageVector?, onClick: () -> Unit) {
+    val shown = if (selected) Icons.Filled.Check else icon
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text) },
+        leadingIcon = shown?.let { { Icon(it, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) } },
+    )
 }

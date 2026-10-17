@@ -1,6 +1,7 @@
 package com.vardiya.notlar
 
 import android.app.KeyguardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
@@ -209,14 +210,34 @@ class MainActivity : FragmentActivity() {
     private fun Intent.toLaunchAction(): LaunchAction? = when (action) {
         ACTION_NEW_NOTE -> LaunchAction.NewNote
         ACTION_NEW_CHECKLIST -> LaunchAction.NewChecklist
+        ACTION_OPEN_NOTE -> getLongExtra(EXTRA_NOTE_ID, 0L).takeIf { it != 0L }?.let(LaunchAction::Open)
         Intent.ACTION_SEND -> getStringExtra(Intent.EXTRA_TEXT)
             ?.takeIf { it.isNotBlank() }
             ?.let { LaunchAction.Shared(it, getStringExtra(Intent.EXTRA_SUBJECT)) }
         else -> null
     }
 
-    private companion object {
+    companion object {
         const val ACTION_NEW_NOTE = "com.vardiya.notlar.NEW_NOTE"
         const val ACTION_NEW_CHECKLIST = "com.vardiya.notlar.NEW_CHECKLIST"
+        private const val ACTION_OPEN_NOTE = "com.vardiya.notlar.OPEN_NOTE"
+        private const val EXTRA_NOTE_ID = "noteId"
+
+        /** Opens the app as the launcher icon does. */
+        fun launchIntent(context: Context): Intent = Intent(context, MainActivity::class.java)
+            .setAction(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_LAUNCHER)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        /** Opens the note [noteId] (after the lock, if it is on); used by reminders and widgets. */
+        fun openNoteIntent(context: Context, noteId: Long): Intent = Intent(context, MainActivity::class.java)
+            .setAction(ACTION_OPEN_NOTE)
+            .putExtra(EXTRA_NOTE_ID, noteId)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+        /** A new note or to-do list, like the launcher shortcuts; used by the quick widget. */
+        fun newNoteIntent(context: Context, checklist: Boolean): Intent = Intent(context, MainActivity::class.java)
+            .setAction(if (checklist) ACTION_NEW_CHECKLIST else ACTION_NEW_NOTE)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }
 }

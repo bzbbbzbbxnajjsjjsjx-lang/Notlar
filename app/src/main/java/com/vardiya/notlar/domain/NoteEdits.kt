@@ -19,15 +19,24 @@ object NoteEdits {
         (listOf(note.title, note.body) + note.items.map { it.text })
             .sumOf { text -> text.split(whitespace).count { it.isNotEmpty() } }
 
-    /** A new, unpinned note with the same content and color, its to-do items given fresh ids. */
+    /**
+     * A new, unpinned note with the same content, color and labels, its to-do items given fresh
+     * ids. The reminder stays with the original, so one reminder does not ring twice.
+     */
     fun duplicate(note: Note, id: Long, nowMillis: Long): Note = note.copy(
         id = id,
         items = note.items.mapIndexed { index, item -> item.copy(id = index + 1L) },
         pinned = false,
         trashedAt = null,
+        reminderAt = null,
+        reminderRepeat = ReminderRepeat.NONE,
         createdAt = nowMillis,
         updatedAt = nowMillis,
     )
+
+    /** Checks or unchecks one to-do item, as a tap on the home screen widget does. */
+    fun toggleItem(note: Note, itemId: Long): Note =
+        note.copy(items = note.items.map { if (it.id == itemId) it.copy(checked = !it.checked) else it })
 
     fun uncheckAll(note: Note): Note = note.copy(items = note.items.map { it.copy(checked = false) })
 

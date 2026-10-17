@@ -4,6 +4,14 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.7.0)
+- **Expressive yazı tipi:** Uygulama artık Material 3 Expressive'in yazı tipi Google Sans Flex ile yazıyor. Büyük başlıklar geniş, yuvarlak ve kalın; not metni sade ve okunaklı.
+- **Yazı boyutu:** Yazma ekranındaki *Aa* düğmesiyle (ya da Ayarlar > Görünüm'den) not yazısını *Küçük*, *Normal*, *Büyük* ya da *Dev* yap. İstersen kartlarda da büyüsün.
+- **Hatırlatıcı:** Yazma ekranının üstündeki alarm düğmesiyle *Bugün 18:00*, *Yarın 09:00*, *Gelecek hafta* ya da istediğin tarih ve saat. Günlük, haftalık ya da aylık tekrarlanabilir. Zamanı gelince bildirim gelir, dokununca not açılır. Kartta küçük bir saat çipi görünür. Telefon yeniden başlasa da hatırlatıcılar kaybolmaz.
+- **Etiketler:** Notlara *İş*, *Ev*, *Alışveriş* gibi etiketler ver (yazma ekranında ⋮ > Etiketler ya da başlığın altındaki çip). Ana ekranda etikete göre süz; *Düzenle* ile etiketleri yeniden adlandır ya da sil. Aramada etiketler de bulunur.
+- **Ana ekran widget'ları:** *Yapılacak listesi* widget'ı seçtiğin listeyi ana ekranda gösterir, maddeler oradan işaretlenir. *Yeni not* widget'ı tek dokunuşla not ya da liste açar.
+- **Gizlilik:** Uygulama kilidi açıkken widget'ta liste görünmez, "Notlar kilitli" yazar; bildirimde notun içeriği değil yalnızca "Bir hatırlatıcın var" görünür.
+
 ### Yenilikler (1.6.0)
 - **Uygulama kilidi:** Ayarlar > Gizlilik'ten PIN (4–8 rakam) belirle; Notlar açılışta PIN sorar. Expressive kilit ekranı: dolunca şekil değiştiren noktalar, büyük tuşlar, yanlış PIN'de sallanma.
 - **Biyometrik:** Parmak izi veya yüz ile açma (telefon destekliyorsa).

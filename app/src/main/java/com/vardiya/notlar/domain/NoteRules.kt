@@ -12,7 +12,8 @@ object NoteRules {
 
     /**
      * Notes shown in [section], newest first. The main list puts pinned notes on top and can be
-     * narrowed by [filter]; every list can be searched in titles, text and to-do items.
+     * narrowed by [filter] and [label]; every list can be searched in titles, text, to-do items
+     * and labels.
      */
     fun visible(
         notes: List<Note>,
@@ -20,12 +21,14 @@ object NoteRules {
         query: String = "",
         filter: NoteFilter = NoteFilter.ALL,
         sort: NoteSort = NoteSort.EDITED,
+        label: String? = null,
     ): List<Note> {
         val needle = query.trim().lowercase(Turkish)
         return notes
             .filter { note ->
                 when (section) {
-                    Section.NOTES -> !note.isTrashed && !note.archived && filter.accepts(note)
+                    Section.NOTES -> !note.isTrashed && !note.archived && filter.accepts(note) &&
+                        (label == null || note.labels.any { Labels.same(it, label) })
                     Section.ARCHIVE -> !note.isTrashed && note.archived
                     Section.TRASH -> note.isTrashed
                 }
@@ -90,5 +93,5 @@ object NoteRules {
     }
 
     private fun searchText(note: Note): String =
-        (listOf(note.title, note.body) + note.items.map { it.text }).joinToString("\n").lowercase(Turkish)
+        (listOf(note.title, note.body) + note.items.map { it.text } + note.labels).joinToString("\n").lowercase(Turkish)
 }

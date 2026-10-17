@@ -48,6 +48,20 @@ class NoteRepository private constructor(private val store: DataStore<Preference
         }
     }
 
+    /**
+     * Changes the settings and the notes in one transaction, as renaming or deleting a label does;
+     * skipped while the notes are unreadable.
+     */
+    suspend fun editLabels(transform: (Settings, List<Note>) -> Pair<Settings, List<Note>>) {
+        store.edit { prefs ->
+            val notes = if (prefs[NOTES] == null) emptyList() else readNotes(prefs) ?: return@edit
+            val settings = read(prefs, SETTINGS)?.let { runCatching { json.decodeFromString(Settings.serializer(), it) }.getOrNull() }
+            val (nextSettings, nextNotes) = transform(settings ?: Settings(), notes)
+            prefs[SETTINGS] = cipher.encrypt(json.encodeToString(Settings.serializer(), nextSettings), SETTINGS.name)
+            prefs[NOTES] = cipher.encrypt(json.encodeToString(serializer, nextNotes), NOTES.name)
+        }
+    }
+
     suspend fun saveSettings(settings: Settings) {
         store.edit { prefs -> prefs[SETTINGS] = cipher.encrypt(json.encodeToString(Settings.serializer(), settings), SETTINGS.name) }
     }

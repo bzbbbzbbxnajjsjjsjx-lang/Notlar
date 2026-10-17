@@ -14,9 +14,11 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.DashboardCustomize
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Fingerprint
@@ -97,6 +99,7 @@ fun SettingsSheet(
     onImport: () -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    onManageLabels: () -> Unit = {},
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier, sheetState = sheetState) {
@@ -107,6 +110,7 @@ fun SettingsSheet(
             onExport,
             onImport,
             Modifier.verticalScroll(rememberScrollState()),
+            onManageLabels = onManageLabels,
         )
     }
 }
@@ -120,6 +124,7 @@ internal fun SettingsContent(
     onExport: () -> Unit,
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
+    onManageLabels: () -> Unit = {},
     dynamicColorAvailable: Boolean = DynamicColorAvailable,
 ) {
     Column(
@@ -144,12 +149,25 @@ internal fun SettingsContent(
                         }
                     }
                 }
+                add { TextSizeRow(settings, onSettingsChange) }
+                add {
+                    SwitchRow(
+                        Icons.Outlined.DashboardCustomize,
+                        "Kartlarda da kullan",
+                        "Not listesindeki kartların yazısı da büyür",
+                        settings.textSizeOnCards,
+                    ) { onSettingsChange(settings.copy(textSizeOnCards = it)) }
+                }
                 add {
                     ChoiceRow(Icons.AutoMirrored.Outlined.Sort, "Sıralama", NoteSort.entries, settings.sort, { it.label }) {
                         onSettingsChange(settings.copy(sort = it))
                     }
                 }
             },
+        )
+        SettingsGroup(
+            "Düzen",
+            listOf { ActionRow(Icons.AutoMirrored.Outlined.Label, "Etiketler", "Ekle, yeniden adlandır, sil", onManageLabels) },
         )
         SettingsGroup(
             "Gizlilik",
@@ -196,7 +214,7 @@ internal fun SettingsContent(
  * corners are round and whose inner corners are tight.
  */
 @Composable
-private fun SettingsGroup(title: String, rows: List<@Composable () -> Unit>) {
+internal fun SettingsGroup(title: String, rows: List<@Composable () -> Unit>) {
     Column(verticalArrangement = Arrangement.spacedBy(GROUP_GAP)) {
         Heading(title, Modifier.padding(start = 16.dp, top = 16.dp, bottom = 6.dp))
         rows.forEachIndexed { index, row ->
@@ -213,7 +231,7 @@ private fun SettingsGroup(title: String, rows: List<@Composable () -> Unit>) {
 
 /** The leading icon and the two lines every row shares. */
 @Composable
-private fun RowText(icon: ImageVector, title: String, subtitle: String?, modifier: Modifier = Modifier) {
+internal fun RowText(icon: ImageVector, title: String, subtitle: String?, modifier: Modifier = Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Column(
@@ -281,7 +299,7 @@ private fun <T> ChoiceRow(
 
 /** A single-choice connected button group that fills the width. */
 @Composable
-private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> String, onSelect: (T) -> Unit) {
+internal fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> String, onSelect: (T) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -311,7 +329,7 @@ private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> Str
 
 /** A row that flips a setting; the switch shows a check while it is on. */
 @Composable
-private fun SwitchRow(icon: ImageVector, title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun SwitchRow(icon: ImageVector, title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()

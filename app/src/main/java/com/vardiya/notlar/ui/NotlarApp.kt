@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vardiya.notlar.domain.Labels
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
@@ -45,6 +46,7 @@ import com.vardiya.notlar.domain.Security
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.ExportBackupDialog
 import com.vardiya.notlar.ui.screens.ImportPasswordDialog
+import com.vardiya.notlar.ui.screens.LabelManagerSheet
 import com.vardiya.notlar.ui.screens.LockScreen
 import com.vardiya.notlar.ui.screens.PinSetupScreen
 import com.vardiya.notlar.ui.screens.UnreadableNotesScreen
@@ -66,6 +68,8 @@ private const val BACKUP_MIME = "application/json"
 sealed interface LaunchAction {
     data object NewNote : LaunchAction
     data object NewChecklist : LaunchAction
+    /** A reminder or a widget asked for this note. */
+    data class Open(val noteId: Long) : LaunchAction
     data class Shared(val text: String, val subject: String?) : LaunchAction
 }
 
@@ -86,6 +90,7 @@ fun NotlarApp(
     // Ids of the notes selected with a long press; a list so it survives configuration changes.
     var selection by rememberSaveable { mutableStateOf(emptyList<Long>()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showLabels by rememberSaveable { mutableStateOf(false) }
     // Id of the note open in the editor; a new note gets its id before it is first saved.
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -104,13 +109,14 @@ fun NotlarApp(
     val currentOnConsume by rememberUpdatedState(onLaunchActionConsume)
     LaunchedEffect(launchAction) {
         val action = launchAction ?: return@LaunchedEffect
-        open(
-            when (action) {
-                LaunchAction.NewNote -> viewModel.newNote()
-                LaunchAction.NewChecklist -> viewModel.newChecklist()
-                is LaunchAction.Shared -> viewModel.createFromShare(action.text, action.subject)
-            },
-        )
+        when (action) {
+            LaunchAction.NewNote -> open(viewModel.newNote())
+            LaunchAction.NewChecklist -> open(viewModel.newChecklist())
+            is LaunchAction.Shared -> open(viewModel.createFromShare(action.text, action.subject))
+            // Opened as pending, so the editor never starts blank while the list is still loading.
+            // A note deleted since the reminder or widget was set opens nothing.
+            is LaunchAction.Open -> viewModel.find(action.noteId)?.let(::open)
+        }
         currentOnConsume()
     }
 
@@ -217,6 +223,22 @@ fun NotlarApp(
                 importLauncher.launch(arrayOf(BACKUP_MIME, "text/plain", "application/octet-stream"))
             },
             onDismissRequest = { showSettings = false },
+            onManageLabels = {
+                showSettings = false
+                showLabels = true
+            },
+        )
+    }
+    if (showLabels) {
+        LabelManagerSheet(
+            labels = Labels.all(settings.labels, notes),
+            onCreate = viewModel.labels::add,
+            onRename = viewModel.labels::rename,
+            onDelete = { name ->
+                viewModel.labels.delete(name)
+                message("\"$name\" etiketi silindi")
+            },
+            onDismissRequest = { showLabels = false },
         )
     }
     if (showExport) {
@@ -375,6 +397,7 @@ fun NotlarApp(
                             undoable("Not çöp kutusuna taşındı") { viewModel.refile(note) }
                         },
                         snackbarHostState = snackbar,
+                        onManageLabels = { showLabels = true },
                     )
                 } else {
                     val initial = notes.firstOrNull { it.id == id }
@@ -383,6 +406,9 @@ fun NotlarApp(
                     EditorScreen(
                         initial = initial,
                         onSave = viewModel::save,
+                        settings = settings,
+                        onSettingsChange = { changed -> viewModel.updateSettings { changed } },
+                        onCreateLabel = viewModel.labels::add,
                         modifier = Modifier.sharedNoteBounds(id),
                         snackbarHostState = snackbar,
                         onDuplicate = { note ->

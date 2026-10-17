@@ -24,17 +24,25 @@ before calling a change done.
 ## Layout
 
 - `domain/` — pure Kotlin, unit-tested. `Note.kt` (`Note`, `ChecklistItem`, `NoteColor`,
-  `Section`, `NoteFilter`), `NoteRules.kt` (list order, search, filters, 30-day trash, text ↔
-  checklist conversion, share text).
+  `Section`, `NoteFilter`, `ReminderRepeat`, `TextSize`), `NoteRules.kt` (list order, search,
+  filters, 30-day trash, text ↔ checklist conversion, share text), `Reminders.kt` (quick times,
+  repeats), `Labels.kt` (label names, rename/merge/delete).
 - `data/NoteRepository.kt` — all notes as one JSON list in Preferences DataStore.
-- `ui/NotesViewModel.kt` — single `AndroidViewModel`; saving a blank note removes it.
+- `ui/NotesViewModel.kt` — single `AndroidViewModel`; saving a blank note removes it. It keeps
+  reminder alarms in step with the stored notes and refreshes the widgets.
+- `reminders/` — `ReminderScheduler` (one AlarmManager alarm per note), `ReminderReceiver` (rings,
+  re-sets alarms after boot/update/clock change), `ReminderNotifier` (hides content while locked).
+- `widget/` — Jetpack Glance widgets: `ChecklistWidget` (a chosen to-do list, checkable; hidden
+  while the app lock is on) and `QuickNoteWidget`.
 - `ui/NotlarApp.kt` — switches between the lists and the editor, snackbars with undo, sharing.
 - `ui/screens/` — `MainScreen` (notes / archive / trash behind a `ShortNavigationBar`, large
   flexible app bar, staggered grid), `TrashList`, `EditorScreen` (autosave, floating toolbar,
   checklist editor).
 - `ui/components/` — `NoteCard`, `Format.kt` (Turkish dates).
 - `ui/theme/Theme.kt` — amber brand scheme (seed #7C5800) with `MaterialExpressiveTheme`; note
-  colors map to container roles so they follow light and dark.
+  colors map to container roles so they follow light and dark. `Type.kt` — Google Sans Flex
+  (`res/font`, a Latin subset of the variable font with wdth 100–120, wght 300–900, opsz, ROND);
+  emphasized display/headline roles are wide, rounded and heavy.
 
 ## Design
 

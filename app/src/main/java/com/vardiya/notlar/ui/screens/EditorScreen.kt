@@ -28,7 +28,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
@@ -36,12 +38,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.AlarmAdd
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Unarchive
@@ -57,10 +61,10 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SplitButtonDefaults
-import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -74,6 +78,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -81,8 +86,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -93,20 +98,24 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.EditHistory
+import com.vardiya.notlar.domain.Labels
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.domain.ReminderRepeat
+import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.ui.components.AnimatedIcon
 import com.vardiya.notlar.ui.components.IconMotion
 import com.vardiya.notlar.ui.components.formatEdited
+import com.vardiya.notlar.ui.components.scaled
 import com.vardiya.notlar.ui.theme.container
 import com.vardiya.notlar.ui.theme.label
 import com.vardiya.notlar.ui.theme.notePalette
 import com.vardiya.notlar.ui.theme.onContainer
+import java.time.LocalDate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import java.time.LocalDate
 
 private const val SAVE_DELAY_MS = 500L
 private const val HALF_TURN = 180f
@@ -127,6 +136,9 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
     onShareMarkdown: (Note) -> Unit = {},
     onCopy: (Note) -> Unit = {},
+    settings: Settings = Settings(),
+    onSettingsChange: (Settings) -> Unit = {},
+    onCreateLabel: (String) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     today: LocalDate = LocalDate.now(),
 ) {
@@ -163,6 +175,10 @@ fun EditorScreen(
     }
     BackHandler(onBack = close)
 
+    var sheet by rememberSaveable { mutableStateOf<EditorSheet?>(null) }
+    val askNotifications = rememberNotificationPermission()
+    val scale = settings.textSize.scale
+
     val palette = notePalette
     val background = palette.container(draft.color)
     val content = palette.onContainer(draft.color)
@@ -193,6 +209,12 @@ fun EditorScreen(
                             }
                         }
                     }
+                    IconButton(onClick = { sheet = EditorSheet.REMINDER }, shapes = IconButtonDefaults.shapes()) {
+                        Icon(
+                            if (draft.reminderAt != null) Icons.Filled.Alarm else Icons.Outlined.AlarmAdd,
+                            contentDescription = if (draft.reminderAt != null) "Hatırlatıcıyı değiştir" else "Hatırlatıcı kur",
+                        )
+                    }
                     if (!draft.archived) {
                         IconToggleButton(
                             checked = draft.pinned,
@@ -215,6 +237,7 @@ fun EditorScreen(
                         },
                         onUncheckAll = { draft = NoteEdits.uncheckAll(draft) },
                         onClearCompletions = { draft = NoteEdits.removeChecked(draft) },
+                        onLabels = { sheet = EditorSheet.LABELS },
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -242,18 +265,24 @@ fun EditorScreen(
                     value = draft.title,
                     onValueChange = { draft = draft.copy(title = it) },
                     placeholder = "Başlık",
-                    style = MaterialTheme.typography.headlineSmallEmphasized,
+                    style = MaterialTheme.typography.headlineSmallEmphasized.scaled(scale),
                     imeAction = ImeAction.Next,
                     modifier = Modifier.semantics { heading() },
                 )
+                EditorChips(
+                    note = draft,
+                    today = today,
+                    onReminder = { sheet = EditorSheet.REMINDER },
+                    onLabels = { sheet = EditorSheet.LABELS },
+                )
                 if (draft.isChecklist) {
-                    ChecklistEditor(items = draft.items, onItemsChange = { draft = draft.copy(items = it) })
+                    ChecklistEditor(items = draft.items, textScale = scale, onItemsChange = { draft = draft.copy(items = it) })
                 } else {
                     PlainField(
                         value = draft.body,
                         onValueChange = { draft = draft.copy(body = it) },
                         placeholder = "Not",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyLarge.scaled(scale),
                         singleLine = false,
                     )
                 }
@@ -280,6 +309,7 @@ fun EditorScreen(
                     }
                 },
                 onColor = { draft = draft.copy(color = it) },
+                onTextSize = { sheet = EditorSheet.TEXT_SIZE },
                 onArchive = { onArchive(draft) },
                 onShare = { onShare(draft) },
                 onShareMarkdown = { onShareMarkdown(draft) },
@@ -293,17 +323,61 @@ fun EditorScreen(
             )
         }
     }
+
+    when (sheet) {
+        EditorSheet.REMINDER -> ReminderSheet(
+            reminderAt = draft.reminderAt,
+            repeat = draft.reminderRepeat,
+            actions = ReminderActions(
+                onSet = { at, repeat ->
+                    draft = draft.copy(reminderAt = at, reminderRepeat = repeat)
+                    askNotifications()
+                },
+                onRemove = { draft = draft.copy(reminderAt = null, reminderRepeat = ReminderRepeat.NONE) },
+            ),
+            onDismissRequest = { sheet = null },
+        )
+        EditorSheet.LABELS -> LabelPickerSheet(
+            labels = Labels.all(settings.labels, listOf(draft)),
+            noteLabels = draft.labels,
+            onToggle = { draft = Labels.toggle(draft, it) },
+            onCreate = { name ->
+                onCreateLabel(name)
+                if (draft.labels.none { Labels.same(it, name) }) draft = Labels.toggle(draft, name)
+            },
+            onDismissRequest = { sheet = null },
+        )
+        EditorSheet.TEXT_SIZE -> TextSizeSheet(settings, onSettingsChange, onDismissRequest = { sheet = null })
+        null -> Unit
+    }
 }
+
+/** The sheets the editor opens over the note. */
+private enum class EditorSheet { REMINDER, LABELS, TEXT_SIZE }
 
 /** Overflow actions: copy the note, and the bulk to-do actions when there are done items. */
 @Composable
-private fun MoreMenu(note: Note, onDuplicate: () -> Unit, onUncheckAll: () -> Unit, onClearCompletions: () -> Unit) {
+private fun MoreMenu(
+    note: Note,
+    onDuplicate: () -> Unit,
+    onUncheckAll: () -> Unit,
+    onClearCompletions: () -> Unit,
+    onLabels: () -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { open = true }, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Filled.MoreVert, contentDescription = "Diğer seçenekler")
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text("Etiketler") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Label, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onLabels()
+                },
+            )
             DropdownMenuItem(
                 text = { Text("Kopyasını oluştur") },
                 leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
@@ -339,6 +413,7 @@ private fun EditorToolbar(
     note: Note,
     onToggleChecklist: () -> Unit,
     onColor: (NoteColor) -> Unit,
+    onTextSize: () -> Unit,
     onArchive: () -> Unit,
     onShare: () -> Unit,
     onShareMarkdown: () -> Unit,
@@ -382,6 +457,7 @@ private fun EditorToolbar(
                 }
             }
         }
+        ToolbarButton(icon = Icons.Outlined.FormatSize, description = "Yazı boyutu", onClick = onTextSize)
         ToolbarButton(
             icon = if (note.archived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
             description = if (note.archived) "Arşivden çıkar" else "Arşivle",
@@ -479,7 +555,7 @@ private fun ColorDot(color: NoteColor) {
 
 /** To-do rows: open items first, then the done ones under their own heading. */
 @Composable
-private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<ChecklistItem>) -> Unit) {
+private fun ChecklistEditor(items: List<ChecklistItem>, textScale: Float, onItemsChange: (List<ChecklistItem>) -> Unit) {
     // The row just added asks for focus once it is on screen.
     var focusId by remember { mutableStateOf<Long?>(null) }
 
@@ -498,6 +574,7 @@ private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<Che
         open.forEach { item ->
             ChecklistRow(
                 item = item,
+                textScale = textScale,
                 requestFocus = focusId == item.id,
                 onFocus = { focusId = null },
                 onChange = { changed -> onItemsChange(items.map { if (it.id == changed.id) changed else it }) },
@@ -521,6 +598,7 @@ private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<Che
             done.forEach { item ->
                 ChecklistRow(
                     item = item,
+                    textScale = textScale,
                     requestFocus = focusId == item.id,
                     onFocus = { focusId = null },
                     onChange = { changed -> onItemsChange(items.map { if (it.id == changed.id) changed else it }) },
@@ -535,6 +613,7 @@ private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<Che
 @Composable
 private fun ChecklistRow(
     item: ChecklistItem,
+    textScale: Float,
     requestFocus: Boolean,
     onFocus: () -> Unit,
     onChange: (ChecklistItem) -> Unit,
@@ -555,7 +634,7 @@ private fun ChecklistRow(
             value = item.text,
             onValueChange = { onChange(item.copy(text = it.replace("\n", ""))) },
             placeholder = "Yapılacak",
-            style = MaterialTheme.typography.bodyLarge.copy(
+            style = MaterialTheme.typography.bodyLarge.scaled(textScale).copy(
                 textDecoration = if (item.checked) TextDecoration.LineThrough else null,
             ),
             imeAction = ImeAction.Next,

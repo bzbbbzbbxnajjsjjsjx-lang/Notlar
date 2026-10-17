@@ -1,5 +1,6 @@
 package com.vardiya.notlar.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -18,10 +19,16 @@ import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteSort
+import com.vardiya.notlar.domain.ReminderRepeat
+import com.vardiya.notlar.domain.TextSize
 import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.domain.ThemeMode
 import com.vardiya.notlar.ui.screens.EditorScreen
+import com.vardiya.notlar.ui.screens.LabelManagerContent
+import com.vardiya.notlar.ui.screens.LabelPickerContent
+import com.vardiya.notlar.ui.screens.ReminderContent
+import com.vardiya.notlar.ui.screens.TextSizeContent
 import com.vardiya.notlar.domain.LockTimeout
 import com.vardiya.notlar.ui.screens.LockScreen
 import com.vardiya.notlar.ui.screens.MainScreen
@@ -68,6 +75,8 @@ class ScreenshotTest {
         color = NoteColor.YELLOW,
         pinned = true,
         updatedAt = now - 1_000,
+        reminderAt = nowTime.plusDays(1).withHour(9).withMinute(0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        labels = listOf("Alışveriş"),
     )
     private val notes = listOf(
         market,
@@ -78,9 +87,19 @@ class ScreenshotTest {
             color = NoteColor.GREEN,
             pinned = true,
             updatedAt = now - 2_000,
+            labels = listOf("İş"),
         ),
         Note(3, title = "Fikirler", body = "Not uygulamasına ana ekran widget'ı eklensin.", updatedAt = now - 3_000),
-        Note(4, title = "Kira", body = "Ayın 5'inde ödenecek.", color = NoteColor.SAND, updatedAt = now - 4_000),
+        Note(
+            4,
+            title = "Kira",
+            body = "Ayın 5'inde ödenecek.",
+            color = NoteColor.SAND,
+            updatedAt = now - 4_000,
+            reminderAt = nowTime.withDayOfMonth(5).plusMonths(1).withHour(10).withMinute(0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            reminderRepeat = ReminderRepeat.MONTHLY,
+            labels = listOf("Ev"),
+        ),
         Note(5, body = "Akşam annemi ara.", updatedAt = now - 5_000),
         Note(6, title = "Kitaplar", body = "Kürk Mantolu Madonna\nSimyacı\nTutunamayanlar", color = NoteColor.RED, updatedAt = now - 6_000),
         Note(7, title = "Eski adres", body = "Atatürk Cad. No 12", archived = true, updatedAt = now - 7_000),
@@ -131,6 +150,33 @@ class ScreenshotTest {
         LockScreen(onPin = { UnlockResult.Wrong(triesLeft = 4, lockedOutUntil = 0) }, onForgetPin = {})
     }
 
+    @Test fun editorLargeText() = capture("editor_large_text") { Editor(notes[1], Settings(textSize = TextSize.HUGE)) }
+
+    @Test fun reminderSheet() = capture("reminder_sheet") {
+        Sheet {
+            ReminderContent(
+                reminderAt = market.reminderAt,
+                repeat = ReminderRepeat.WEEKLY,
+                now = nowTime,
+                onQuick = {},
+                onRepeatChange = {},
+                onPickDate = {},
+                onRemove = {},
+            )
+        }
+    }
+
+    @Test fun labelPicker() = capture("label_picker") {
+        Sheet { LabelPickerContent(labels = listOf("İş", "Ev", "Alışveriş"), noteLabels = listOf("Alışveriş"), onToggle = {}, onCreate = {}) }
+    }
+
+    @Test @Config(qualifiers = "+night")
+    fun labelManagerDark() = capture("label_manager_dark") {
+        Sheet { LabelManagerContent(labels = listOf("İş", "Ev", "Alışveriş"), onCreate = {}, onRename = {}, onDelete = {}) }
+    }
+
+    @Test fun textSize() = capture("text_size") { Sheet { TextSizeContent(Settings(textSize = TextSize.LARGE), onSettingsChange = {}) } }
+
     @Test fun pinSetup() = capture("pin_setup") { PinSetupScreen(onPinConfirm = {}, onCancel = {}) }
 
     @Test @Config(qualifiers = "+night")
@@ -173,9 +219,10 @@ class ScreenshotTest {
     }
 
     @Composable
-    private fun Editor(note: Note) {
+    private fun Editor(note: Note, settings: Settings = Settings()) {
         EditorScreen(
             initial = note,
+            settings = settings,
             onSave = {},
             onClose = {},
             onShare = {},
@@ -184,6 +231,14 @@ class ScreenshotTest {
             onDuplicate = {},
             today = nowTime.toLocalDate(),
         )
+    }
+
+    /** A sheet's content on a sheet-colored surface (a real sheet needs a window). */
+    @Composable
+    private fun Sheet(content: @Composable () -> Unit) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.extraLarge) {
+            Box(Modifier.padding(top = 24.dp)) { content() }
+        }
     }
 
     /** The settings sheet's content on a sheet-colored surface (a real sheet needs a window). */

@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.vardiya.notlar.domain.NoteColor
 
 // Amber brand scheme (seed #7C5800): warm paper tones for a notes app.
-private val LightColors = lightColorScheme(
+internal val LightColors = lightColorScheme(
     primary = Color(0xFF7C5800),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFFFDEA6),
@@ -49,7 +49,7 @@ private val LightColors = lightColorScheme(
     surfaceContainerHighest = Color(0xFFE9E1D7),
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     primary = Color(0xFFF7BD48),
     onPrimary = Color(0xFF412D00),
     primaryContainer = Color(0xFF5E4200),
@@ -120,7 +120,7 @@ fun NotlarTheme(
     }
     CompositionLocalProvider(LocalNotePalette provides palette) {
         // Expressive theme: spring-based expressive motion scheme and the emphasized type styles.
-        MaterialExpressiveTheme(colorScheme = scheme, content = content)
+        MaterialExpressiveTheme(colorScheme = scheme, typography = NotlarTypography, content = content)
     }
 }
 
