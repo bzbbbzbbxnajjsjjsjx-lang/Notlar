@@ -123,6 +123,8 @@ private val Section.title: String
         Section.TRASH -> "Çöp kutusu"
     }
 
+private val NAV_ICON_SIZE = 28.dp
+
 private val Section.selectedIcon: ImageVector
     get() = when (this) {
         Section.NOTES -> Icons.AutoMirrored.Filled.Notes
@@ -399,6 +401,7 @@ private fun SectionBar(section: Section, onSectionChange: (Section) -> Unit) {
                         contentDescription = null,
                         play = selected,
                         motion = item.motion,
+                        modifier = Modifier.size(NAV_ICON_SIZE),
                     )
                 },
                 label = { Text(item.title) },
