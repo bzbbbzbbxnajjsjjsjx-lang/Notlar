@@ -16,10 +16,11 @@ stack and conventions as the Vardiya app (bzbbbzbbxnajjsjjsjx-lang/Androidharnws
 ```
 
 CI (`.github/workflows/android.yml`) runs detekt, lint, unit and screenshot tests and both APK
-builds on every push. Cloud sessions can build locally if the Android SDK (platform 37) is
-installed and `ANDROID_HOME` points at it; Maven Central rate-limits the session proxy (HTTP 429),
-so pass `-I .claude/gradle/maven-central-mirror.gradle`. Still read the GitHub Actions result
-before calling a change done.
+builds on every push. In cloud sessions `.claude/hooks/session-start.sh` installs the Android SDK,
+sets `ANDROID_HOME` and reports whether the branch contains the latest release; act on a warning
+from it before changing code. Maven Central rate-limits the session proxy (HTTP 429), so pass
+`-I .claude/gradle/maven-central-mirror.gradle`. Still read the GitHub Actions result before
+calling a change done.
 
 ## Layout
 
@@ -64,16 +65,13 @@ with `release_tag`, publishes the release APK as a GitHub release.
 
 ## Agents
 
-`.claude/agents/` holds three subagents; use them, in this order, for every change:
+`.claude/agents/` holds three subagents. Launch one only when its job applies; small fixes don't
+need them.
 
-- `dal-bekcisi` - at the start of a task: confirms the branch contains the latest release.
-- `tasarimci` - for any new screen or vague UI request: sketches it in M3E Canvas and returns a
-  link; get the user's approval before writing code.
-- `kontrolcu` - after the change and before every push or release: detekt, lint, tests, release
-  build, and a look at every changed screenshot against the request.
-
-## Skills
-
-`.claude/skills/` holds Compose UI, performance audit, accessibility and testing guidance, plus
-`material3-expressive`: the full Material 3 Expressive reference for material3 1.5.0-beta01.
-Load the matching skill before working in that area.
+- `tasarimci` - a new screen or a vague UI request: sketches it in M3E Canvas and returns a link;
+  get the user's approval before writing code.
+- `kontrolcu` - before a push that changes app code, and before every release: detekt, lint,
+  tests, release build, and a look at every changed screenshot against the request. A change is
+  done when it reports PASS.
+- `dal-bekcisi` - before a release, or when the session-start release check warns: which branch
+  and tag the release came from and what to branch from.

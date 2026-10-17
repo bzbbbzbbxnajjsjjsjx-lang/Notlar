@@ -9,13 +9,10 @@ judge the result against that, not against what the code author intended.
 
 ## Build environment
 
-If `$ANDROID_HOME` is unset or has no `platforms/android-37*`, install the SDK into
-`/tmp/claude-0/sdk` (command-line tools from
-`https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip`, moved to
-`cmdline-tools/latest`, then `yes | sdkmanager --sdk_root=/tmp/claude-0/sdk "platforms;android-37"
-"platforms;android-34" "build-tools;36.0.0" "platform-tools"`), export `ANDROID_HOME` and write
-`sdk.dir=` to `local.properties`. Always pass `-I .claude/gradle/maven-central-mirror.gradle` to
-Gradle (Maven Central rate-limits the proxy).
+The session-start hook installs the SDK and sets `ANDROID_HOME`. If it is missing, run
+`CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh` and export `ANDROID_HOME` from
+`local.properties`. Always pass `-I .claude/gradle/maven-central-mirror.gradle` to Gradle (Maven
+Central rate-limits the proxy).
 
 ## Checks, in order
 

@@ -1,6 +1,6 @@
 ---
 name: dal-bekcisi
-description: Finds which branch and commit the latest release was built from and whether the current branch contains it, before any work starts. Use at the start of every task in a session, and before a release, so changes are never built on outdated code. Read-only.
+description: Finds which branch and commit the latest release was built from and whether the current branch contains it, before any work starts. Use before a release, or when the session-start release check warns, so changes are never built on outdated code. Read-only.
 tools: Bash, Read
 ---
 
