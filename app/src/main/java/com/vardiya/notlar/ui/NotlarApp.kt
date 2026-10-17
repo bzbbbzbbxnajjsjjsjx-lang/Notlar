@@ -26,6 +26,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,6 +74,7 @@ fun NotlarApp(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val clipboard = LocalClipboard.current
     val motion = MaterialTheme.motionScheme
     // A note opened before its first save lands in the stored list (a new list, a copy, a share).
     var pending by remember { mutableStateOf<Note?>(null) }
@@ -181,6 +183,18 @@ fun NotlarApp(
                         },
                         onOpen = { openId = it.id },
                         onNewNote = { open(viewModel.newNote()) },
+                        onNewChecklist = { open(viewModel.newChecklist()) },
+                        onPasteNote = {
+                            scope.launch {
+                                val clip = clipboard.getClipEntry()?.clipData
+                                val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                                if (text.isNullOrBlank()) {
+                                    message("Panoda metin yok")
+                                } else {
+                                    open(viewModel.createFromShare(text, subject = null))
+                                }
+                            }
+                        },
                         onRestore = { note ->
                             viewModel.restore(note.id)
                             undoable("Not geri yüklendi") { viewModel.moveToTrash(note.id) }

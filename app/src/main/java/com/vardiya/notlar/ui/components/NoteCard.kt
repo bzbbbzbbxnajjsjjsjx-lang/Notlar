@@ -18,7 +18,7 @@ import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -137,12 +137,14 @@ private fun ChecklistPreview(note: Note, highlight: String) {
                     animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
                     label = "progress",
                 )
-                LinearProgressIndicator(
+                // Expressive wavy bar, held still so a grid of cards does not shimmer.
+                LinearWavyProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.weight(1f),
                     color = content,
                     trackColor = content.copy(alpha = 0.2f),
-                    drawStopIndicator = {},
+                    stopSize = 0.dp,
+                    waveSpeed = 0.dp,
                 )
                 Text(
                     "$done/$total",

@@ -12,6 +12,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,14 +47,16 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Unarchive
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.toShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -64,7 +67,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +90,7 @@ import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.ui.components.AnimatedIcon
 import com.vardiya.notlar.ui.components.IconMotion
+import com.vardiya.notlar.ui.components.NewNoteFabMenu
 import com.vardiya.notlar.ui.components.NoteCard
 import com.vardiya.notlar.ui.components.SwipeAction
 import com.vardiya.notlar.ui.components.SwipeActions
@@ -146,6 +149,8 @@ fun MainScreen(
     onSectionChange: (Section) -> Unit,
     onOpen: (Note) -> Unit,
     onNewNote: () -> Unit,
+    onNewChecklist: () -> Unit,
+    onPasteNote: () -> Unit,
     onRestore: (Note) -> Unit,
     onDeleteForever: (Note) -> Unit,
     onEmptyTrash: () -> Unit,
@@ -164,7 +169,6 @@ fun MainScreen(
     val gridState = rememberLazyStaggeredGridState()
     // Notes and archive slide past each other while switching, so each grid keeps its own state.
     val archiveGridState = rememberLazyStaggeredGridState()
-    val fabExpanded by remember { derivedStateOf { gridState.firstVisibleItemIndex == 0 } }
     val haptic = LocalHapticFeedback.current
     val motion = MaterialTheme.motionScheme
     val selecting = selection.isNotEmpty()
@@ -237,22 +241,12 @@ fun MainScreen(
             }
         },
         floatingActionButton = {
-            AnimatedVisibility(
+            NewNoteFabMenu(
                 visible = section == Section.NOTES && !selecting,
-                enter = scaleIn(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
-                exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
-                label = "fab",
-            ) {
-                ExtendedFloatingActionButton(
-                    text = { Text("Not") },
-                    icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                        onNewNote()
-                    },
-                    expanded = fabExpanded,
-                )
-            }
+                onNewNote = onNewNote,
+                onNewChecklist = onNewChecklist,
+                onPaste = onPasteNote,
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -408,6 +402,13 @@ private fun NoteGrid(
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Diğerleri") }
         }
         items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
+        if (!loaded) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                Box(Modifier.fillMaxWidth().padding(vertical = 64.dp), contentAlignment = Alignment.Center) {
+                    LoadingIndicator()
+                }
+            }
+        }
         if (loaded && visible.isEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 EmptyState(
@@ -415,7 +416,7 @@ private fun NoteGrid(
                     text = when {
                         query.isNotBlank() -> "\"${query.trim()}\" ile eşleşen not yok."
                         section == Section.ARCHIVE -> "Arşivlenen notlar burada görünür."
-                        else -> "Henüz not yok.\nSağ alttaki Not ile ilk notunu yaz."
+                        else -> "Henüz not yok.\nSağ alttaki + ile ilk notunu yaz."
                     },
                 )
             }
@@ -521,7 +522,15 @@ internal fun EmptyState(icon: ImageVector, text: String, modifier: Modifier = Mo
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Icon(icon, contentDescription = null, Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
+            // The icon sits on one of the Expressive shapes.
+            Box(
+                Modifier
+                    .size(112.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, MaterialShapes.Cookie9Sided.toShape()),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, Modifier.size(56.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
             Text(
                 text,
                 textAlign = TextAlign.Center,

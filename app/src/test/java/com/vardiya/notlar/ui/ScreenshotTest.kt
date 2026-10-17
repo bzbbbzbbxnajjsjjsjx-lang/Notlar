@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.vardiya.notlar.domain.ChecklistItem
@@ -102,6 +104,10 @@ class ScreenshotTest {
 
     @Test fun notesDynamic() = capture("notes_dynamic", dynamicColor = true) { Main(Section.NOTES) }
 
+    @Test fun fabMenu() = capture("fab_menu", interact = { compose.onNodeWithContentDescription("Yeni").performClick() }) {
+        Main(Section.NOTES)
+    }
+
     @Test fun settings() = capture("settings") { Settings(Settings(dynamicColor = true, sort = NoteSort.TITLE)) }
 
     @Test @Config(qualifiers = "+night")
@@ -124,6 +130,8 @@ class ScreenshotTest {
             onSectionChange = {},
             onOpen = {},
             onNewNote = {},
+            onNewChecklist = {},
+            onPasteNote = {},
             onRestore = {},
             onDeleteForever = {},
             onEmptyTrash = {},
@@ -168,9 +176,20 @@ class ScreenshotTest {
         }
     }
 
-    private fun capture(name: String, dynamicColor: Boolean = false, screen: @Composable () -> Unit) {
+    private fun capture(
+        name: String,
+        dynamicColor: Boolean = false,
+        interact: () -> Unit = {},
+        screen: @Composable () -> Unit,
+    ) {
         compose.mainClock.autoAdvance = false
         compose.setContent { NotlarTheme(dynamicColor = dynamicColor) { screen() } }
+        compose.mainClock.advanceTimeBy(1_000)
+        // Taps need the clock running to be delivered; it stops again before the capture.
+        compose.mainClock.autoAdvance = true
+        interact()
+        compose.waitForIdle()
+        compose.mainClock.autoAdvance = false
         compose.mainClock.advanceTimeBy(1_000)
         compose.onRoot().captureRoboImage("src/test/screenshots/$name.png")
     }
