@@ -188,14 +188,22 @@ fun MainScreen(
     var filter by rememberSaveable { mutableStateOf(NoteFilter.ALL) }
     val searchState = rememberSearchBarState()
     val searchScroll = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
-    // Each list starts unsearched.
-    LaunchedEffect(section) { query.clearText() }
+    // Each list starts unsearched; a rotation keeps the search.
+    var searchedSection by rememberSaveable { mutableStateOf(section) }
+    LaunchedEffect(section) {
+        if (section != searchedSection) {
+            query.clearText()
+            searchedSection = section
+        }
+    }
     BackHandler(enabled = selecting) { onSelectionChange(emptySet()) }
 
     Scaffold(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .nestedScroll(searchScroll.nestedScrollConnection),
+        // Only the bar on screen reacts to scrolling: the trash's large title, or the search bar.
+        // An unmeasured large title would otherwise swallow every scroll of the notes grid.
+        modifier = modifier.nestedScroll(
+            if (section == Section.TRASH) scrollBehavior.nestedScrollConnection else searchScroll.nestedScrollConnection,
+        ),
         topBar = {
             AnimatedContent(
                 targetState = selecting,

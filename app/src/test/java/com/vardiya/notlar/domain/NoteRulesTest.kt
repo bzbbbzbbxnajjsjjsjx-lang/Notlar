@@ -150,6 +150,8 @@ class NoteRulesTest {
         assertEquals("# Market\n\n- [ ] Süt\n- [x] Ekmek", NoteEdits.markdown(notes[0]))
         assertEquals("# Kira\n\nAyın 5'i", NoteEdits.markdown(notes[2]))
         assertEquals("Sadece metin", NoteEdits.markdown(Note(1, body = " Sadece metin ")))
+        assertEquals("\\# değil başlık\n\\- değil madde\nnormal", NoteEdits.markdown(Note(1, body = "# değil başlık\n- değil madde\nnormal")))
+        assertEquals("", NoteEdits.markdown(Note(1)))
     }
 
     @Test

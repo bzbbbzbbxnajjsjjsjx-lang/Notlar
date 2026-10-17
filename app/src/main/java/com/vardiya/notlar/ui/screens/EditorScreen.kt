@@ -394,7 +394,7 @@ private fun EditorToolbar(
 
 /**
  * Expressive split button: the left half shares right away, the arrow opens the other ways to
- * send the note out.
+ * send the note out. Filled, so it stands out on both toolbar colors.
  */
 @Composable
 private fun ShareSplitButton(onShare: () -> Unit, onShareMarkdown: () -> Unit, onCopy: () -> Unit) {
@@ -407,7 +407,7 @@ private fun ShareSplitButton(onShare: () -> Unit, onShareMarkdown: () -> Unit, o
     Box {
         SplitButtonLayout(
             leadingButton = {
-                SplitButtonDefaults.TonalLeadingButton(onClick = onShare) {
+                SplitButtonDefaults.LeadingButton(onClick = onShare) {
                     Icon(
                         Icons.Filled.Share,
                         contentDescription = "Paylaş",
@@ -416,7 +416,7 @@ private fun ShareSplitButton(onShare: () -> Unit, onShareMarkdown: () -> Unit, o
                 }
             },
             trailingButton = {
-                SplitButtonDefaults.TonalTrailingButton(
+                SplitButtonDefaults.TrailingButton(
                     checked = menu,
                     onCheckedChange = { menu = it },
                     modifier = Modifier.semantics {

@@ -3,6 +3,7 @@ package com.vardiya.notlar.ui
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -113,6 +114,11 @@ fun NotlarApp(
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(text)
         }
+    }
+
+    /** Runs [send] with [text], or says the note is empty instead of sending nothing. */
+    fun shareOrWarn(text: String, send: (String) -> Unit) {
+        if (text.isBlank()) message("Not boş") else send(text)
     }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
@@ -254,12 +260,15 @@ fun NotlarApp(
                             message("Kopyası oluşturuldu")
                         },
                         onClose = { openId = null },
-                        onShare = { context.shareNote(it, NoteRules.shareText(it)) },
-                        onShareMarkdown = { context.shareNote(it, NoteEdits.markdown(it)) },
+                        onShare = { note -> shareOrWarn(NoteRules.shareText(note)) { context.shareNote(note, it) } },
+                        onShareMarkdown = { note -> shareOrWarn(NoteEdits.markdown(note)) { context.shareNote(note, it) } },
                         onCopy = { note ->
-                            scope.launch {
-                                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(note.title, NoteRules.shareText(note))))
-                                message("Panoya kopyalandı")
+                            shareOrWarn(NoteRules.shareText(note)) { text ->
+                                scope.launch {
+                                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(note.title, text)))
+                                    // Android 13 and later confirm a copy themselves.
+                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) message("Panoya kopyalandı")
+                                }
                             }
                         },
                         onArchive = { note ->
