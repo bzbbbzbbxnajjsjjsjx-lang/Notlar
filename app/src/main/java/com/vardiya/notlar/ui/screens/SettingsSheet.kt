@@ -22,6 +22,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -160,6 +161,8 @@ private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> Str
                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 },
+                // The default unchecked container is surfaceContainer, almost the sheet's own color.
+                colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
                 modifier = Modifier
                     .weight(1f)
                     .semantics { role = Role.RadioButton },

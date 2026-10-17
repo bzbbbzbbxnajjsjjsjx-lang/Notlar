@@ -91,6 +91,7 @@ import com.vardiya.notlar.ui.theme.notePalette
 import com.vardiya.notlar.ui.theme.onContainer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import java.time.LocalDate
 
 private const val SAVE_DELAY_MS = 500L
 
@@ -109,6 +110,7 @@ fun EditorScreen(
     onDuplicate: (Note) -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    today: LocalDate = LocalDate.now(),
 ) {
     var draft by remember(initial.id) { mutableStateOf(initial) }
     val currentSave by rememberUpdatedState(onSave)
@@ -206,7 +208,7 @@ fun EditorScreen(
                     )
                 }
                 Text(
-                    "Düzenlendi: ${formatEdited(draft.updatedAt)} · ${NoteEdits.wordCount(draft)} kelime",
+                    "Düzenlendi: ${formatEdited(draft.updatedAt, today = today)} · ${NoteEdits.wordCount(draft)} kelime",
                     style = MaterialTheme.typography.labelMedium,
                     color = content.copy(alpha = 0.7f),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

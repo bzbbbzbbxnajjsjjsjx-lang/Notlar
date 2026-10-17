@@ -44,7 +44,8 @@ class ScreenshotTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val now = LocalDateTime.of(2026, 10, 16, 14, 32).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    private val nowTime = LocalDateTime.of(2026, 10, 16, 14, 32)
+    private val now = nowTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     private val day = 24L * 60 * 60 * 1000
 
     private val market = Note(
@@ -138,7 +139,16 @@ class ScreenshotTest {
 
     @Composable
     private fun Editor(note: Note) {
-        EditorScreen(initial = note, onSave = {}, onClose = {}, onShare = {}, onArchive = {}, onTrash = {}, onDuplicate = {})
+        EditorScreen(
+            initial = note,
+            onSave = {},
+            onClose = {},
+            onShare = {},
+            onArchive = {},
+            onTrash = {},
+            onDuplicate = {},
+            today = nowTime.toLocalDate(),
+        )
     }
 
     /** The settings sheet's content on a sheet-colored surface (a real sheet needs a window). */
