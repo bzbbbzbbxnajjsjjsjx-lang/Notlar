@@ -79,6 +79,11 @@ fun AnimatedIcon(
             settled = true
             return@LaunchedEffect
         }
+        // A motion cut short by a quick re-tap restarts this effect; settle the icon first so it
+        // never stays lifted, tilted or squashed.
+        offsetY.snapTo(0f)
+        rotation.snapTo(0f)
+        squash.snapTo(1f)
         if (!play) return@LaunchedEffect
         when (motion) {
             IconMotion.BOUNCE -> {
