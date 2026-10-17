@@ -1,7 +1,9 @@
 package com.vardiya.notlar.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +22,10 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,12 +59,20 @@ fun NoteCard(
 ) {
     val palette = notePalette
     val shape = MaterialTheme.shapes.large
+    val interactions = remember { MutableInteractionSource() }
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .pressScale(interactions)
             .clip(shape)
             .semantics { this.selected = selected }
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "Seç"),
+            .combinedClickable(
+                interactionSource = interactions,
+                indication = ripple(),
+                onClick = onClick,
+                onLongClick = onLongClick,
+                onLongClickLabel = "Seç",
+            ),
         shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = palette.container(note.color),
@@ -113,8 +126,13 @@ private fun ChecklistPreview(note: Note) {
         NoteEdits.progress(note)?.let { (done, total) ->
             val content = LocalContentColor.current
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val progress by animateFloatAsState(
+                    targetValue = done.toFloat() / total,
+                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                    label = "progress",
+                )
                 LinearProgressIndicator(
-                    progress = { done.toFloat() / total },
+                    progress = { progress },
                     modifier = Modifier.weight(1f),
                     color = content,
                     trackColor = content.copy(alpha = 0.2f),

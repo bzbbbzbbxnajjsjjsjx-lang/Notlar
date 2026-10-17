@@ -22,6 +22,7 @@ style:
     ignoreAnnotated: ['Composable']
 
 Compose:
-  # LocalNotePalette keeps note colors on the amber scheme while dynamic colors restyle the app.
+  # LocalNotePalette keeps note colors on the amber scheme while dynamic colors restyle the app;
+  # LocalSharedNoteScope lets a note card grow into its editor without threading scopes through every screen.
   CompositionLocalAllowlist:
-    allowedCompositionLocals: ['LocalNotePalette']
+    allowedCompositionLocals: ['LocalNotePalette', 'LocalSharedNoteScope']

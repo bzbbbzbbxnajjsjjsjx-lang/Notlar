@@ -1,6 +1,7 @@
 package com.vardiya.notlar.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -84,6 +85,8 @@ import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.ui.components.AnimatedIcon
+import com.vardiya.notlar.ui.components.IconMotion
 import com.vardiya.notlar.ui.components.formatEdited
 import com.vardiya.notlar.ui.theme.container
 import com.vardiya.notlar.ui.theme.label
@@ -151,9 +154,11 @@ fun EditorScreen(
                             onCheckedChange = { draft = draft.copy(pinned = it) },
                             shapes = IconButtonDefaults.toggleableShapes(),
                         ) {
-                            Icon(
+                            AnimatedIcon(
                                 if (draft.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
                                 contentDescription = if (draft.pinned) "Sabitlemeyi kaldır" else "Sabitle",
+                                play = draft.pinned,
+                                motion = IconMotion.TWIST,
                             )
                         }
                     }
@@ -372,7 +377,8 @@ private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<Che
     val open = items.filterNot { it.checked }
     val done = items.filter { it.checked }
 
-    Column {
+    // Rows added, removed or moved under "Tamamlananlar" resize the list smoothly.
+    Column(Modifier.animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())) {
         open.forEach { item ->
             ChecklistRow(
                 item = item,

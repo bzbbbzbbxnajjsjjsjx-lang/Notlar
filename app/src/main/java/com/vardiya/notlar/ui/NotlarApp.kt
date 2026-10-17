@@ -5,6 +5,8 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -14,6 +16,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,12 +25,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.domain.Section
+import com.vardiya.notlar.ui.components.LocalSharedNoteScope
+import com.vardiya.notlar.ui.components.SharedNoteScope
+import com.vardiya.notlar.ui.components.sharedNoteBounds
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.MainScreen
 import com.vardiya.notlar.ui.screens.SettingsSheet
@@ -46,8 +53,10 @@ sealed interface LaunchAction {
     data class Shared(val text: String, val subject: String?) : LaunchAction
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun NotlarApp(
+    modifier: Modifier = Modifier,
     viewModel: NotesViewModel = viewModel(),
     launchAction: LaunchAction? = null,
     onLaunchActionConsume: () -> Unit = {},
@@ -142,86 +151,97 @@ fun NotlarApp(
         )
     }
 
-    AnimatedContent(
-        targetState = openId,
-        transitionSpec = {
-            (fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec(), EDITOR_START_SCALE)) togetherWith
-                fadeOut(motion.fastEffectsSpec())
-        },
-        label = "editor",
-    ) { id ->
-        if (id == null) {
-            MainScreen(
-                notes = notes,
-                loaded = loaded,
-                section = section,
-                settings = settings,
-                selection = selection.toSet(),
-                onSelectionChange = { selection = it.toList() },
-                onSectionChange = {
-                    selection = emptyList()
-                    section = it
-                },
-                onOpen = { openId = it.id },
-                onNewNote = { open(viewModel.newNote()) },
-                onRestore = { note ->
-                    viewModel.restore(note.id)
-                    undoable("Not geri yüklendi") { viewModel.moveToTrash(note.id) }
-                },
-                onDeleteForever = { viewModel.deleteForever(it.id) },
-                onEmptyTrash = viewModel::emptyTrash,
-                onToggleListView = { viewModel.updateSettings { it.copy(listView = !it.listView) } },
-                onOpenSettings = { showSettings = true },
-                onPinSelection = { pinned ->
-                    viewModel.setPinned(selection.toSet(), pinned)
-                    selection = emptyList()
-                },
-                onArchiveSelection = {
-                    val ids = selection.toSet()
-                    val archive = section != Section.ARCHIVE
-                    viewModel.setArchived(ids, archive)
-                    selection = emptyList()
-                    val text = if (archive) "${ids.size} not arşivlendi" else "${ids.size} not arşivden çıkarıldı"
-                    undoable(text) { viewModel.setArchived(ids, !archive) }
-                },
-                onTrashSelection = {
-                    val ids = selection.toSet()
-                    viewModel.moveToTrash(ids)
-                    selection = emptyList()
-                    undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
-                },
-                snackbarHostState = snackbar,
-            )
-        } else {
-            val initial = notes.firstOrNull { it.id == id }
-                ?: pending?.takeIf { it.id == id }
-                ?: Note(id = id, createdAt = id, updatedAt = id)
-            EditorScreen(
-                initial = initial,
-                onSave = viewModel::save,
-                snackbarHostState = snackbar,
-                onDuplicate = { note ->
-                    open(viewModel.duplicate(note))
-                    message("Kopyası oluşturuldu")
-                },
-                onClose = { openId = null },
-                onShare = { context.shareNote(it) },
-                onArchive = { note ->
-                    viewModel.save(note)
-                    viewModel.setArchived(note.id, !note.archived)
-                    openId = null
-                    val message = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
-                    undoable(message) { viewModel.setArchived(note.id, note.archived) }
-                },
-                onTrash = { note ->
-                    viewModel.save(note)
-                    openId = null
-                    if (!note.isBlank) {
-                        viewModel.moveToTrash(note.id)
-                        undoable("Not çöp kutusuna taşındı") { viewModel.restore(note.id) }
-                    }
-                },
-            )
+    SharedTransitionLayout(modifier) {
+        AnimatedContent(
+            targetState = openId,
+            transitionSpec = {
+                // A note with a card grows out of it (shared bounds); a new note zooms in from the middle.
+                val fromCard = targetState?.let { target -> notes.any { it.id == target } } ?: true
+                val enter = if (fromCard) {
+                    fadeIn(motion.defaultEffectsSpec())
+                } else {
+                    fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec(), EDITOR_START_SCALE)
+                }
+                enter togetherWith fadeOut(motion.fastEffectsSpec())
+            },
+            label = "editor",
+        ) { id ->
+            CompositionLocalProvider(LocalSharedNoteScope provides SharedNoteScope(this@SharedTransitionLayout, this@AnimatedContent)) {
+                if (id == null) {
+                    MainScreen(
+                        notes = notes,
+                        loaded = loaded,
+                        section = section,
+                        settings = settings,
+                        selection = selection.toSet(),
+                        onSelectionChange = { selection = it.toList() },
+                        onSectionChange = {
+                            selection = emptyList()
+                            section = it
+                        },
+                        onOpen = { openId = it.id },
+                        onNewNote = { open(viewModel.newNote()) },
+                        onRestore = { note ->
+                            viewModel.restore(note.id)
+                            undoable("Not geri yüklendi") { viewModel.moveToTrash(note.id) }
+                        },
+                        onDeleteForever = { viewModel.deleteForever(it.id) },
+                        onEmptyTrash = viewModel::emptyTrash,
+                        onToggleListView = { viewModel.updateSettings { it.copy(listView = !it.listView) } },
+                        onOpenSettings = { showSettings = true },
+                        onPinSelection = { pinned ->
+                            viewModel.setPinned(selection.toSet(), pinned)
+                            selection = emptyList()
+                        },
+                        onArchiveSelection = {
+                            val ids = selection.toSet()
+                            val archive = section != Section.ARCHIVE
+                            viewModel.setArchived(ids, archive)
+                            selection = emptyList()
+                            val text = if (archive) "${ids.size} not arşivlendi" else "${ids.size} not arşivden çıkarıldı"
+                            undoable(text) { viewModel.setArchived(ids, !archive) }
+                        },
+                        onTrashSelection = {
+                            val ids = selection.toSet()
+                            viewModel.moveToTrash(ids)
+                            selection = emptyList()
+                            undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
+                        },
+                        snackbarHostState = snackbar,
+                    )
+                } else {
+                    val initial = notes.firstOrNull { it.id == id }
+                        ?: pending?.takeIf { it.id == id }
+                        ?: Note(id = id, createdAt = id, updatedAt = id)
+                    EditorScreen(
+                        initial = initial,
+                        onSave = viewModel::save,
+                        modifier = Modifier.sharedNoteBounds(id),
+                        snackbarHostState = snackbar,
+                        onDuplicate = { note ->
+                            open(viewModel.duplicate(note))
+                            message("Kopyası oluşturuldu")
+                        },
+                        onClose = { openId = null },
+                        onShare = { context.shareNote(it) },
+                        onArchive = { note ->
+                            viewModel.save(note)
+                            viewModel.setArchived(note.id, !note.archived)
+                            openId = null
+                            val message = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
+                            undoable(message) { viewModel.setArchived(note.id, note.archived) }
+                        },
+                        onTrash = { note ->
+                            viewModel.save(note)
+                            openId = null
+                            if (!note.isBlank) {
+                                viewModel.moveToTrash(note.id)
+                                undoable("Not çöp kutusuna taşındı") { viewModel.restore(note.id) }
+                            }
+                        },
+                    )
+                }
+            }
         }
     }
 }

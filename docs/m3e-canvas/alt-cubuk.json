@@ -1,0 +1,436 @@
+{
+ "title": "Notlar",
+ "brief": "Notlar: notlar ve yapılacaklar için Material 3 Expressive Android uygulaması. Bu taslak: daha uzun alt gezinme çubuğu ve bol mini animasyon.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": true,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "notes",
+   "name": "A – Notlar, uzun alt çubuk",
+   "x": 0,
+   "y": 0,
+   "bg": "surface",
+   "note": "Seçenek A: Notlar ana ekranı; alttaki gezinme çubuğu klasik M3 NavigationBar (80dp yüksek), simge geniş hap göstergenin içinde, etiket altında. Hareket: bölüm değişince içerik dokunulan sekmenin yönünde kayarak ve solarak gelir (sağdaki sekmeye geçince sağdan, soldakine geçince soldan); kartlara basılınca hafifçe küçülür (scale ~0.96) ve bırakınca yaylı geri döner; FAB'a dokununca + simgesi döner; seçim modunda üst çubuk seçim çubuğuna çapraz solarak (cross-fade) geçer ve alt çubuk aşağı kayarak kaybolur. Tüm geçişler expressive spring hareket şemasıyla."
+  },
+  {
+   "id": "archive",
+   "name": "B – Arşiv seçili, uzun alt çubuk",
+   "x": 492,
+   "y": 0,
+   "bg": "surface",
+   "note": "Seçenek B: aynı uzun alt çubuk, Arşiv seçili; seçili durumun görünüşü (dolu kutu simgesi geniş hapın içinde). Arşivde FAB yok. Hareket: bölüm değişince içerik dokunulan sekmenin yönünde kayarak ve solarak gelir (sağdaki sekmeye geçince sağdan, soldakine geçince soldan); kartlara basılınca hafifçe küçülür (scale ~0.96) ve bırakınca yaylı geri döner; FAB'a dokununca + simgesi döner; seçim modunda üst çubuk seçim çubuğuna çapraz solarak (cross-fade) geçer ve alt çubuk aşağı kayarak kaybolur. Tüm geçişler expressive spring hareket şemasıyla."
+  }
+ ],
+ "groups": [
+  {
+   "id": "abar",
+   "x": 0,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "abari",
+     "kind": "topAppBar",
+     "label": "Notlar",
+     "icon": null,
+     "icon2": "settings",
+     "variant": "filled",
+     "note": "Büyük esnek üst çubuk; görünüm değiştirici ve Ayarlar bugünkü gibi. Seçim modunda '2 seçildi' çubuğuna çapraz solarak geçer."
+    }
+   ]
+  },
+  {
+   "id": "aview",
+   "x": 300,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aviewi",
+     "kind": "iconButton",
+     "label": "Liste görünümü",
+     "icon": "view_agenda",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "asrch",
+   "x": 16,
+   "y": 104,
+   "axis": "x",
+   "items": [
+    {
+     "id": "asrchi",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "bbar",
+   "x": 492,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bbari",
+     "kind": "topAppBar",
+     "label": "Arşiv",
+     "icon": null,
+     "icon2": "settings",
+     "variant": "filled",
+     "note": "Büyük esnek üst çubuk; görünüm değiştirici ve Ayarlar bugünkü gibi. Seçim modunda '2 seçildi' çubuğuna çapraz solarak geçer."
+    }
+   ]
+  },
+  {
+   "id": "bview",
+   "x": 792,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bviewi",
+     "kind": "iconButton",
+     "label": "Liste görünümü",
+     "icon": "view_agenda",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "bsrch",
+   "x": 508,
+   "y": 104,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bsrchi",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "ach",
+   "x": 16,
+   "y": 176,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ach1",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true
+    },
+    {
+     "id": "ach2",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "ach3",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "ah1",
+   "x": 16,
+   "y": 224,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ah1i",
+     "kind": "text",
+     "label": "Sabitlenenler",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "ac1",
+   "x": 16,
+   "y": 256,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac1i",
+     "kind": "card",
+     "label": "Market",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "1/4 · ☐ Süt  ☐ Ekmek  ☐ Domates, salatalık  ☑ Yumurta",
+     "noImage": true,
+     "size": 182,
+     "size2": 176,
+     "fill": "primaryContainer",
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "ac2",
+   "x": 214,
+   "y": 256,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac2i",
+     "kind": "card",
+     "label": "Vardiya planı",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.",
+     "noImage": true,
+     "size": 182,
+     "size2": 116,
+     "fill": "tertiaryContainer",
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "ah2",
+   "x": 16,
+   "y": 448,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ah2i",
+     "kind": "text",
+     "label": "Diğerleri",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "ac3",
+   "x": 16,
+   "y": 480,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac3i",
+     "kind": "card",
+     "label": "Fikirler",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Not uygulamasına ana ekran widget'ı eklensin.",
+     "noImage": true,
+     "size": 182,
+     "size2": 100,
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "ac4",
+   "x": 214,
+   "y": 480,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac4i",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.",
+     "noImage": true,
+     "size": 182,
+     "size2": 80,
+     "fill": "secondaryContainer",
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "ac5",
+   "x": 16,
+   "y": 596,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac5i",
+     "kind": "card",
+     "label": "Kitaplar",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Kürk Mantolu Madonna, Simyacı, Tutunamayanlar",
+     "noImage": true,
+     "size": 182,
+     "size2": 116,
+     "fill": "tertiaryContainer",
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "ac6",
+   "x": 214,
+   "y": 576,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ac6i",
+     "kind": "card",
+     "label": "",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Akşam annemi ara.",
+     "noImage": true,
+     "size": 182,
+     "size2": 56,
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "afab",
+   "x": 284,
+   "y": 712,
+   "axis": "x",
+   "items": [
+    {
+     "id": "afabi",
+     "kind": "extendedFab",
+     "label": "Not",
+     "icon": "add",
+     "variant": "tonal",
+     "note": "Dokununca + simgesi 90° döner (yaylı) ve yeni not editörü açılır; liste kayınca FAB küçülür. Uzun alt çubuk yüzünden FAB 16dp daha yukarıda durur."
+    }
+   ]
+  },
+  {
+   "id": "bc1",
+   "x": 508,
+   "y": 176,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bc1i",
+     "kind": "card",
+     "label": "Eski adres",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Atatürk Cad. No 12",
+     "noImage": true,
+     "size": 182,
+     "size2": 88,
+     "note": "Basılınca hafifçe küçülür (scale ~0.96), bırakınca yaylı geri döner; dokununca editörde açılır, uzun basınca seçim modu başlar."
+    }
+   ]
+  },
+  {
+   "id": "anav",
+   "x": 0,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "anavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "actions": {
+      "tab:0": {
+       "to": "notes",
+       "transition": "slide"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "slide"
+      }
+     },
+     "note": "Uzun alt çubuk: ShortNavigationBar (64dp) yerine klasik M3 NavigationBar, 80dp yükseklik; seçili sekmede simge geniş hap göstergede (64×32), etiket her zaman simgenin altında. Seçimde gösterge yaylı genişleyerek belirir. Sekme mini animasyonları — Notlar: seçilince satır simgesi yukarı zıplar ve yaylı (spring) bir sekmeyle yerine oturur. Arşiv: seçilince kutu simgesi aşağı düşer ve içine bir şey konmuş gibi hafifçe sekerek durur. Çöp kutusu: seçilince kutu simgesi sağa-sola sallanır (kapak sarsılması) ve durur. Çöp kutusu sekmesi bugünkü Çöp kutusu ekranını açar (bu taslakta çizilmedi)."
+    }
+   ]
+  },
+  {
+   "id": "bnav",
+   "x": 492,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 1,
+     "actions": {
+      "tab:0": {
+       "to": "notes",
+       "transition": "slide"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "slide"
+      }
+     },
+     "note": "Uzun alt çubuk: ShortNavigationBar (64dp) yerine klasik M3 NavigationBar, 80dp yükseklik; seçili sekmede simge geniş hap göstergede (64×32), etiket her zaman simgenin altında. Seçimde gösterge yaylı genişleyerek belirir. Sekme mini animasyonları — Notlar: seçilince satır simgesi yukarı zıplar ve yaylı (spring) bir sekmeyle yerine oturur. Arşiv: seçilince kutu simgesi aşağı düşer ve içine bir şey konmuş gibi hafifçe sekerek durur. Çöp kutusu: seçilince kutu simgesi sağa-sola sallanır (kapak sarsılması) ve durur. Çöp kutusu sekmesi bugünkü Çöp kutusu ekranını açar (bu taslakta çizilmedi)."
+    }
+   ]
+  }
+ ]
+}

@@ -1,6 +1,17 @@
 package com.vardiya.notlar.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,7 +86,13 @@ import com.vardiya.notlar.domain.NoteFilter
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.domain.Settings
+import com.vardiya.notlar.ui.components.AnimatedIcon
+import com.vardiya.notlar.ui.components.IconMotion
 import com.vardiya.notlar.ui.components.NoteCard
+import com.vardiya.notlar.ui.components.sharedNoteBounds
+
+// Lists slide by a sixth of their width when the section changes.
+private const val SLIDE_FRACTION = 6
 
 private val Section.title: String
     get() = when (this) {
@@ -96,6 +113,13 @@ private val Section.icon: ImageVector
         Section.NOTES -> Icons.AutoMirrored.Outlined.Notes
         Section.ARCHIVE -> Icons.Outlined.Archive
         Section.TRASH -> Icons.Outlined.Delete
+    }
+
+private val Section.motion: IconMotion
+    get() = when (this) {
+        Section.NOTES -> IconMotion.BOUNCE
+        Section.ARCHIVE -> IconMotion.DROP
+        Section.TRASH -> IconMotion.WIGGLE
     }
 
 private val NoteFilter.label: String
@@ -134,68 +158,87 @@ fun MainScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val gridState = rememberLazyStaggeredGridState()
+    // Notes and archive slide past each other while switching, so each grid keeps its own state.
+    val archiveGridState = rememberLazyStaggeredGridState()
     val fabExpanded by remember { derivedStateOf { gridState.firstVisibleItemIndex == 0 } }
     val haptic = LocalHapticFeedback.current
+    val motion = MaterialTheme.motionScheme
     val selecting = selection.isNotEmpty()
     BackHandler(enabled = selecting) { onSelectionChange(emptySet()) }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (selecting) {
-                val allPinned = notes.filter { it.id in selection }.all { it.pinned }
-                LargeFlexibleTopAppBar(
-                    title = { Text("${selection.size} seçildi") },
-                    navigationIcon = {
-                        IconButton(onClick = { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
-                            Icon(Icons.Filled.Close, contentDescription = "Seçimi kapat")
-                        }
-                    },
-                    actions = {
-                        if (section == Section.NOTES) {
+            AnimatedContent(
+                targetState = selecting,
+                transitionSpec = { fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec()) },
+                label = "topBar",
+            ) { selectingBar ->
+                if (selectingBar) {
+                    val allPinned = notes.filter { it.id in selection }.all { it.pinned }
+                    LargeFlexibleTopAppBar(
+                        title = { Text("${selection.size} seçildi") },
+                        navigationIcon = {
+                            IconButton(onClick = { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
+                                Icon(Icons.Filled.Close, contentDescription = "Seçimi kapat")
+                            }
+                        },
+                        actions = {
+                            if (section == Section.NOTES) {
+                                BarAction(
+                                    icon = if (allPinned) Icons.Outlined.PushPin else Icons.Filled.PushPin,
+                                    description = if (allPinned) "Sabitlemeyi kaldır" else "Sabitle",
+                                    onClick = { onPinSelection(!allPinned) },
+                                )
+                            }
                             BarAction(
-                                icon = if (allPinned) Icons.Outlined.PushPin else Icons.Filled.PushPin,
-                                description = if (allPinned) "Sabitlemeyi kaldır" else "Sabitle",
-                                onClick = { onPinSelection(!allPinned) },
+                                icon = if (section == Section.ARCHIVE) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
+                                description = if (section == Section.ARCHIVE) "Arşivden çıkar" else "Arşivle",
+                                onClick = onArchiveSelection,
                             )
-                        }
-                        BarAction(
-                            icon = if (section == Section.ARCHIVE) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
-                            description = if (section == Section.ARCHIVE) "Arşivden çıkar" else "Arşivle",
-                            onClick = onArchiveSelection,
-                        )
-                        BarAction(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", onClick = onTrashSelection)
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                    scrollBehavior = scrollBehavior,
-                )
-            } else {
-                LargeFlexibleTopAppBar(
-                    title = { Text(section.title) },
-                    actions = {
-                        if (section != Section.TRASH) {
-                            BarAction(
-                                icon = if (settings.listView) Icons.Outlined.GridView else Icons.AutoMirrored.Outlined.ViewList,
-                                description = if (settings.listView) "Izgara görünümü" else "Liste görünümü",
-                                onClick = onToggleListView,
-                            )
-                        }
-                        BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings)
-                    },
-                    scrollBehavior = scrollBehavior,
-                )
+                            BarAction(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", onClick = onTrashSelection)
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ),
+                        scrollBehavior = scrollBehavior,
+                    )
+                } else {
+                    LargeFlexibleTopAppBar(
+                        title = { Text(section.title) },
+                        actions = {
+                            if (section != Section.TRASH) {
+                                BarAction(
+                                    icon = if (settings.listView) Icons.Outlined.GridView else Icons.AutoMirrored.Outlined.ViewList,
+                                    description = if (settings.listView) "Izgara görünümü" else "Liste görünümü",
+                                    onClick = onToggleListView,
+                                )
+                            }
+                            BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings)
+                        },
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
             }
         },
         bottomBar = {
-            if (!selecting) {
+            AnimatedVisibility(
+                visible = !selecting,
+                enter = slideInVertically(motion.defaultSpatialSpec()) { it } + fadeIn(motion.defaultEffectsSpec()),
+                exit = slideOutVertically(motion.fastSpatialSpec()) { it } + fadeOut(motion.fastEffectsSpec()),
+                label = "bottomBar",
+            ) {
                 SectionBar(section = section, onSectionChange = onSectionChange)
             }
         },
         floatingActionButton = {
-            if (section == Section.NOTES && !selecting) {
+            AnimatedVisibility(
+                visible = section == Section.NOTES && !selecting,
+                enter = scaleIn(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                exit = scaleOut(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+                label = "fab",
+            ) {
                 ExtendedFloatingActionButton(
                     text = { Text("Not") },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
@@ -209,35 +252,48 @@ fun MainScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        when (section) {
-            Section.TRASH -> TrashList(
-                notes = NoteRules.visible(notes, Section.TRASH),
-                nowMillis = nowMillis,
-                onRestore = onRestore,
-                onDeleteForever = onDeleteForever,
-                onEmptyTrash = onEmptyTrash,
-                contentPadding = padding,
-            )
-            else -> NoteGrid(
-                notes = notes,
-                loaded = loaded,
-                section = section,
-                settings = settings,
-                gridState = gridState,
-                selection = selection,
-                onOpen = { note ->
-                    when {
-                        !selecting -> onOpen(note)
-                        note.id in selection -> onSelectionChange(selection - note.id)
-                        else -> onSelectionChange(selection + note.id)
-                    }
-                },
-                onSelect = { note ->
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSelectionChange(if (note.id in selection) selection - note.id else selection + note.id)
-                },
-                contentPadding = padding,
-            )
+        // The new list slides in from the side of the tapped destination.
+        AnimatedContent(
+            targetState = section,
+            transitionSpec = {
+                val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                (slideInHorizontally(motion.defaultSpatialSpec()) { it / SLIDE_FRACTION * direction } + fadeIn(motion.defaultEffectsSpec()))
+                    .togetherWith(
+                        slideOutHorizontally(motion.fastSpatialSpec()) { -it / SLIDE_FRACTION * direction } + fadeOut(motion.fastEffectsSpec()),
+                    )
+            },
+            label = "section",
+        ) { shown ->
+            when (shown) {
+                Section.TRASH -> TrashList(
+                    notes = NoteRules.visible(notes, Section.TRASH),
+                    nowMillis = nowMillis,
+                    onRestore = onRestore,
+                    onDeleteForever = onDeleteForever,
+                    onEmptyTrash = onEmptyTrash,
+                    contentPadding = padding,
+                )
+                else -> NoteGrid(
+                    notes = notes,
+                    loaded = loaded,
+                    section = shown,
+                    settings = settings,
+                    gridState = if (shown == Section.ARCHIVE) archiveGridState else gridState,
+                    selection = selection,
+                    onOpen = { note ->
+                        when {
+                            !selecting -> onOpen(note)
+                            note.id in selection -> onSelectionChange(selection - note.id)
+                            else -> onSelectionChange(selection + note.id)
+                        }
+                    },
+                    onSelect = { note ->
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSelectionChange(if (note.id in selection) selection - note.id else selection + note.id)
+                    },
+                    contentPadding = padding,
+                )
+            }
         }
     }
 }
@@ -261,7 +317,14 @@ private fun SectionBar(section: Section, onSectionChange: (Section) -> Unit) {
                     if (!selected) haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                     onSectionChange(item)
                 },
-                icon = { Icon(if (selected) item.selectedIcon else item.icon, contentDescription = null) },
+                icon = {
+                    AnimatedIcon(
+                        if (selected) item.selectedIcon else item.icon,
+                        contentDescription = null,
+                        play = selected,
+                        motion = item.motion,
+                    )
+                },
                 label = { Text(item.title) },
             )
         }
@@ -362,7 +425,9 @@ private fun LazyStaggeredGridItemScope.GridCard(
         onClick = { onOpen(note) },
         onLongClick = { onSelect(note) },
         selected = selected,
-        modifier = Modifier.animateItem(),
+        modifier = Modifier
+            .animateItem()
+            .sharedNoteBounds(note.id),
     )
 }
 
