@@ -17,19 +17,22 @@ class KeystoreCipher {
 
     private val key: SecretKey by lazy { existingKey() ?: newKey() }
 
-    fun encrypt(plain: String): String {
+    /** Encrypts [plain]; [label] names the stored value and is bound to it, so values cannot be swapped. */
+    fun encrypt(plain: String, label: String): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
+        cipher.updateAAD(label.toByteArray())
         val sealed = cipher.iv + cipher.doFinal(plain.toByteArray())
         return PREFIX + Base64.getEncoder().encodeToString(sealed)
     }
 
     /** The text inside [stored]; text written before encryption existed is returned as it is. */
-    fun decrypt(stored: String): String {
+    fun decrypt(stored: String, label: String): String {
         if (!stored.startsWith(PREFIX)) return stored
         val sealed = Base64.getDecoder().decode(stored.removePrefix(PREFIX))
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, sealed, 0, IV_BYTES))
+        cipher.updateAAD(label.toByteArray())
         return String(cipher.doFinal(sealed, IV_BYTES, sealed.size - IV_BYTES))
     }
 

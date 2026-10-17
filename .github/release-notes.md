@@ -9,11 +9,14 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 - **Biyometrik:** Parmak izi veya yüz ile açma (telefon destekliyorsa).
 - **Otomatik kilit:** Uygulamadan çıkınca *Hemen*, *1 dk* ya da *5 dk* sonra yeniden kilitlenir.
 - **Deneme sınırı:** 5 yanlış PIN'den sonra 30 saniye bekleme; her 5 yanlışta süre ikiye katlanır.
-- **PIN'imi unuttum:** Telefonun kendi ekran kilidiyle doğrulayıp açarsın, notlar silinmez; yeni PIN'i Ayarlar'dan belirlersin.
+- **PIN'imi unuttum:** Telefonun kendi ekran kilidiyle doğrulayıp açarsın, notlar silinmez; yeni PIN'i Ayarlar'dan belirlersin. Biyometrik kapalıysa yalnızca desen/PIN/parola kabul edilir.
+- **Kilidi korumak:** Kilidi kapatmak ya da PIN'i değiştirmek için önce mevcut PIN sorulur. Kilit açıkken son uygulamalar ekranında notlar görünmez.
 - **Şifreli depolama:** Notlar ve ayarlar cihazda AES-256 ile şifreli saklanır; anahtar Android Keystore'da. Eski kayıtlar ilk açılışta otomatik şifrelenir.
 - **Ekranı gizle:** Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz.
-- **Şifreli yedek:** Dışa aktarırken parola verirsen yedek AES-256 ile şifrelenir; içe aktarırken parola sorulur.
-- **Not:** Şifreli veriler başka cihaza taşınamadığı için Android'in bulut yedeği kapatıldı; yedek için *Dışa aktar*ı kullan.
+- **Şifreli yedek:** Dışa aktarırken parola verirsen (iki kez, en az 8 karakter) yedek AES-256 ile şifrelenir; içe aktarırken parola sorulur.
+- **Veri güvenliği:** Notlar bir gün okunamazsa (örneğin şifre anahtarı kaybolursa) hiçbir şey üzerine yazılmaz; uygulama bunu açıkça söyler.
+- **Not:** Şifreli veriler başka cihaza taşınamadığı için Android'in bulut yedeği ve cihazdan cihaza aktarımı kapatıldı; yeni telefona geçerken *Dışa aktar*ı kullan.
+- **Ayarlar:** Gruplu, simgeli satırlar; anahtarlar açıkken ✓ gösterir.
 
 ### Yenilikler (1.5.0)
 - **Expressive arama çubuğu:** Notlar ve Arşiv'de en üstte hap biçimli arama çubuğu. Dokununca tam ekran arama açılır: son aramalar (silinebilir), *Tümü / Notlar / Yapılacaklar* süzgeçleri ve yazdıkça vurgulu sonuçlar.

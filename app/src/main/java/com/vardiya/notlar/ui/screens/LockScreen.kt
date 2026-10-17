@@ -73,6 +73,8 @@ private val KEY_SIZE = 76.dp
 fun LockScreen(
     onPin: suspend (String) -> UnlockResult,
     modifier: Modifier = Modifier,
+    title: String = "PIN'ini gir",
+    onCancel: (() -> Unit)? = null,
     biometricAvailable: Boolean = false,
     onBiometric: () -> Unit = {},
     onForgetPin: (() -> Unit)? = null,
@@ -137,7 +139,7 @@ fun LockScreen(
     }
 
     PinPad(
-        title = "PIN'ini gir",
+        title = title,
         pin = pin,
         maxLength = Security.PIN_MAX_LENGTH,
         enabled = !waiting,
@@ -150,6 +152,7 @@ fun LockScreen(
         shakeOffset = { shake.value },
         modifier = modifier,
         biometric = if (biometricAvailable) onBiometric else null,
+        onCancel = onCancel,
         secondary = onForgetPin?.let { "PIN'imi unuttum" to it },
     ) {
         when {

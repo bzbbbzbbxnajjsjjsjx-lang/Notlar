@@ -45,7 +45,9 @@ import com.vardiya.notlar.domain.Security
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.ExportBackupDialog
 import com.vardiya.notlar.ui.screens.ImportPasswordDialog
+import com.vardiya.notlar.ui.screens.LockScreen
 import com.vardiya.notlar.ui.screens.PinSetupScreen
+import com.vardiya.notlar.ui.screens.UnreadableNotesScreen
 import com.vardiya.notlar.ui.screens.PrivacyActions
 import com.vardiya.notlar.ui.screens.MainScreen
 import com.vardiya.notlar.ui.screens.SettingsSheet
@@ -55,6 +57,9 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 private const val EDITOR_START_SCALE = 0.92f
+
+/** Why the current PIN is being asked for again. */
+private enum class PinCheck { DISABLE, CHANGE }
 private const val BACKUP_MIME = "application/json"
 
 /** What the app was opened for from outside: a launcher shortcut or text shared by another app. */
@@ -129,8 +134,11 @@ fun NotlarApp(
         if (text.isBlank()) message("Not boş") else send(text)
     }
 
-    // The password of the backup being exported; kept only in memory until the file is written.
-    var exportPassword by remember { mutableStateOf<String?>(null) }
+    // Whether the backup being exported was asked to be sealed; its password lives in the view model.
+    var exportSealed by rememberSaveable { mutableStateOf(false) }
+    // Turning the lock off or changing the PIN first asks for the current PIN.
+    var pinCheck by rememberSaveable { mutableStateOf<PinCheck?>(null) }
+    val notesUnreadable by viewModel.notesUnreadable.collectAsStateWithLifecycle()
     var showExport by rememberSaveable { mutableStateOf(false) }
     var sealedImport by remember { mutableStateOf<String?>(null) }
     var importWrong by remember { mutableStateOf(false) }
@@ -142,9 +150,16 @@ fun NotlarApp(
     }
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
-        val password = exportPassword
-        exportPassword = null
+        val password = viewModel.pendingExportPassword
+        val sealed = exportSealed
+        viewModel.pendingExportPassword = null
+        exportSealed = false
         if (uri == null) return@rememberLauncherForActivityResult
+        // A sealed backup whose password was lost (the process was restarted) is not written plain.
+        if (sealed && password == null) {
+            message("Parola kayboldu; şifreli yedek için tekrar dışa aktar")
+            return@rememberLauncherForActivityResult
+        }
         val backup = viewModel.exportBackup()
         scope.launch {
             val written = runCatching {
@@ -183,17 +198,12 @@ fun NotlarApp(
             onSettingsChange = { changed -> viewModel.updateSettings { changed } },
             privacy = PrivacyActions(
                 onLockChange = { enabled ->
-                    if (enabled) {
-                        showSettings = false
-                        pinSetup = true
-                    } else {
-                        lockViewModel.disableLock()
-                        message("Uygulama kilidi kapatıldı")
-                    }
+                    showSettings = false
+                    if (enabled) pinSetup = true else pinCheck = PinCheck.DISABLE
                 },
                 onChangePin = {
                     showSettings = false
-                    pinSetup = true
+                    pinCheck = PinCheck.CHANGE
                 },
                 biometricAvailable = biometricAvailable,
             ),
@@ -213,7 +223,8 @@ fun NotlarApp(
         ExportBackupDialog(
             onExport = { password ->
                 showExport = false
-                exportPassword = password
+                viewModel.pendingExportPassword = password
+                exportSealed = password != null
                 lockViewModel.stayOpenThroughNextTrip()
                 exportLauncher.launch("notlar-yedek-${LocalDate.now()}.json")
             },
@@ -237,16 +248,47 @@ fun NotlarApp(
             onDismiss = { sealedImport = null },
         )
     }
-    if (pinSetup) {
-        BackHandler { pinSetup = false }
-        PinSetupScreen(
-            onPinConfirm = { pin ->
-                lockViewModel.setPin(pin)
-                pinSetup = false
-                message("Uygulama kilidi açık")
-            },
-            onCancel = { pinSetup = false },
-        )
+    // Full-screen steps that replace the lists: asking the current PIN, choosing a new one, and
+    // notes that cannot be read on this device.
+    val check = pinCheck
+    if (check != null || pinSetup || notesUnreadable) {
+        when {
+            check != null -> {
+                BackHandler { pinCheck = null }
+                LockScreen(
+                    title = "Mevcut PIN'i gir",
+                    onPin = { pin ->
+                        lockViewModel.tryPin(pin).also { result ->
+                            if (result == UnlockResult.Opened) {
+                                pinCheck = null
+                                when (check) {
+                                    PinCheck.CHANGE -> pinSetup = true
+                                    PinCheck.DISABLE -> {
+                                        lockViewModel.disableLock()
+                                        message("Uygulama kilidi kapatıldı")
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    onCancel = { pinCheck = null },
+                )
+            }
+            pinSetup -> {
+                BackHandler { pinSetup = false }
+                PinSetupScreen(
+                    onPinConfirm = { pin ->
+                        scope.launch {
+                            lockViewModel.setPin(pin)
+                            pinSetup = false
+                            message("Uygulama kilidi açık")
+                        }
+                    },
+                    onCancel = { pinSetup = false },
+                )
+            }
+            else -> UnreadableNotesScreen(onWipe = viewModel::wipeUnreadableNotes)
+        }
         return
     }
 

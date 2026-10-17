@@ -21,7 +21,9 @@ private const val MIN_PASSWORD = 8
 @Composable
 fun ExportBackupDialog(onExport: (password: String?) -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     val password = rememberTextFieldState()
-    val valid = password.text.length >= MIN_PASSWORD
+    val repeat = rememberTextFieldState()
+    val longEnough = password.text.length >= MIN_PASSWORD
+    val same = password.text.toString() == repeat.text.toString()
     AlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier,
@@ -34,10 +36,21 @@ fun ExportBackupDialog(onExport: (password: String?) -> Unit, onDismiss: () -> U
                     state = password,
                     label = { Text("Parola (en az $MIN_PASSWORD karakter)") },
                 )
+                // A typo in a single field would leave a backup nobody can open.
+                OutlinedSecureTextField(
+                    state = repeat,
+                    label = { Text("Parolayı tekrar gir") },
+                    isError = repeat.text.isNotEmpty() && !same,
+                    supportingText = if (repeat.text.isNotEmpty() && !same) {
+                        { Text("Parolalar eşleşmiyor") }
+                    } else {
+                        null
+                    },
+                )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onExport(password.text.toString()) }, enabled = valid) { Text("Şifrele ve aktar") }
+            TextButton(onClick = { onExport(password.text.toString()) }, enabled = longEnough && same) { Text("Şifrele ve aktar") }
         },
         dismissButton = {
             TextButton(onClick = { onExport(null) }) {

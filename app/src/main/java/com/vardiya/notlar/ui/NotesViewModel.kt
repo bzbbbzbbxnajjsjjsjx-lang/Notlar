@@ -18,10 +18,20 @@ import kotlinx.coroutines.launch
 
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = NoteRepository(application)
+    private val repository = NoteRepository.get(application)
 
     val notes: StateFlow<List<Note>> =
         repository.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Notes are stored but cannot be read on this device (e.g. its Keystore key is gone). */
+    val notesUnreadable: StateFlow<Boolean> =
+        repository.notesUnreadable.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * The password chosen for the backup being exported, held here so a rotation while the file
+     * picker is open does not lose it; never saved anywhere.
+     */
+    var pendingExportPassword: String? = null
 
     val settings: StateFlow<Settings> =
         repository.settings.stateIn(viewModelScope, SharingStarted.Eagerly, Settings())
@@ -93,7 +103,12 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun forgetSearch(query: String) = updateSettings { it.copy(recentSearches = it.recentSearches - query) }
 
     fun updateSettings(transform: (Settings) -> Settings) {
-        viewModelScope.launch { repository.saveSettings(transform(settings.value)) }
+        viewModelScope.launch { repository.updateSettings(transform) }
+    }
+
+    /** Erases notes that cannot be read any more, on the user's explicit choice. */
+    fun wipeUnreadableNotes() {
+        viewModelScope.launch { repository.wipeNotes() }
     }
 
     fun exportBackup(): String = repository.encodeBackup(notes.value)

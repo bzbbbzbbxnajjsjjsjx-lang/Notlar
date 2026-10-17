@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The notes are encrypted with a Keystore key that never leaves this device, so they would arrive
+  unreadable anywhere else: keep them out of cloud backups and of device-to-device transfers alike.
+  Moving notes to a new phone goes through Ayarlar > Yedek > Dışa aktar.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="datastore/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="datastore/" />
+    </device-transfer>
+</data-extraction-rules>

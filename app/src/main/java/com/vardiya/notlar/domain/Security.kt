@@ -9,6 +9,7 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 
 /** How long the app may stay in the background before it asks for the PIN again. */
@@ -29,6 +30,8 @@ data class LockState(
     val pinSalt: String? = null,
     val failedTries: Int = 0,
     val lockedOutUntil: Long = 0,
+    /** Stored but not readable (key lost or data damaged): the app stays locked rather than open. */
+    @Transient val unreadable: Boolean = false,
 ) {
     val hasPin: Boolean get() = pinHash != null && pinSalt != null
 }
@@ -45,6 +48,9 @@ object Security {
 
     private const val SEALED_FORMAT = 1
     private const val PBKDF2_ITERATIONS = 120_000
+
+    /** OWASP's 2023 figure for PBKDF2-HMAC-SHA256; a backup is attacked offline, so it gets the full count. */
+    private const val BACKUP_ITERATIONS = 600_000
     private const val KEY_BITS = 256
     private const val SALT_BYTES = 16
     private const val IV_BYTES = 12
@@ -96,10 +102,11 @@ object Security {
         val salt = ByteArray(SALT_BYTES).also(random::nextBytes)
         val iv = ByteArray(IV_BYTES).also(random::nextBytes)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(derive(password, salt), "AES"), GCMParameterSpec(TAG_BITS, iv))
+        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(derive(password, salt, BACKUP_ITERATIONS), "AES"), GCMParameterSpec(TAG_BITS, iv))
         val data = cipher.doFinal(plain.toByteArray())
         val sealed = SealedBackup(
             notlarSealed = SEALED_FORMAT,
+            iterations = BACKUP_ITERATIONS,
             salt = base64.encodeToString(salt),
             iv = base64.encodeToString(iv),
             data = base64.encodeToString(data),
@@ -114,13 +121,13 @@ object Security {
     fun openBackup(raw: String, password: String): String? = runCatching {
         val sealed = json.decodeFromString(SealedBackup.serializer(), raw)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        val key = SecretKeySpec(derive(password, unbase64.decode(sealed.salt)), "AES")
+        val key = SecretKeySpec(derive(password, unbase64.decode(sealed.salt), sealed.iterations), "AES")
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, unbase64.decode(sealed.iv)))
         String(cipher.doFinal(unbase64.decode(sealed.data)))
     }.getOrNull()
 
-    private fun derive(secret: String, salt: ByteArray): ByteArray {
-        val spec = PBEKeySpec(secret.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_BITS)
+    private fun derive(secret: String, salt: ByteArray, iterations: Int = PBKDF2_ITERATIONS): ByteArray {
+        val spec = PBEKeySpec(secret.toCharArray(), salt, iterations, KEY_BITS)
         return try {
             SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
         } finally {
@@ -132,6 +139,8 @@ object Security {
     private data class SealedBackup(
         // No default: the encoder leaves defaults out, and this field is how a sealed file is recognised.
         val notlarSealed: Int,
+        // Kept with the file so a later version can raise the count and still open old backups.
+        val iterations: Int,
         val salt: String,
         val iv: String,
         val data: String,
