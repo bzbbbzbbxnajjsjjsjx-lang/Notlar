@@ -13,6 +13,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -98,6 +99,7 @@ import com.vardiya.notlar.ui.components.sharedNoteBounds
 
 // Lists slide by a sixth of their width when the section changes.
 private const val SLIDE_FRACTION = 6
+private const val SCRIM_ALPHA = 0.32f
 
 private val Section.title: String
     get() = when (this) {
@@ -172,6 +174,7 @@ fun MainScreen(
     val haptic = LocalHapticFeedback.current
     val motion = MaterialTheme.motionScheme
     val selecting = selection.isNotEmpty()
+    var fabMenuOpen by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = selecting) { onSelectionChange(emptySet()) }
 
     Scaffold(
@@ -243,6 +246,8 @@ fun MainScreen(
         floatingActionButton = {
             NewNoteFabMenu(
                 visible = section == Section.NOTES && !selecting,
+                expanded = fabMenuOpen,
+                onExpandedChange = { fabMenuOpen = it },
                 onNewNote = onNewNote,
                 onNewChecklist = onNewChecklist,
                 onPaste = onPasteNote,
@@ -294,6 +299,24 @@ fun MainScreen(
                     contentPadding = padding,
                 )
             }
+        }
+        // While the FAB menu is open, the list dims and a tap outside closes the menu.
+        AnimatedVisibility(
+            visible = fabMenuOpen,
+            enter = fadeIn(motion.defaultEffectsSpec()),
+            exit = fadeOut(motion.fastEffectsSpec()),
+            label = "fabScrim",
+        ) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = SCRIM_ALPHA))
+                    .clickable(
+                        interactionSource = null,
+                        indication = null,
+                        onClickLabel = "Menüyü kapat",
+                    ) { fabMenuOpen = false },
+            )
         }
     }
 }

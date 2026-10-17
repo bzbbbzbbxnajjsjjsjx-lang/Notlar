@@ -186,8 +186,11 @@ fun NotlarApp(
                         onNewChecklist = { open(viewModel.newChecklist()) },
                         onPasteNote = {
                             scope.launch {
+                                // Only plain text: an image or file on the clipboard would otherwise become its content:// address.
                                 val clip = clipboard.getClipEntry()?.clipData
-                                val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                                val text = clip
+                                    ?.takeIf { it.itemCount > 0 && it.description.hasMimeType("text/*") }
+                                    ?.getItemAt(0)?.text?.toString()
                                 if (text.isNullOrBlank()) {
                                     message("Panoda metin yok")
                                 } else {

@@ -1,6 +1,7 @@
 package com.vardiya.notlar.ui.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.Add
@@ -18,10 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,8 +34,10 @@ import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.unit.dp
 
 private const val ICON_SWAP_PROGRESS = 0.5f
+private val MENU_PADDING = 16.dp
 
 private class MenuEntry(val icon: ImageVector, val label: String, val onClick: () -> Unit)
 
@@ -47,16 +48,18 @@ private class MenuEntry(val icon: ImageVector, val label: String, val onClick: (
 @Composable
 fun NewNoteFabMenu(
     visible: Boolean,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onNewNote: () -> Unit,
     onNewChecklist: () -> Unit,
     onPaste: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
-    BackHandler(expanded) { expanded = false }
+    val currentOnExpandedChange by rememberUpdatedState(onExpandedChange)
+    BackHandler(expanded) { onExpandedChange(false) }
     // Selection mode or another section hides the button; it should not come back open.
-    LaunchedEffect(visible) { if (!visible) expanded = false }
+    LaunchedEffect(visible) { if (!visible) currentOnExpandedChange(false) }
 
     val entries = listOf(
         MenuEntry(Icons.AutoMirrored.Outlined.Notes, "Not", onNewNote),
@@ -66,18 +69,19 @@ fun NewNoteFabMenu(
 
     FloatingActionButtonMenu(
         expanded = expanded,
-        modifier = modifier,
+        // The menu pads itself by 16dp on top of the Scaffold's FAB margin; keep the button where the FAB was.
+        modifier = modifier.offset(x = MENU_PADDING, y = MENU_PADDING),
         button = {
             ToggleFloatingActionButton(
                 checked = expanded,
                 onCheckedChange = {
                     haptic.performHapticFeedback(if (expanded) HapticFeedbackType.ToggleOff else HapticFeedbackType.ToggleOn)
-                    expanded = !expanded
+                    onExpandedChange(!expanded)
                 },
                 modifier = Modifier
                     .semantics {
                         traversalIndex = -1f
-                        contentDescription = "Yeni"
+                        contentDescription = "Yeni not menüsü"
                         stateDescription = if (expanded) "Açık" else "Kapalı"
                     }
                     .animateFloatingActionButton(visible = visible || expanded, alignment = Alignment.BottomEnd),
@@ -94,7 +98,7 @@ fun NewNoteFabMenu(
         entries.forEachIndexed { index, entry ->
             FloatingActionButtonMenuItem(
                 onClick = {
-                    expanded = false
+                    onExpandedChange(false)
                     entry.onClick()
                 },
                 text = { Text(entry.label) },
@@ -105,7 +109,7 @@ fun NewNoteFabMenu(
                     if (index == entries.lastIndex) {
                         customActions = listOf(
                             CustomAccessibilityAction("Menüyü kapat") {
-                                expanded = false
+                                onExpandedChange(false)
                                 true
                             },
                         )

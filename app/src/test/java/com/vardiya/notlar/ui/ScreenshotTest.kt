@@ -104,7 +104,7 @@ class ScreenshotTest {
 
     @Test fun notesDynamic() = capture("notes_dynamic", dynamicColor = true) { Main(Section.NOTES) }
 
-    @Test fun fabMenu() = capture("fab_menu", interact = { compose.onNodeWithContentDescription("Yeni").performClick() }) {
+    @Test fun fabMenu() = capture("fab_menu", interact = { compose.onNodeWithContentDescription("Yeni not menüsü").performClick() }) {
         Main(Section.NOTES)
     }
 
