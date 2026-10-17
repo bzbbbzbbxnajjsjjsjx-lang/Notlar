@@ -1,5 +1,6 @@
 package com.vardiya.notlar.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,27 +11,38 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
@@ -49,6 +61,10 @@ private val ThemeMode.label: String
         ThemeMode.LIGHT -> "Açık"
         ThemeMode.DARK -> "Koyu"
     }
+
+private val OUTER_CORNER = 24.dp
+private val INNER_CORNER = 4.dp
+private val GROUP_GAP = 2.dp
 
 private val LockTimeout.label: String
     get() = when (this) {
@@ -109,90 +125,157 @@ internal fun SettingsContent(
     Column(
         modifier
             .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Heading("Görünüm")
-        Label("Tema")
-        ConnectedChoice(
-            options = ThemeMode.entries,
-            selected = settings.themeMode,
-            label = { it.label },
-            onSelect = { onSettingsChange(settings.copy(themeMode = it)) },
+        SettingsGroup(
+            "Görünüm",
+            buildList {
+                add {
+                    ChoiceRow(Icons.Outlined.Palette, "Tema", ThemeMode.entries, settings.themeMode, { it.label }) {
+                        onSettingsChange(settings.copy(themeMode = it))
+                    }
+                }
+                // Wallpaper colors exist from Android 12; older devices do not see the option at all.
+                if (dynamicColorAvailable) {
+                    add {
+                        SwitchRow(Icons.Outlined.AutoAwesome, "Dinamik renkler", "Duvar kağıdından renk al", settings.dynamicColor) {
+                            onSettingsChange(settings.copy(dynamicColor = it))
+                        }
+                    }
+                }
+                add {
+                    ChoiceRow(Icons.AutoMirrored.Outlined.Sort, "Sıralama", NoteSort.entries, settings.sort, { it.label }) {
+                        onSettingsChange(settings.copy(sort = it))
+                    }
+                }
+            },
         )
-        // Wallpaper colors exist from Android 12; older devices do not see the option at all.
-        if (dynamicColorAvailable) {
-            SwitchRow(
-                title = "Dinamik renkler",
-                subtitle = "Duvar kağıdından renk al",
-                checked = settings.dynamicColor,
-                onCheckedChange = { onSettingsChange(settings.copy(dynamicColor = it)) },
-            )
-        }
-        Label("Sıralama")
-        ConnectedChoice(
-            options = NoteSort.entries,
-            selected = settings.sort,
-            label = { it.label },
-            onSelect = { onSettingsChange(settings.copy(sort = it)) },
+        SettingsGroup(
+            "Gizlilik",
+            buildList {
+                add { SwitchRow(Icons.Outlined.Lock, "Uygulama kilidi", "Açılışta PIN sor", settings.lockEnabled, privacy.onLockChange) }
+                if (settings.lockEnabled) {
+                    add { ActionRow(Icons.Outlined.Password, "PIN'i değiştir", "Yeni bir PIN belirle", privacy.onChangePin) }
+                    if (privacy.biometricAvailable) {
+                        add {
+                            SwitchRow(Icons.Outlined.Fingerprint, "Biyometrik ile aç", "Parmak izi veya yüz", settings.biometricUnlock) {
+                                onSettingsChange(settings.copy(biometricUnlock = it))
+                            }
+                        }
+                    }
+                    add {
+                        ChoiceRow(Icons.Outlined.Timer, "Kilitle", LockTimeout.entries, settings.lockTimeout, { it.label }) {
+                            onSettingsChange(settings.copy(lockTimeout = it))
+                        }
+                    }
+                }
+                add {
+                    SwitchRow(
+                        Icons.Outlined.VisibilityOff,
+                        "Ekranı gizle",
+                        "Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz",
+                        settings.hideContent,
+                    ) { onSettingsChange(settings.copy(hideContent = it)) }
+                }
+                add { InfoRow(Icons.Outlined.Shield, "Notlar cihazda şifreli saklanır (AES-256, anahtar Android Keystore'da).") }
+            },
         )
+        SettingsGroup(
+            "Yedek",
+            listOf(
+                { ActionRow(Icons.Outlined.FileUpload, "Dışa aktar", "Tüm notları bir JSON dosyasına kaydet, istersen parolayla", onExport) },
+                { ActionRow(Icons.Outlined.FileDownload, "İçe aktar", "Aynı not varsa en son düzenlenen kalır", onImport) },
+            ),
+        )
+    }
+}
 
-        Heading("Gizlilik", Modifier.padding(top = 12.dp))
-        SwitchRow(
-            title = "Uygulama kilidi",
-            subtitle = "Açılışta PIN sor",
-            checked = settings.lockEnabled,
-            onCheckedChange = privacy.onLockChange,
-        )
-        if (settings.lockEnabled) {
-            TextButton(onClick = privacy.onChangePin, shapes = ButtonDefaults.shapes()) { Text("PIN'i değiştir") }
-            if (privacy.biometricAvailable) {
-                SwitchRow(
-                    title = "Biyometrik ile aç",
-                    subtitle = "Parmak izi veya yüz",
-                    checked = settings.biometricUnlock,
-                    onCheckedChange = { onSettingsChange(settings.copy(biometricUnlock = it)) },
-                )
+/**
+ * A titled group of rows, Android-settings style: the rows sit 2dp apart as one block whose outer
+ * corners are round and whose inner corners are tight.
+ */
+@Composable
+private fun SettingsGroup(title: String, rows: List<@Composable () -> Unit>) {
+    Column(verticalArrangement = Arrangement.spacedBy(GROUP_GAP)) {
+        Heading(title, Modifier.padding(start = 16.dp, top = 16.dp, bottom = 6.dp))
+        rows.forEachIndexed { index, row ->
+            val top = if (index == 0) OUTER_CORNER else INNER_CORNER
+            val bottom = if (index == rows.lastIndex) OUTER_CORNER else INNER_CORNER
+            Surface(
+                shape = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                modifier = Modifier.fillMaxWidth(),
+            ) { row() }
+        }
+    }
+}
+
+/** The leading icon and the two lines every row shares. */
+@Composable
+private fun RowText(icon: ImageVector, title: String, subtitle: String?, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 16.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Label("Kilitle")
-            ConnectedChoice(
-                options = LockTimeout.entries,
-                selected = settings.lockTimeout,
-                label = { it.label },
-                onSelect = { onSettingsChange(settings.copy(lockTimeout = it)) },
-            )
         }
-        SwitchRow(
-            title = "Ekranı gizle",
-            subtitle = "Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz",
-            checked = settings.hideContent,
-            onCheckedChange = { onSettingsChange(settings.copy(hideContent = it)) },
-        )
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(Icons.Outlined.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Text(
-                "Notlar cihazda şifreli saklanır (AES-256, anahtar Android Keystore'da).",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    }
+}
 
-        Heading("Yedek", Modifier.padding(top = 12.dp))
+@Composable
+private fun ActionRow(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    RowText(
+        icon,
+        title,
+        subtitle,
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    )
+}
+
+@Composable
+private fun InfoRow(icon: ImageVector, text: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Text(
-            "Tüm notlar tek bir JSON dosyasına kaydedilir. İçe aktarırken aynı not varsa en son düzenlenen kalır.",
+            text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(onClick = onExport, shapes = ButtonDefaults.shapes(), modifier = Modifier.weight(1f)) {
-                Icon(Icons.Outlined.FileUpload, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
-                Text("Dışa aktar", Modifier.padding(start = ButtonDefaults.IconSpacing))
-            }
-            FilledTonalButton(onClick = onImport, shapes = ButtonDefaults.shapes(), modifier = Modifier.weight(1f)) {
-                Icon(Icons.Outlined.FileDownload, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
-                Text("İçe aktar", Modifier.padding(start = ButtonDefaults.IconSpacing))
-            }
-        }
+    }
+}
+
+@Composable
+private fun <T> ChoiceRow(
+    icon: ImageVector,
+    title: String,
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    onSelect: (T) -> Unit,
+) {
+    Column(
+        Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        RowText(icon, title, subtitle = null)
+        ConnectedChoice(options, selected, label, onSelect)
     }
 }
 
@@ -214,8 +297,8 @@ private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> Str
                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 },
-                // The default unchecked container is surfaceContainer, almost the sheet's own color.
-                colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                // Unchecked buttons take the sheet's color so they stand out on the row's tile.
+                colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 modifier = Modifier
                     .weight(1f)
                     .semantics { role = Role.RadioButton },
@@ -226,20 +309,28 @@ private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> Str
     }
 }
 
+/** A row that flips a setting; the switch shows a check while it is on. */
 @Composable
-private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+private fun SwitchRow(icon: ImageVector, title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
+            .heightIn(min = 64.dp)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = checked, onCheckedChange = null)
+        RowText(icon, title, subtitle, Modifier.weight(1f))
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            thumbContent = if (checked) {
+                { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(SwitchDefaults.IconSize)) }
+            } else {
+                null
+            },
+            modifier = Modifier.padding(start = 16.dp),
+        )
     }
 }
 
@@ -251,9 +342,4 @@ private fun Heading(text: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier.semantics { heading() },
     )
-}
-
-@Composable
-private fun Label(text: String) {
-    Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
