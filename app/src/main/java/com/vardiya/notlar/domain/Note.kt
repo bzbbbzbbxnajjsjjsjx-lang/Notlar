@@ -65,4 +65,8 @@ data class Settings(
     val listView: Boolean = false,
     val sort: NoteSort = NoteSort.EDITED,
     val recentSearches: List<String> = emptyList(),
+    val lockEnabled: Boolean = false,
+    val biometricUnlock: Boolean = false,
+    val lockTimeout: LockTimeout = LockTimeout.IMMEDIATE,
+    val hideContent: Boolean = false,
 )

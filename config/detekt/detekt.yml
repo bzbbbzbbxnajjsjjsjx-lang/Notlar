@@ -20,6 +20,8 @@ style:
   # dp, sp, alpha and animation values in UI code are design values, not magic numbers.
   MagicNumber:
     ignoreAnnotated: ['Composable']
+    # Enum entries carry their value (e.g. LockTimeout's milliseconds) right where they are named.
+    ignoreEnums: true
 
 Compose:
   # LocalNotePalette keeps note colors on the amber scheme while dynamic colors restyle the app;

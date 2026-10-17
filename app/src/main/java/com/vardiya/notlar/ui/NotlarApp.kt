@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -40,7 +41,12 @@ import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.ui.components.LocalSharedNoteScope
 import com.vardiya.notlar.ui.components.SharedNoteScope
 import com.vardiya.notlar.ui.components.sharedNoteBounds
+import com.vardiya.notlar.domain.Security
 import com.vardiya.notlar.ui.screens.EditorScreen
+import com.vardiya.notlar.ui.screens.ExportBackupDialog
+import com.vardiya.notlar.ui.screens.ImportPasswordDialog
+import com.vardiya.notlar.ui.screens.PinSetupScreen
+import com.vardiya.notlar.ui.screens.PrivacyActions
 import com.vardiya.notlar.ui.screens.MainScreen
 import com.vardiya.notlar.ui.screens.SettingsSheet
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +69,8 @@ sealed interface LaunchAction {
 fun NotlarApp(
     modifier: Modifier = Modifier,
     viewModel: NotesViewModel = viewModel(),
+    lockViewModel: LockViewModel = viewModel(),
+    biometricAvailable: Boolean = false,
     launchAction: LaunchAction? = null,
     onLaunchActionConsume: () -> Unit = {},
 ) {
@@ -121,16 +129,33 @@ fun NotlarApp(
         if (text.isBlank()) message("Not boş") else send(text)
     }
 
+    // The password of the backup being exported; kept only in memory until the file is written.
+    var exportPassword by remember { mutableStateOf<String?>(null) }
+    var showExport by rememberSaveable { mutableStateOf(false) }
+    var sealedImport by remember { mutableStateOf<String?>(null) }
+    var importWrong by remember { mutableStateOf(false) }
+    var pinSetup by rememberSaveable { mutableStateOf(false) }
+
+    suspend fun import(raw: String) {
+        val count = viewModel.importBackup(raw)
+        message(if (count == null) "Bu dosya bir Notlar yedeği değil" else "$count not içe aktarıldı")
+    }
+
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
+        val password = exportPassword
+        exportPassword = null
         if (uri == null) return@rememberLauncherForActivityResult
         val backup = viewModel.exportBackup()
         scope.launch {
             val written = runCatching {
+                // Sealing runs PBKDF2, which is slow on purpose; keep it off the main thread.
+                val content = withContext(Dispatchers.Default) { password?.let { Security.sealBackup(backup, it) } ?: backup }
                 withContext(Dispatchers.IO) {
-                    context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(backup) }
+                    context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(content) }
                 }
             }.getOrNull() != null
-            message(if (written) "Yedek kaydedildi" else "Yedek kaydedilemedi")
+            val sealedNote = if (password != null) " (şifreli)" else ""
+            message(if (written) "Yedek kaydedildi$sealedNote" else "Yedek kaydedilemedi")
         }
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -141,8 +166,14 @@ fun NotlarApp(
                     context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 }
             }.getOrNull()
-            val count = raw?.let { viewModel.importBackup(it) }
-            message(if (count == null) "Bu dosya bir Notlar yedeği değil" else "$count not içe aktarıldı")
+            when {
+                raw == null -> message("Dosya okunamadı")
+                Security.isSealed(raw) -> {
+                    importWrong = false
+                    sealedImport = raw
+                }
+                else -> import(raw)
+            }
         }
     }
 
@@ -150,16 +181,73 @@ fun NotlarApp(
         SettingsSheet(
             settings = settings,
             onSettingsChange = { changed -> viewModel.updateSettings { changed } },
+            privacy = PrivacyActions(
+                onLockChange = { enabled ->
+                    if (enabled) {
+                        showSettings = false
+                        pinSetup = true
+                    } else {
+                        lockViewModel.disableLock()
+                        message("Uygulama kilidi kapatıldı")
+                    }
+                },
+                onChangePin = {
+                    showSettings = false
+                    pinSetup = true
+                },
+                biometricAvailable = biometricAvailable,
+            ),
             onExport = {
                 showSettings = false
-                exportLauncher.launch("notlar-yedek-${LocalDate.now()}.json")
+                showExport = true
             },
             onImport = {
                 showSettings = false
+                lockViewModel.stayOpenThroughNextTrip()
                 importLauncher.launch(arrayOf(BACKUP_MIME, "text/plain", "application/octet-stream"))
             },
             onDismissRequest = { showSettings = false },
         )
+    }
+    if (showExport) {
+        ExportBackupDialog(
+            onExport = { password ->
+                showExport = false
+                exportPassword = password
+                lockViewModel.stayOpenThroughNextTrip()
+                exportLauncher.launch("notlar-yedek-${LocalDate.now()}.json")
+            },
+            onDismiss = { showExport = false },
+        )
+    }
+    sealedImport?.let { raw ->
+        ImportPasswordDialog(
+            wrong = importWrong,
+            onOpen = { password ->
+                scope.launch {
+                    val opened = withContext(Dispatchers.Default) { Security.openBackup(raw, password) }
+                    if (opened == null) {
+                        importWrong = true
+                    } else {
+                        sealedImport = null
+                        import(opened)
+                    }
+                }
+            },
+            onDismiss = { sealedImport = null },
+        )
+    }
+    if (pinSetup) {
+        BackHandler { pinSetup = false }
+        PinSetupScreen(
+            onPinConfirm = { pin ->
+                lockViewModel.setPin(pin)
+                pinSetup = false
+                message("Uygulama kilidi açık")
+            },
+            onCancel = { pinSetup = false },
+        )
+        return
     }
 
     SharedTransitionLayout(modifier) {
@@ -260,8 +348,14 @@ fun NotlarApp(
                             message("Kopyası oluşturuldu")
                         },
                         onClose = { openId = null },
-                        onShare = { note -> shareOrWarn(NoteRules.shareText(note)) { context.shareNote(note, it) } },
-                        onShareMarkdown = { note -> shareOrWarn(NoteEdits.markdown(note)) { context.shareNote(note, it) } },
+                        onShare = { note -> shareOrWarn(NoteRules.shareText(note)) {
+                            lockViewModel.stayOpenThroughNextTrip()
+                            context.shareNote(note, it)
+                        } },
+                        onShareMarkdown = { note -> shareOrWarn(NoteEdits.markdown(note)) {
+                            lockViewModel.stayOpenThroughNextTrip()
+                            context.shareNote(note, it)
+                        } },
                         onCopy = { note ->
                             shareOrWarn(NoteRules.shareText(note)) { text ->
                                 scope.launch {

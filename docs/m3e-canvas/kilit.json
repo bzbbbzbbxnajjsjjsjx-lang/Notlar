@@ -1,0 +1,2803 @@
+{
+ "title": "Notlar",
+ "brief": "Notlar: notlar ve yapılacaklar için Material 3 Expressive Android uygulaması. Yeni: PIN ve biyometrik uygulama kilidi, yanlış denemede bekleme süresi, ekranı gizleme, cihazda şifreli saklama ve şifreli yedek.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": true,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "lock",
+   "name": "Notlar kilitli",
+   "x": 0,
+   "y": 0,
+   "note": "Uygulama açılınca ya da kilit süresi dolunca notların önüne gelen kilit ekranı; geri tuşu uygulamayı kapatır, notlar arkada hiç çizilmez. Önizlemede rakamlar yanlış PIN akışını, parmak izi başarılı açılışı gösterir.",
+   "bg": "surfaceContainerLow"
+  },
+  {
+   "id": "lockerr",
+   "name": "Yanlış PIN",
+   "x": 492,
+   "y": 0,
+   "note": "Yanlış PIN sonrası: noktalar sallanır ve hata rengine döner, altında kalan hak yazar.",
+   "bg": "surfaceContainerLow"
+  },
+  {
+   "id": "lockwait",
+   "name": "30 saniye bekle",
+   "x": 984,
+   "y": 0,
+   "note": "5 yanlış denemeden sonra tuş takımı 30 saniye kilitlenir; dalgalı ilerleme çubuğu geri sayar. Süre uygulama kapansa da korunur (bitiş zamanı kaydedilir).",
+   "bg": "surfaceContainerLow"
+  },
+  {
+   "id": "pinnew",
+   "name": "Yeni PIN",
+   "x": 1476,
+   "y": 0,
+   "note": "PIN oluşturma 1. adım: 4–6 haneli yeni PIN girilir. Ayarlar'da kilit ilk açıldığında ya da PIN'i değiştir ile gelir."
+  },
+  {
+   "id": "pinrep",
+   "name": "PIN'i tekrar gir",
+   "x": 1968,
+   "y": 0,
+   "note": "PIN oluşturma 2. adım: aynı PIN tekrar girilir. Burada eşleşmeme hatası gösteriliyor."
+  },
+  {
+   "id": "settings",
+   "name": "Ayarlar – Gizlilik",
+   "x": 2460,
+   "y": 0,
+   "note": "Ayarlar alt sayfası, Görünüm bölümünün altına kaydırılmış hâli: Yedek'in üstünde yeni Gizlilik bölümü."
+  },
+  {
+   "id": "export",
+   "name": "Yedeği şifrele",
+   "x": 2952,
+   "y": 0,
+   "note": "Ayarlar > Dışa aktar'a dokununca açılan diyalog; parola verilirse yedek şifrelenir."
+  },
+  {
+   "id": "home",
+   "name": "Notlar",
+   "x": 3444,
+   "y": 0,
+   "note": "Kilit açıldıktan sonraki ana ekran (bugünkü gibi). Uygulama arka plana gidince seçilen süreden sonra yeniden kilitlenir."
+  }
+ ],
+ "groups": [
+  {
+   "id": "ack",
+   "x": 158,
+   "y": 88,
+   "axis": "x",
+   "items": [
+    {
+     "id": "acki",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 96,
+     "size2": 96,
+     "fill": "primaryContainer",
+     "radiusTop": 48,
+     "radiusBottom": 48,
+     "note": "Uygulama simgesi, MaterialShapes.Cookie9Sided şeklinde primaryContainer zemin üzerinde; ekran açılırken yavaşça döner ve şekil değiştirir (expressive spatial spring)."
+    }
+   ]
+  },
+  {
+   "id": "aic",
+   "x": 182,
+   "y": 112,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aici",
+     "kind": "iconButton",
+     "label": "Notlar",
+     "icon": "lock",
+     "variant": "text",
+     "note": "Dekoratif; erişilebilirlikte 'Notlar kilitli' başlığının parçası."
+    }
+   ]
+  },
+  {
+   "id": "ast",
+   "x": 150,
+   "y": 204,
+   "axis": "x",
+   "items": [
+    {
+     "id": "asti",
+     "kind": "text",
+     "label": "Notlar kilitli",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "att",
+   "x": 120,
+   "y": 228,
+   "axis": "x",
+   "items": [
+    {
+     "id": "atti",
+     "kind": "text",
+     "label": "PIN'ini gir",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "bold": true,
+     "note": "Ekran başlığı (semantics heading), headlineMediumEmphasized."
+    }
+   ]
+  },
+  {
+   "id": "ad0",
+   "x": 106,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi0",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10,
+     "note": "PIN noktaları: 4–6 nokta. Boşken küçük daire (surfaceContainerHighest); rakam girilince primary renge dolar ve MaterialShapes ile daireden 'Cookie4Sided'/'Sunny' şekline expressive yayla morph olur. 4 haneden sonra her rakamda otomatik kontrol edilir."
+    }
+   ]
+  },
+  {
+   "id": "ad1",
+   "x": 142,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi1",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ad2",
+   "x": 178,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi2",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ad3",
+   "x": 214,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi3",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ad4",
+   "x": 250,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi4",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ad5",
+   "x": 286,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "adi5",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ak1",
+   "x": 26,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki1",
+     "kind": "button",
+     "label": "1",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     },
+     "note": "Rakam tuşu: büyük yuvarlak tonal düğme (80dp yükseklik, ButtonDefaults.shapes ile basınca köşeler kare olur, expressive yay ile geri döner); her basışta hafif titreşim. TalkBack rakamı okur, PIN noktaları okunmaz."
+    }
+   ]
+  },
+  {
+   "id": "ak2",
+   "x": 154,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki2",
+     "kind": "button",
+     "label": "2",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak3",
+   "x": 282,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki3",
+     "kind": "button",
+     "label": "3",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak4",
+   "x": 26,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki4",
+     "kind": "button",
+     "label": "4",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak5",
+   "x": 154,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki5",
+     "kind": "button",
+     "label": "5",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak6",
+   "x": 282,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki6",
+     "kind": "button",
+     "label": "6",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak7",
+   "x": 26,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki7",
+     "kind": "button",
+     "label": "7",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak8",
+   "x": 154,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki8",
+     "kind": "button",
+     "label": "8",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ak9",
+   "x": 282,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki9",
+     "kind": "button",
+     "label": "9",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "akl",
+   "x": 26,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "afp",
+     "kind": "button",
+     "label": "",
+     "icon": "fingerprint",
+     "variant": "filled",
+     "size": 104,
+     "action": {
+      "to": "home",
+      "transition": "expand"
+     },
+     "note": "Parmak izi (contentDescription 'Parmak izi'): BiometricPrompt'u açar (parmak izi ya da yüz, BIOMETRIC_STRONG). Ayarlar'da 'Biyometrik ile aç' açıksa ekran açılınca kendiliğinden de sorulur. Başarılıysa kilit ekranı büyüyerek kaybolur ve notlar görünür."
+    }
+   ]
+  },
+  {
+   "id": "ak0",
+   "x": 154,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aki0",
+     "kind": "button",
+     "label": "0",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockerr",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "akr",
+   "x": 282,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "abk",
+     "kind": "button",
+     "label": "",
+     "icon": "backspace",
+     "variant": "text",
+     "size": 104,
+     "note": "Son rakamı siler (contentDescription 'Sil'); uzun basınca tümünü temizler."
+    }
+   ]
+  },
+  {
+   "id": "bck",
+   "x": 650,
+   "y": 88,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bcki",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 96,
+     "size2": 96,
+     "fill": "primaryContainer",
+     "radiusTop": 48,
+     "radiusBottom": 48,
+     "note": "Uygulama simgesi, MaterialShapes.Cookie9Sided şeklinde primaryContainer zemin üzerinde; ekran açılırken yavaşça döner ve şekil değiştirir (expressive spatial spring)."
+    }
+   ]
+  },
+  {
+   "id": "bic",
+   "x": 674,
+   "y": 112,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bici",
+     "kind": "iconButton",
+     "label": "Notlar",
+     "icon": "lock",
+     "variant": "text",
+     "note": "Dekoratif; erişilebilirlikte 'Notlar kilitli' başlığının parçası."
+    }
+   ]
+  },
+  {
+   "id": "bst",
+   "x": 642,
+   "y": 204,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bsti",
+     "kind": "text",
+     "label": "Notlar kilitli",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "btt",
+   "x": 612,
+   "y": 228,
+   "axis": "x",
+   "items": [
+    {
+     "id": "btti",
+     "kind": "text",
+     "label": "PIN'ini gir",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "bold": true,
+     "note": "Ekran başlığı (semantics heading), headlineMediumEmphasized."
+    }
+   ]
+  },
+  {
+   "id": "bd0",
+   "x": 598,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi0",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10,
+     "note": "Yanlış PIN'de noktalar error rengine döner, yatay olarak sallanır (expressive yay, 3 salınım) ve güçlü titreşim verilir; sonra boşalır."
+    }
+   ]
+  },
+  {
+   "id": "bd1",
+   "x": 634,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi1",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "bd2",
+   "x": 670,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi2",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "bd3",
+   "x": 706,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi3",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "bd4",
+   "x": 742,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi4",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "bd5",
+   "x": 778,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bdi5",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "berr",
+   "x": 608,
+   "y": 336,
+   "axis": "x",
+   "items": [
+    {
+     "id": "berri",
+     "kind": "text",
+     "label": "Yanlış PIN · 4 hak kaldı",
+     "icon": null,
+     "variant": "filled",
+     "size": 16,
+     "bold": true,
+     "note": "error renginde; liveRegion ile TalkBack hemen okur. Hak sayısı 5'ten geri sayar ve doğru PIN'de sıfırlanır."
+    }
+   ]
+  },
+  {
+   "id": "bk1",
+   "x": 518,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki1",
+     "kind": "button",
+     "label": "1",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     },
+     "note": "Rakam tuşu: büyük yuvarlak tonal düğme (80dp yükseklik, ButtonDefaults.shapes ile basınca köşeler kare olur, expressive yay ile geri döner); her basışta hafif titreşim. TalkBack rakamı okur, PIN noktaları okunmaz."
+    }
+   ]
+  },
+  {
+   "id": "bk2",
+   "x": 646,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki2",
+     "kind": "button",
+     "label": "2",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk3",
+   "x": 774,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki3",
+     "kind": "button",
+     "label": "3",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk4",
+   "x": 518,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki4",
+     "kind": "button",
+     "label": "4",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk5",
+   "x": 646,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki5",
+     "kind": "button",
+     "label": "5",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk6",
+   "x": 774,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki6",
+     "kind": "button",
+     "label": "6",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk7",
+   "x": 518,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki7",
+     "kind": "button",
+     "label": "7",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk8",
+   "x": 646,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki8",
+     "kind": "button",
+     "label": "8",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bk9",
+   "x": 774,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki9",
+     "kind": "button",
+     "label": "9",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bkl",
+   "x": 518,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bfp",
+     "kind": "button",
+     "label": "",
+     "icon": "fingerprint",
+     "variant": "filled",
+     "size": 104,
+     "action": {
+      "to": "home",
+      "transition": "expand"
+     },
+     "note": "Parmak izi ile aç."
+    }
+   ]
+  },
+  {
+   "id": "bk0",
+   "x": 646,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bki0",
+     "kind": "button",
+     "label": "0",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "lockwait",
+      "transition": "none"
+     }
+    }
+   ]
+  },
+  {
+   "id": "bkr",
+   "x": 774,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "bbk",
+     "kind": "button",
+     "label": "",
+     "icon": "backspace",
+     "variant": "text",
+     "size": 104,
+     "note": "Son rakamı siler (contentDescription 'Sil'); uzun basınca tümünü temizler."
+    }
+   ]
+  },
+  {
+   "id": "cck",
+   "x": 1142,
+   "y": 88,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ccki",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 96,
+     "size2": 96,
+     "fill": "primaryContainer",
+     "radiusTop": 48,
+     "radiusBottom": 48,
+     "note": "Uygulama simgesi, MaterialShapes.Cookie9Sided şeklinde primaryContainer zemin üzerinde; ekran açılırken yavaşça döner ve şekil değiştirir (expressive spatial spring)."
+    }
+   ]
+  },
+  {
+   "id": "cic",
+   "x": 1166,
+   "y": 112,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cici",
+     "kind": "iconButton",
+     "label": "Notlar",
+     "icon": "lock",
+     "variant": "text",
+     "note": "Dekoratif; erişilebilirlikte 'Notlar kilitli' başlığının parçası."
+    }
+   ]
+  },
+  {
+   "id": "cst",
+   "x": 1134,
+   "y": 204,
+   "axis": "x",
+   "items": [
+    {
+     "id": "csti",
+     "kind": "text",
+     "label": "Çok fazla deneme",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "ctt",
+   "x": 1104,
+   "y": 228,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ctti",
+     "kind": "text",
+     "label": "30 saniye bekle",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "bold": true,
+     "note": "Ekran başlığı (semantics heading), headlineMediumEmphasized."
+    }
+   ]
+  },
+  {
+   "id": "cpr",
+   "x": 1090,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cpri",
+     "kind": "linearProgress",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 200,
+     "value": 30,
+     "wavy": true,
+     "trackThickness": 8,
+     "action": {
+      "to": "lock",
+      "transition": "fade"
+     },
+     "note": "Dalgalı (wavy) LinearProgressIndicator, 30 saniyeden geriye doğru azalır; bitince ekran normal kilit ekranına döner ve 5 hak yeniden verilir. Her yeni 5 hatalı denemede süre ikiye katlanır (30 sn, 1 dk, 2 dk…). Önizlemede dokununca süre biter."
+    }
+   ]
+  },
+  {
+   "id": "ctx",
+   "x": 1102,
+   "y": 336,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ctxi",
+     "kind": "text",
+     "label": "Tekrar denemek için 21 sn",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "ck1",
+   "x": 1010,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki1",
+     "kind": "button",
+     "label": "1",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104,
+     "note": "Bekleme süresince rakam tuşları devre dışı (outlined, %38 opaklık)."
+    }
+   ]
+  },
+  {
+   "id": "ck2",
+   "x": 1138,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki2",
+     "kind": "button",
+     "label": "2",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck3",
+   "x": 1266,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki3",
+     "kind": "button",
+     "label": "3",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck4",
+   "x": 1010,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki4",
+     "kind": "button",
+     "label": "4",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck5",
+   "x": 1138,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki5",
+     "kind": "button",
+     "label": "5",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck6",
+   "x": 1266,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki6",
+     "kind": "button",
+     "label": "6",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck7",
+   "x": 1010,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki7",
+     "kind": "button",
+     "label": "7",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck8",
+   "x": 1138,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki8",
+     "kind": "button",
+     "label": "8",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ck9",
+   "x": 1266,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki9",
+     "kind": "button",
+     "label": "9",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ckl",
+   "x": 1010,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cfp",
+     "kind": "button",
+     "label": "",
+     "icon": "fingerprint",
+     "variant": "filled",
+     "size": 104,
+     "action": {
+      "to": "home",
+      "transition": "expand"
+     },
+     "note": "Bekleme sırasında biyometrik açma çalışmaya devam eder."
+    }
+   ]
+  },
+  {
+   "id": "ck0",
+   "x": 1138,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cki0",
+     "kind": "button",
+     "label": "0",
+     "icon": null,
+     "variant": "outlined",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "ckr",
+   "x": 1266,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cbk",
+     "kind": "button",
+     "label": "",
+     "icon": "backspace",
+     "variant": "text",
+     "size": 104
+    }
+   ]
+  },
+  {
+   "id": "dbar",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dbari",
+     "kind": "topAppBar",
+     "label": "PIN oluştur",
+     "icon": "close",
+     "variant": "filled",
+     "actions": {
+      "icon": {
+       "to": "settings",
+       "transition": "slideDown"
+      }
+     },
+     "note": "Kapat (contentDescription 'Kapat'): PIN kaydedilmeden Ayarlar'a döner, kilit kapalı kalır."
+    }
+   ]
+  },
+  {
+   "id": "dck",
+   "x": 1634,
+   "y": 120,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dcki",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 96,
+     "size2": 96,
+     "fill": "secondaryContainer",
+     "radiusTop": 48,
+     "radiusBottom": 48,
+     "note": "MaterialShapes.Clover4Leaf; 2. adıma geçerken başka bir şekle (Cookie9Sided) morph olur, ilerlemeyi gösterir."
+    }
+   ]
+  },
+  {
+   "id": "dic",
+   "x": 1658,
+   "y": 144,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dici",
+     "kind": "iconButton",
+     "label": "PIN",
+     "icon": "password",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "dtt",
+   "x": 1622,
+   "y": 236,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dtti",
+     "kind": "text",
+     "label": "Yeni PIN",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "bold": true,
+     "note": "Başlık (heading)."
+    }
+   ]
+  },
+  {
+   "id": "dsb",
+   "x": 1636,
+   "y": 276,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dsbi",
+     "kind": "text",
+     "label": "4–6 rakam",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "dd0",
+   "x": 1582,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi0",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10,
+     "note": "PIN noktaları: 4–6 nokta. Boşken küçük daire (surfaceContainerHighest); rakam girilince primary renge dolar ve MaterialShapes ile daireden 'Cookie4Sided'/'Sunny' şekline expressive yayla morph olur. 4 haneden sonra her rakamda otomatik kontrol edilir."
+    }
+   ]
+  },
+  {
+   "id": "dd1",
+   "x": 1618,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi1",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "dd2",
+   "x": 1654,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi2",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "dd3",
+   "x": 1690,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi3",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "primary",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "dd4",
+   "x": 1726,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi4",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "dd5",
+   "x": 1762,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ddi5",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "dk1",
+   "x": 1502,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki1",
+     "kind": "button",
+     "label": "1",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     },
+     "note": "Rakam tuşu: büyük yuvarlak tonal düğme (80dp yükseklik, ButtonDefaults.shapes ile basınca köşeler kare olur, expressive yay ile geri döner); her basışta hafif titreşim. TalkBack rakamı okur, PIN noktaları okunmaz."
+    }
+   ]
+  },
+  {
+   "id": "dk2",
+   "x": 1630,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki2",
+     "kind": "button",
+     "label": "2",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk3",
+   "x": 1758,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki3",
+     "kind": "button",
+     "label": "3",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk4",
+   "x": 1502,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki4",
+     "kind": "button",
+     "label": "4",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk5",
+   "x": 1630,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki5",
+     "kind": "button",
+     "label": "5",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk6",
+   "x": 1758,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki6",
+     "kind": "button",
+     "label": "6",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk7",
+   "x": 1502,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki7",
+     "kind": "button",
+     "label": "7",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk8",
+   "x": 1630,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki8",
+     "kind": "button",
+     "label": "8",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dk9",
+   "x": 1758,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki9",
+     "kind": "button",
+     "label": "9",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dkl",
+   "x": 1502,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dok",
+     "kind": "button",
+     "label": "",
+     "icon": "arrow_forward",
+     "variant": "filled",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     },
+     "note": "Devam (contentDescription 'Devam'): 4 rakamdan önce pasif; 6. rakamda kendiliğinden ilerler. 1234, 0000 gibi çok kolay PIN'lerde 'Bu PIN tahmin etmesi kolay' uyarısı çıkar ama engellemez."
+    }
+   ]
+  },
+  {
+   "id": "dk0",
+   "x": 1630,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dki0",
+     "kind": "button",
+     "label": "0",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "pinrep",
+      "transition": "slide"
+     }
+    }
+   ]
+  },
+  {
+   "id": "dkr",
+   "x": 1758,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dbk",
+     "kind": "button",
+     "label": "",
+     "icon": "backspace",
+     "variant": "text",
+     "size": 104,
+     "note": "Son rakamı siler (contentDescription 'Sil'); uzun basınca tümünü temizler."
+    }
+   ]
+  },
+  {
+   "id": "ebar",
+   "x": 1968,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ebari",
+     "kind": "topAppBar",
+     "label": "PIN oluştur",
+     "icon": "close",
+     "variant": "filled",
+     "actions": {
+      "icon": {
+       "to": "settings",
+       "transition": "slideDown"
+      }
+     },
+     "note": "Kapat (contentDescription 'Kapat'): PIN kaydedilmeden Ayarlar'a döner, kilit kapalı kalır."
+    }
+   ]
+  },
+  {
+   "id": "eck",
+   "x": 2126,
+   "y": 120,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ecki",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 96,
+     "size2": 96,
+     "fill": "tertiaryContainer",
+     "radiusTop": 48,
+     "radiusBottom": 48,
+     "note": "2. adım şekli (Cookie9Sided)."
+    }
+   ]
+  },
+  {
+   "id": "eic",
+   "x": 2150,
+   "y": 144,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eici",
+     "kind": "iconButton",
+     "label": "PIN",
+     "icon": "password",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "ett",
+   "x": 2074,
+   "y": 236,
+   "axis": "x",
+   "items": [
+    {
+     "id": "etti",
+     "kind": "text",
+     "label": "PIN'i tekrar gir",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "bold": true,
+     "note": "Başlık (heading)."
+    }
+   ]
+  },
+  {
+   "id": "ed0",
+   "x": 2110,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "edi0",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10,
+     "note": "Uzunluk 1. adımdaki PIN kadar (burada 4). Eşleşmezse noktalar sallanır ve boşalır."
+    }
+   ]
+  },
+  {
+   "id": "ed1",
+   "x": 2146,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "edi1",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ed2",
+   "x": 2182,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "edi2",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "ed3",
+   "x": 2218,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "edi3",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "size2": 20,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 10,
+     "radiusBottom": 10
+    }
+   ]
+  },
+  {
+   "id": "eer",
+   "x": 2104,
+   "y": 336,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eeri",
+     "kind": "text",
+     "label": "PIN'ler eşleşmedi",
+     "icon": null,
+     "variant": "filled",
+     "size": 16,
+     "bold": true,
+     "note": "error renginde, liveRegion. 2 sn sonra 'Yeni PIN' adımına geri dönülür (yatay slide). Eşleşirse PIN tuzlu PBKDF2 özetiyle Android Keystore korumalı alanda saklanır, kilit açılır ve Ayarlar'a 'Uygulama kilidi açık' snackbar'ıyla dönülür."
+    }
+   ]
+  },
+  {
+   "id": "ek1",
+   "x": 1994,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki1",
+     "kind": "button",
+     "label": "1",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     },
+     "note": "Rakam tuşu: büyük yuvarlak tonal düğme (80dp yükseklik, ButtonDefaults.shapes ile basınca köşeler kare olur, expressive yay ile geri döner); her basışta hafif titreşim. TalkBack rakamı okur, PIN noktaları okunmaz."
+    }
+   ]
+  },
+  {
+   "id": "ek2",
+   "x": 2122,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki2",
+     "kind": "button",
+     "label": "2",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek3",
+   "x": 2250,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki3",
+     "kind": "button",
+     "label": "3",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek4",
+   "x": 1994,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki4",
+     "kind": "button",
+     "label": "4",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek5",
+   "x": 2122,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki5",
+     "kind": "button",
+     "label": "5",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek6",
+   "x": 2250,
+   "y": 472,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki6",
+     "kind": "button",
+     "label": "6",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek7",
+   "x": 1994,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki7",
+     "kind": "button",
+     "label": "7",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek8",
+   "x": 2122,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki8",
+     "kind": "button",
+     "label": "8",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ek9",
+   "x": 2250,
+   "y": 552,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki9",
+     "kind": "button",
+     "label": "9",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ekl",
+   "x": 1994,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eok",
+     "kind": "button",
+     "label": "",
+     "icon": "check",
+     "variant": "filled",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     },
+     "note": "Onayla (contentDescription 'Onayla'); doğru tekrar girilince kaydeder."
+    }
+   ]
+  },
+  {
+   "id": "ek0",
+   "x": 2122,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "eki0",
+     "kind": "button",
+     "label": "0",
+     "icon": null,
+     "variant": "tonal",
+     "size": 104,
+     "action": {
+      "to": "settings",
+      "transition": "slideDown"
+     }
+    }
+   ]
+  },
+  {
+   "id": "ekr",
+   "x": 2250,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ebk",
+     "kind": "button",
+     "label": "",
+     "icon": "backspace",
+     "variant": "text",
+     "size": 104,
+     "note": "Son rakamı siler (contentDescription 'Sil'); uzun basınca tümünü temizler."
+    }
+   ]
+  },
+  {
+   "id": "fbar",
+   "x": 2460,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fbari",
+     "kind": "topAppBar",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "settings",
+     "actions": {
+      "icon2": {
+       "to": "home",
+       "transition": "slideDown"
+      }
+     },
+     "note": "Arkadaki ana ekran karartma (scrim) altında; dokunmak alt sayfayı kapatır."
+    }
+   ]
+  },
+  {
+   "id": "fnav",
+   "x": 2460,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu."
+    }
+   ]
+  },
+  {
+   "id": "fsh",
+   "x": 2460,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fshi",
+     "kind": "box",
+     "label": "Ayarlar",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "size": 412,
+     "size2": 796,
+     "fill": "surfaceContainerLow",
+     "radiusTop": 28,
+     "radiusBottom": 0,
+     "note": "ModalBottomSheet; yukarıda Görünüm (Tema, Dinamik renkler, Sıralama) bugünkü gibi, burada aşağı kaydırılmış."
+    }
+   ]
+  },
+  {
+   "id": "fh1",
+   "x": 2484,
+   "y": 124,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fh1i",
+     "kind": "text",
+     "label": "Gizlilik",
+     "icon": null,
+     "variant": "filled",
+     "size": 16,
+     "bold": true,
+     "note": "Yeni bölüm başlığı (heading, titleMediumEmphasized, primary). Yedek'in hemen üstünde."
+    }
+   ]
+  },
+  {
+   "id": "fl",
+   "x": 2476,
+   "y": 156,
+   "axis": "y",
+   "items": [
+    {
+     "id": "fl1",
+     "kind": "listItem",
+     "label": "Uygulama kilidi",
+     "icon": "lock",
+     "variant": "filled",
+     "supporting": "PIN ile aç",
+     "switch": true,
+     "checked": true,
+     "action": {
+      "to": "pinnew",
+      "transition": "slideUp"
+     },
+     "note": "Açınca PIN yoksa 'Yeni PIN' akışı açılır; PIN onaylanmadan anahtar açık kalmaz. Kapatmak için mevcut PIN (ya da biyometrik) istenir. Kapalıyken alttaki satırlar pasif görünür."
+    },
+    {
+     "id": "fl2",
+     "kind": "listItem",
+     "label": "PIN'i değiştir",
+     "icon": "password",
+     "variant": "filled",
+     "icon2": "chevron_right",
+     "action": {
+      "to": "pinnew",
+      "transition": "slideUp"
+     },
+     "note": "Önce mevcut PIN sorulur, sonra Yeni PIN / PIN'i tekrar gir akışı."
+    },
+    {
+     "id": "fl3",
+     "kind": "listItem",
+     "label": "Biyometrik ile aç",
+     "icon": "fingerprint",
+     "variant": "filled",
+     "supporting": "Parmak izi / yüz",
+     "switch": true,
+     "checked": true,
+     "note": "Cihazda güçlü biyometrik (BIOMETRIC_STRONG) kayıtlı değilse pasif ve 'Cihazda kayıtlı parmak izi yok' yazar. Açarken bir kez BiometricPrompt ile doğrulanır. Cihaza yeni parmak izi eklenirse anahtar geçersizleşir ve PIN istenir."
+    }
+   ]
+  },
+  {
+   "id": "fkl",
+   "x": 2484,
+   "y": 384,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fkli",
+     "kind": "text",
+     "label": "Kilitle",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "fkg",
+   "x": 2476,
+   "y": 408,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fk1",
+     "kind": "button",
+     "label": "Hemen",
+     "icon": null,
+     "variant": "filled",
+     "size": 124,
+     "note": "Bağlı düğme grubu (ToggleButton), tek seçim. Hemen: uygulama arka plana geçer geçmez kilitlenir (varsayılan)."
+    },
+    {
+     "id": "fk2",
+     "kind": "button",
+     "label": "1 dk",
+     "icon": null,
+     "variant": "tonal",
+     "size": 124,
+     "note": "Arka planda 1 dakikadan uzun kalırsa kilitlenir."
+    },
+    {
+     "id": "fk3",
+     "kind": "button",
+     "label": "5 dk",
+     "icon": null,
+     "variant": "tonal",
+     "size": 124,
+     "note": "Arka planda 5 dakikadan uzun kalırsa kilitlenir. Cihaz ekranı kilitlenince her seçenekte hemen kilitlenir."
+    }
+   ]
+  },
+  {
+   "id": "fhd",
+   "x": 2476,
+   "y": 476,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fhdi",
+     "kind": "listItem",
+     "label": "Ekranı gizle",
+     "icon": "visibility_off",
+     "variant": "filled",
+     "supporting": "Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz",
+     "switch": true,
+     "checked": true,
+     "note": "Açıkken pencereye FLAG_SECURE ve setRecentsScreenshotEnabled(false) uygulanır: son uygulamalar önizlemesi boş görünür, ekran görüntüsü ve kayıt engellenir. Uygulama kilidinden bağımsız çalışır."
+    }
+   ]
+  },
+  {
+   "id": "fin",
+   "x": 2476,
+   "y": 556,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fini",
+     "kind": "listItem",
+     "label": "Notlar cihazda şifreli saklanır (AES-256)",
+     "icon": "encrypted",
+     "variant": "text",
+     "note": "Bilgi satırı, dokunulamaz (onSurfaceVariant). Not verisi Android Keystore'daki AES-256-GCM anahtarıyla şifrelenip DataStore'a yazılır; ilk açılışta mevcut düz JSON otomatik şifrelenir."
+    }
+   ]
+  },
+  {
+   "id": "fdv",
+   "x": 2476,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fdvi",
+     "kind": "divider",
+     "label": "",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "fh2",
+   "x": 2484,
+   "y": 656,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fh2i",
+     "kind": "text",
+     "label": "Yedek",
+     "icon": null,
+     "variant": "filled",
+     "size": 16,
+     "bold": true,
+     "note": "Bölüm başlığı (heading); içerik bugünkü gibi."
+    }
+   ]
+  },
+  {
+   "id": "fbk",
+   "x": 2476,
+   "y": 692,
+   "axis": "x",
+   "items": [
+    {
+     "id": "fex",
+     "kind": "button",
+     "label": "Dışa aktar",
+     "icon": "upload",
+     "variant": "tonal",
+     "size": 182,
+     "action": {
+      "to": "export",
+      "transition": "fade"
+     },
+     "note": "Artık önce 'Yedeği şifrele' diyaloğunu açar, sonra sistem dosya seçicisi (CreateDocument)."
+    },
+    {
+     "id": "fim",
+     "kind": "button",
+     "label": "İçe aktar",
+     "icon": "download",
+     "variant": "tonal",
+     "size": 182,
+     "note": "Şifreli yedek seçilirse parola sorulur; yanlış parolada 'Parola yanlış' hatası. Şifresiz eski yedekler bugünkü gibi açılır."
+    }
+   ]
+  },
+  {
+   "id": "gbar",
+   "x": 2952,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gbari",
+     "kind": "topAppBar",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "settings",
+     "note": "Arkada Ayarlar alt sayfası, karartma altında."
+    }
+   ]
+  },
+  {
+   "id": "gnav",
+   "x": 2952,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu."
+    }
+   ]
+  },
+  {
+   "id": "gsh",
+   "x": 2952,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gshi",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "size": 412,
+     "size2": 796,
+     "fill": "surfaceContainerLow",
+     "radiusTop": 28,
+     "radiusBottom": 0
+    }
+   ]
+  },
+  {
+   "id": "gdl",
+   "x": 2988,
+   "y": 220,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gdli",
+     "kind": "box",
+     "label": "Yedeği şifrele",
+     "icon": null,
+     "variant": "filled",
+     "size": 340,
+     "size2": 460,
+     "fill": "surfaceContainerHigh",
+     "radiusTop": 28,
+     "radiusBottom": 28,
+     "note": "AlertDialog; dışına dokunmak ya da geri tuşu iptal eder (dosya kaydedilmez)."
+    }
+   ]
+  },
+  {
+   "id": "gic",
+   "x": 3134,
+   "y": 244,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gici",
+     "kind": "iconButton",
+     "label": "",
+     "icon": "lock",
+     "variant": "text",
+     "note": "Dekoratif ikon, secondary renkte."
+    }
+   ]
+  },
+  {
+   "id": "gtt",
+   "x": 3012,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gtti",
+     "kind": "text",
+     "label": "Yedeği şifrele",
+     "icon": null,
+     "variant": "filled",
+     "size": 24,
+     "note": "Diyalog başlığı (heading)."
+    }
+   ]
+  },
+  {
+   "id": "gb1",
+   "x": 3012,
+   "y": 344,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gb1i",
+     "kind": "text",
+     "label": "Parola verirsen yedek AES-256 ile",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "gb2",
+   "x": 3012,
+   "y": 366,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gb2i",
+     "kind": "text",
+     "label": "şifrelenir; parolasız açılamaz.",
+     "icon": null,
+     "variant": "filled",
+     "size": 14
+    }
+   ]
+  },
+  {
+   "id": "gtf",
+   "x": 3012,
+   "y": 404,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gtfi",
+     "kind": "textField",
+     "label": "Parola (isteğe bağlı)",
+     "icon": "key",
+     "variant": "outlined",
+     "supporting": "En az 8 karakter · unutulursa kurtarılamaz",
+     "size": 292,
+     "note": "Gizli yazılır; sağda göster/gizle ikon düğmesi (contentDescription 'Parolayı göster'). Parola hiçbir yere kaydedilmez; anahtar PBKDF2 ile türetilir."
+    }
+   ]
+  },
+  {
+   "id": "gok",
+   "x": 3012,
+   "y": 520,
+   "axis": "x",
+   "items": [
+    {
+     "id": "goki",
+     "kind": "button",
+     "label": "Şifrele ve aktar",
+     "icon": "lock",
+     "variant": "filled",
+     "size": 292,
+     "action": {
+      "to": "settings",
+      "transition": "fade"
+     },
+     "note": "Parola 8 karakterden kısaysa pasif. Dosya seçiciyi .json.enc adıyla açar; bitince 'Şifreli yedek kaydedildi' snackbar'ı."
+    }
+   ]
+  },
+  {
+   "id": "gno",
+   "x": 3012,
+   "y": 588,
+   "axis": "x",
+   "items": [
+    {
+     "id": "gnoi",
+     "kind": "button",
+     "label": "Şifresiz dışa aktar",
+     "icon": null,
+     "variant": "text",
+     "size": 292,
+     "action": {
+      "to": "settings",
+      "transition": "fade"
+     },
+     "note": "Bugünkü düz JSON yedeği; notlar dosyada okunabilir kalır."
+    }
+   ]
+  },
+  {
+   "id": "hbar",
+   "x": 3444,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hbari",
+     "kind": "topAppBar",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "settings",
+     "actions": {
+      "icon2": {
+       "to": "settings",
+       "transition": "slideUp"
+      }
+     },
+     "note": "Büyük esnek üst çubuk; dişli Ayarlar alt sayfasını açar."
+    }
+   ]
+  },
+  {
+   "id": "hsr",
+   "x": 3460,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hsri",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "hc0",
+   "x": 3460,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hci0",
+     "kind": "card",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "2/4 · Süt, Ekmek, Domates",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "fill": "tertiaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hc1",
+   "x": 3658,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hci1",
+     "kind": "card",
+     "label": "Vardiya planı",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Pazartesi sabah, çarşamba gece.",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "fill": "primaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hc2",
+   "x": 3460,
+   "y": 324,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hci2",
+     "kind": "card",
+     "label": "Fikirler",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ana ekran widget'ı eklensin.",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "fill": "secondaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hc3",
+   "x": 3658,
+   "y": 324,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hci3",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "fill": "tertiaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hfab",
+   "x": 3698,
+   "y": 692,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hfabi",
+     "kind": "extendedFab",
+     "label": "Not",
+     "icon": "add",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "hnav",
+   "x": 3444,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu."
+    }
+   ]
+  }
+ ]
+}

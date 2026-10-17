@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
@@ -21,7 +22,11 @@ import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.domain.ThemeMode
 import com.vardiya.notlar.ui.screens.EditorScreen
+import com.vardiya.notlar.domain.LockTimeout
+import com.vardiya.notlar.ui.screens.LockScreen
 import com.vardiya.notlar.ui.screens.MainScreen
+import com.vardiya.notlar.ui.screens.PinSetupScreen
+import com.vardiya.notlar.ui.screens.PrivacyActions
 import com.vardiya.notlar.ui.screens.SettingsContent
 import com.vardiya.notlar.ui.theme.NotlarTheme
 import org.junit.Rule
@@ -110,6 +115,24 @@ class ScreenshotTest {
 
     @Test fun settings() = capture("settings") { Settings(Settings(dynamicColor = true, sort = NoteSort.TITLE)) }
 
+    @Test fun settingsPrivacy() = capture("settings_privacy") {
+        Settings(Settings(lockEnabled = true, biometricUnlock = true, lockTimeout = LockTimeout.ONE_MINUTE, hideContent = true))
+    }
+
+    @Test fun lock() = capture("lock") {
+        LockScreen(onPin = { UnlockResult.Opened }, biometricAvailable = true, onForgetPin = {})
+    }
+
+    @Test @Config(qualifiers = "+night")
+    fun lockWrongDark() = capture("lock_wrong_dark", interact = {
+        "1234".forEach { compose.onNodeWithText(it.toString()).performClick() }
+        compose.onNodeWithText("Tamam").performClick()
+    }) {
+        LockScreen(onPin = { UnlockResult.Wrong(triesLeft = 4, lockedOutUntil = 0) }, onForgetPin = {})
+    }
+
+    @Test fun pinSetup() = capture("pin_setup") { PinSetupScreen(onPinConfirm = {}, onCancel = {}) }
+
     @Test @Config(qualifiers = "+night")
     fun settingsDark() = capture("settings_dark") { Settings(Settings(themeMode = ThemeMode.DARK)) }
 
@@ -170,6 +193,7 @@ class ScreenshotTest {
             SettingsContent(
                 settings = settings,
                 onSettingsChange = {},
+                privacy = PrivacyActions(onLockChange = {}, onChangePin = {}, biometricAvailable = true),
                 onExport = {},
                 onImport = {},
                 modifier = Modifier.padding(top = 24.dp),

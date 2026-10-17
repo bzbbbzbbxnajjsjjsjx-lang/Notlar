@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -21,6 +24,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,6 +37,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.domain.LockTimeout
 import com.vardiya.notlar.domain.NoteSort
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.domain.ThemeMode
@@ -45,6 +50,13 @@ private val ThemeMode.label: String
         ThemeMode.DARK -> "Koyu"
     }
 
+private val LockTimeout.label: String
+    get() = when (this) {
+        LockTimeout.IMMEDIATE -> "Hemen"
+        LockTimeout.ONE_MINUTE -> "1 dk"
+        LockTimeout.FIVE_MINUTES -> "5 dk"
+    }
+
 private val NoteSort.label: String
     get() = when (this) {
         NoteSort.EDITED -> "Düzenlenme"
@@ -52,11 +64,19 @@ private val NoteSort.label: String
         NoteSort.TITLE -> "Başlık"
     }
 
-/** Appearance, order and backup, in a bottom sheet over the lists. */
+/** What the privacy rows do beyond changing a setting: the lock needs a PIN first. */
+class PrivacyActions(
+    val onLockChange: (enabled: Boolean) -> Unit,
+    val onChangePin: () -> Unit,
+    val biometricAvailable: Boolean,
+)
+
+/** Appearance, privacy, order and backup, in a bottom sheet over the lists. */
 @Composable
 fun SettingsSheet(
     settings: Settings,
     onSettingsChange: (Settings) -> Unit,
+    privacy: PrivacyActions,
     onExport: () -> Unit,
     onImport: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -64,7 +84,14 @@ fun SettingsSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier, sheetState = sheetState) {
-        SettingsContent(settings, onSettingsChange, onExport, onImport)
+        SettingsContent(
+            settings,
+            onSettingsChange,
+            privacy,
+            onExport,
+            onImport,
+            Modifier.verticalScroll(rememberScrollState()),
+        )
     }
 }
 
@@ -73,6 +100,7 @@ fun SettingsSheet(
 internal fun SettingsContent(
     settings: Settings,
     onSettingsChange: (Settings) -> Unit,
+    privacy: PrivacyActions,
     onExport: () -> Unit,
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
@@ -94,27 +122,12 @@ internal fun SettingsContent(
         )
         // Wallpaper colors exist from Android 12; older devices do not see the option at all.
         if (dynamicColorAvailable) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(
-                        value = settings.dynamicColor,
-                        role = Role.Switch,
-                        onValueChange = { onSettingsChange(settings.copy(dynamicColor = it)) },
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text("Dinamik renkler", style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        "Duvar kağıdından renk al",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Switch(checked = settings.dynamicColor, onCheckedChange = null)
-            }
+            SwitchRow(
+                title = "Dinamik renkler",
+                subtitle = "Duvar kağıdından renk al",
+                checked = settings.dynamicColor,
+                onCheckedChange = { onSettingsChange(settings.copy(dynamicColor = it)) },
+            )
         }
         Label("Sıralama")
         ConnectedChoice(
@@ -123,6 +136,46 @@ internal fun SettingsContent(
             label = { it.label },
             onSelect = { onSettingsChange(settings.copy(sort = it)) },
         )
+
+        Heading("Gizlilik", Modifier.padding(top = 12.dp))
+        SwitchRow(
+            title = "Uygulama kilidi",
+            subtitle = "Açılışta PIN sor",
+            checked = settings.lockEnabled,
+            onCheckedChange = privacy.onLockChange,
+        )
+        if (settings.lockEnabled) {
+            TextButton(onClick = privacy.onChangePin, shapes = ButtonDefaults.shapes()) { Text("PIN'i değiştir") }
+            if (privacy.biometricAvailable) {
+                SwitchRow(
+                    title = "Biyometrik ile aç",
+                    subtitle = "Parmak izi veya yüz",
+                    checked = settings.biometricUnlock,
+                    onCheckedChange = { onSettingsChange(settings.copy(biometricUnlock = it)) },
+                )
+            }
+            Label("Kilitle")
+            ConnectedChoice(
+                options = LockTimeout.entries,
+                selected = settings.lockTimeout,
+                label = { it.label },
+                onSelect = { onSettingsChange(settings.copy(lockTimeout = it)) },
+            )
+        }
+        SwitchRow(
+            title = "Ekranı gizle",
+            subtitle = "Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz",
+            checked = settings.hideContent,
+            onCheckedChange = { onSettingsChange(settings.copy(hideContent = it)) },
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Icons.Outlined.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Text(
+                "Notlar cihazda şifreli saklanır (AES-256, anahtar Android Keystore'da).",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Heading("Yedek", Modifier.padding(top = 12.dp))
         Text(
@@ -170,6 +223,23 @@ private fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> Str
                 Text(label(option), maxLines = 1, textAlign = TextAlign.Center)
             }
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

@@ -4,6 +4,17 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.6.0)
+- **Uygulama kilidi:** Ayarlar > Gizlilik'ten PIN (4–8 rakam) belirle; Notlar açılışta PIN sorar. Expressive kilit ekranı: dolunca şekil değiştiren noktalar, büyük tuşlar, yanlış PIN'de sallanma.
+- **Biyometrik:** Parmak izi veya yüz ile açma (telefon destekliyorsa).
+- **Otomatik kilit:** Uygulamadan çıkınca *Hemen*, *1 dk* ya da *5 dk* sonra yeniden kilitlenir.
+- **Deneme sınırı:** 5 yanlış PIN'den sonra 30 saniye bekleme; her 5 yanlışta süre ikiye katlanır.
+- **PIN'imi unuttum:** Telefonun kendi ekran kilidiyle doğrulayıp açarsın, notlar silinmez; yeni PIN'i Ayarlar'dan belirlersin.
+- **Şifreli depolama:** Notlar ve ayarlar cihazda AES-256 ile şifreli saklanır; anahtar Android Keystore'da. Eski kayıtlar ilk açılışta otomatik şifrelenir.
+- **Ekranı gizle:** Son uygulamalarda içerik görünmez, ekran görüntüsü alınamaz.
+- **Şifreli yedek:** Dışa aktarırken parola verirsen yedek AES-256 ile şifrelenir; içe aktarırken parola sorulur.
+- **Not:** Şifreli veriler başka cihaza taşınamadığı için Android'in bulut yedeği kapatıldı; yedek için *Dışa aktar*ı kullan.
+
 ### Yenilikler (1.5.0)
 - **Expressive arama çubuğu:** Notlar ve Arşiv'de en üstte hap biçimli arama çubuğu. Dokununca tam ekran arama açılır: son aramalar (silinebilir), *Tümü / Notlar / Yapılacaklar* süzgeçleri ve yazdıkça vurgulu sonuçlar.
 - **Bölünmüş Paylaş düğmesi:** Yazma ekranında Paylaş'ın sol yarısı hemen paylaşır, oku ise *Metin olarak paylaş*, *Markdown olarak paylaş* ve *Panoya kopyala* seçeneklerini açar.
