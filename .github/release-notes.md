@@ -4,6 +4,9 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.7.1)
+- **Daha büyük alt ikonlar:** Alttaki Notlar, Arşiv ve Çöp kutusu ikonları büyütüldü, artık daha rahat görünüyor ve basılıyor.
+
 ### Yenilikler (1.7.0)
 - **Expressive yazı tipi:** Uygulama artık Material 3 Expressive'in yazı tipi Google Sans Flex ile yazıyor. Büyük başlıklar geniş, yuvarlak ve kalın; not metni sade ve okunaklı.
 - **Yazı boyutu:** Yazma ekranındaki *Aa* düğmesiyle (ya da Ayarlar > Görünüm'den) not yazısını *Küçük*, *Normal*, *Büyük* ya da *Dev* yap. İstersen kartlarda da büyüsün.
