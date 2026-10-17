@@ -4,6 +4,13 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.2.0)
+- **Nottan editöre geçiş:** Bir nota dokununca kart büyüyerek yazma ekranına dönüşür, geri dönünce kartına küçülür. Yeni not ortadan büyüyerek açılır.
+- **Alt menü animasyonları:** Notlar simgesi zıplar, Arşiv kutusu içine bir şey konmuş gibi düşüp esner, Çöp kutusu kapağı sallanır.
+- **Bölüm geçişleri:** Liste, dokunduğun sekmenin yönünden kayarak gelir.
+- **Seçim modu:** Üst çubuk yumuşakça değişir, alt menü aşağı kayar, "Not" düğmesi küçülerek kaybolur.
+- **Küçük dokunuşlar:** Kartlar basınca hafifçe küçülür, yapılacak ilerleme çubuğu dolarak ilerler, sabitleme iğnesi takılırken döner, yapılacak satırları eklenip silinirken yumuşakça yer değiştirir.
+
 ### Yenilikler (1.1.0)
 - **Dinamik renkler:** Ayarlar'da açılınca uygulama renklerini duvar kağıdından alır (Android 12 ve üzeri). Sarı, Kum, Yeşil ve Kırmızı notlar kendi renklerinde kalır.
 - **Ayarlar:** Üstteki dişli simgesinden açılır. Tema (Sistem / Açık / Koyu), sıralama (Düzenlenme / Oluşturulma / Başlık) ve yedekleme burada.
