@@ -1,0 +1,1395 @@
+{
+ "title": "Notlar",
+ "brief": "Notlar 1.7: Expressive yazı tipi (Google Sans Flex; canvas'ta en yakın karşılık Roboto Flex), ayarlanabilir not yazı boyutu, hatırlatıcılar, etiketler ve ana ekran widget'ları.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "robotoFlex",
+  "emphasized": true,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "home",
+   "name": "Notlar",
+   "x": 0,
+   "y": 0,
+   "note": "Ana ekran yeni Expressive yazı tipiyle (Google Sans Flex, emphasized başlık); tür filtrelerinin altında etiket çip satırı, kartlarda hatırlatıcı ve etiket çipleri."
+  },
+  {
+   "id": "edit",
+   "name": "Not",
+   "x": 492,
+   "y": 0,
+   "note": "Editör: üst çubukta alarm düğmesi, başlık altında hatırlatıcı ve etiket çipleri, araç çubuğunda 'Aa' yazı boyutu düğmesi."
+  },
+  {
+   "id": "size",
+   "name": "Yazı boyutu",
+   "x": 984,
+   "y": 0,
+   "note": "'Aa' ile açılan alt sayfa: 4 adımlı genel yazı boyutu, canlı önizleme."
+  },
+  {
+   "id": "rem",
+   "name": "Hatırlatıcı",
+   "x": 1476,
+   "y": 0,
+   "note": "Hatırlatıcı seçici: hızlı seçenekler, tekrar, kaldır. Zamanı gelince bildirim gönderir."
+  },
+  {
+   "id": "lab",
+   "name": "Etiketler",
+   "x": 1968,
+   "y": 0,
+   "note": "Etiket seçici ve yönetimi: yeni etiket, işaretleme, yeniden adlandırma/silme."
+  },
+  {
+   "id": "wid",
+   "name": "Ana ekran widget'ları",
+   "x": 2460,
+   "y": 0,
+   "note": "Başlatıcıda 4x2 Yapılacak listesi ve 2x1 Yeni not widget'ları."
+  }
+ ],
+ "groups": [
+  {
+   "id": "g1",
+   "x": 16,
+   "y": 16,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i1",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled",
+     "icon2": "settings",
+     "size": 380,
+     "note": "Bugünkü gibi: arama çubuğu, yanında görünüm değiştirici ve Ayarlar."
+    }
+   ]
+  },
+  {
+   "id": "g2",
+   "x": 16,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i2",
+     "kind": "text",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "size": 45,
+     "bold": true,
+     "note": "Ekran başlığı artık emphasized display stili: Google Sans Flex (M3 Expressive marka değişken yazı tipi), displayMedium emphasized, kalın ağırlık. Tüm uygulamanın tipografisi Google Sans Flex'e geçer (Typography'nin hem baseline hem emphasized stilleri)."
+    }
+   ]
+  },
+  {
+   "id": "g3",
+   "x": 16,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i3",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true
+    },
+    {
+     "id": "i4",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "i5",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g4",
+   "x": 16,
+   "y": 212,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i6",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "label",
+     "variant": "filled",
+     "checked": true,
+     "note": "Etiket filtresi: tür filtresinin altında yatay kaydırılan ikinci satır. 'Tümü' etiket filtresini kaldırır."
+    },
+    {
+     "id": "i7",
+     "kind": "chip",
+     "label": "İş",
+     "icon": "label",
+     "variant": "filled",
+     "note": "Yalnızca bu etiketi taşıyan notları gösterir; tür filtresi ve aramayla birlikte çalışır. Seçim kaydedilmez."
+    },
+    {
+     "id": "i8",
+     "kind": "chip",
+     "label": "Ev",
+     "icon": "label",
+     "variant": "filled"
+    },
+    {
+     "id": "i9",
+     "kind": "chip",
+     "label": "Alışveriş",
+     "icon": "label",
+     "variant": "filled"
+    },
+    {
+     "id": "i10",
+     "kind": "chip",
+     "label": "Etiketleri düzenle",
+     "icon": "edit",
+     "variant": "outlined",
+     "action": {
+      "to": "lab",
+      "transition": "slideUp"
+     },
+     "note": "Satırın sonunda; etiket yönetimini açar (yeniden adlandır, sil, yeni ekle)."
+    }
+   ]
+  },
+  {
+   "id": "g5",
+   "x": 16,
+   "y": 264,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i11",
+     "kind": "text",
+     "label": "Sabitlenenler",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g6",
+   "x": 16,
+   "y": 292,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i12",
+     "kind": "card",
+     "label": "Market",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "1/4 · ☐ Süt  ☐ Ekmek  ☐ Domates, salatalık  ☑ Yumurta\n⏰ Yarın 09:00 · Alışveriş",
+     "noImage": true,
+     "size": 182,
+     "size2": 200,
+     "fill": "tertiaryContainer",
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     },
+     "note": "Kartın altında küçük çipler: hatırlatıcı (alarm simgesi + 'Yarın 09:00', geçmişse üstü çizili) ve etiketler (en fazla 2, fazlası '+1'). Çipler yalnızca gösterir; dokunma kartı açar."
+    }
+   ]
+  },
+  {
+   "id": "g7",
+   "x": 214,
+   "y": 292,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i13",
+     "kind": "card",
+     "label": "Vardiya planı",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.\n🔁 Her hafta Paz 08:00 · İş",
+     "noImage": true,
+     "size": 182,
+     "size2": 200,
+     "fill": "secondaryContainer",
+     "note": "Tekrarlayan hatırlatıcı çipi tekrar simgesiyle gösterilir."
+    }
+   ]
+  },
+  {
+   "id": "g8",
+   "x": 16,
+   "y": 508,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i14",
+     "kind": "text",
+     "label": "Diğerleri",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g9",
+   "x": 16,
+   "y": 536,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i15",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.\n⏰ 5 Kas 10:00 · Ev",
+     "noImage": true,
+     "size": 182,
+     "size2": 130,
+     "fill": "primaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "g10",
+   "x": 214,
+   "y": 536,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i16",
+     "kind": "card",
+     "label": "Fikirler",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Not uygulamasına ana ekran widget'ı eklensin.\nİş",
+     "noImage": true,
+     "size": 182,
+     "size2": 130
+    }
+   ]
+  },
+  {
+   "id": "g11",
+   "x": 340,
+   "y": 700,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i17",
+     "kind": "fab",
+     "label": "",
+     "icon": "add",
+     "variant": "filled",
+     "note": "Bugünkü FAB menüsü: Not / Liste."
+    }
+   ]
+  },
+  {
+   "id": "g12",
+   "x": 0,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i18",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0
+    }
+   ]
+  },
+  {
+   "id": "g13",
+   "x": 492,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i19",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "slide"
+      }
+     },
+     "note": "Bugünkü editör çubuğu: Geri, Geri al/Yinele, Sabitle, ⋮."
+    }
+   ]
+  },
+  {
+   "id": "g14",
+   "x": 740,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i20",
+     "kind": "iconButton",
+     "label": "Hatırlatıcı",
+     "icon": "alarm_add",
+     "variant": "text",
+     "action": {
+      "to": "rem",
+      "transition": "slideUp"
+     },
+     "note": "Yeni: Sabitle'nin yanında alarm düğmesi (contentDescription 'Hatırlatıcı ekle'; ayarlıysa dolu 'alarm' simgesi ve 'Hatırlatıcıyı düzenle'). Hatırlatıcı seçici alt sayfasını açar."
+    }
+   ]
+  },
+  {
+   "id": "g15",
+   "x": 508,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i21",
+     "kind": "text",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "size": 32
+    }
+   ]
+  },
+  {
+   "id": "g16",
+   "x": 508,
+   "y": 148,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i22",
+     "kind": "chip",
+     "label": "Yarın 09:00",
+     "icon": "alarm",
+     "variant": "tonal",
+     "action": {
+      "to": "rem",
+      "transition": "slideUp"
+     },
+     "note": "Başlığın altında hatırlatıcı çipi; dokununca seçici açılır, kapatma simgesi hatırlatıcıyı kaldırır."
+    },
+    {
+     "id": "i23",
+     "kind": "chip",
+     "label": "Alışveriş",
+     "icon": "label",
+     "variant": "filled",
+     "action": {
+      "to": "lab",
+      "transition": "slideUp"
+     },
+     "note": "Notun etiketleri; dokununca etiket seçici açılır."
+    },
+    {
+     "id": "i24",
+     "kind": "chip",
+     "label": "Etiket ekle",
+     "icon": "new_label",
+     "variant": "outlined",
+     "action": {
+      "to": "lab",
+      "transition": "slideUp"
+     }
+    }
+   ]
+  },
+  {
+   "id": "g17",
+   "x": 508,
+   "y": 200,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i28",
+     "kind": "checkbox",
+     "label": "Süt",
+     "icon": null,
+     "variant": "filled",
+     "note": "Yapılacak öğeleri ve not gövdesi seçilen yazı boyutuyla çizilir."
+    }
+   ]
+  },
+  {
+   "id": "g18",
+   "x": 508,
+   "y": 248,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i29",
+     "kind": "checkbox",
+     "label": "Ekmek",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g19",
+   "x": 508,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i30",
+     "kind": "checkbox",
+     "label": "Domates, salatalık",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g20",
+   "x": 508,
+   "y": 344,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i31",
+     "kind": "button",
+     "label": "Öğe ekle",
+     "icon": "add",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "g21",
+   "x": 508,
+   "y": 404,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i32",
+     "kind": "text",
+     "label": "Tamamlananlar (1)",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g22",
+   "x": 508,
+   "y": 432,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i33",
+     "kind": "checkbox",
+     "label": "Yumurta",
+     "icon": null,
+     "variant": "filled",
+     "checked": true
+    }
+   ]
+  },
+  {
+   "id": "g23",
+   "x": 508,
+   "y": 484,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i34",
+     "kind": "text",
+     "label": "Düzenlendi: Bugün 14:31 · 6 kelime",
+     "icon": null,
+     "variant": "filled",
+     "size": 12
+    }
+   ]
+  },
+  {
+   "id": "g24",
+   "x": 522,
+   "y": 800,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i35",
+     "kind": "toolbar",
+     "label": "",
+     "icon": null,
+     "variant": "tonal",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": ""
+      },
+      {
+       "icon": "text_fields",
+       "label": "Yazı boyutu"
+      },
+      {
+       "icon": "palette",
+       "label": ""
+      },
+      {
+       "icon": "archive",
+       "label": ""
+      },
+      {
+       "icon": "share",
+       "label": ""
+      },
+      {
+       "icon": "delete",
+       "label": ""
+      }
+     ],
+     "actions": {
+      "tab:1": {
+       "to": "size",
+       "transition": "slideUp"
+      }
+     },
+     "note": "Bugünkü yüzen araç çubuğu; ikinci sıraya yeni 'Aa' (text_fields) düğmesi eklendi, contentDescription 'Yazı boyutu'. Yazı boyutu menüsünü açar."
+    }
+   ]
+  },
+  {
+   "id": "g25",
+   "x": 984,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i36",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled",
+     "icon2": "more_vert"
+    }
+   ]
+  },
+  {
+   "id": "g26",
+   "x": 1000,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i37",
+     "kind": "text",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "size": 32
+    }
+   ]
+  },
+  {
+   "id": "g27",
+   "x": 1000,
+   "y": 160,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i38",
+     "kind": "checkbox",
+     "label": "Süt",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g28",
+   "x": 1000,
+   "y": 208,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i39",
+     "kind": "checkbox",
+     "label": "Ekmek",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g29",
+   "x": 984,
+   "y": 500,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i40",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "size": 412,
+     "size2": 392,
+     "fill": "surfaceContainerLow",
+     "radiusTop": 28,
+     "note": "Modal alt sayfa 'Yazı boyutu'. Arkadaki editör canlı önizleme olarak anında güncellenir."
+    }
+   ]
+  },
+  {
+   "id": "g30",
+   "x": 1000,
+   "y": 532,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i41",
+     "kind": "text",
+     "label": "Yazı boyutu",
+     "icon": null,
+     "variant": "filled",
+     "size": 22,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g31",
+   "x": 1000,
+   "y": 580,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i42",
+     "kind": "chip",
+     "label": "Küçük",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "i43",
+     "kind": "chip",
+     "label": "Normal",
+     "icon": null,
+     "variant": "filled",
+     "checked": true
+    },
+    {
+     "id": "i44",
+     "kind": "chip",
+     "label": "Büyük",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "i45",
+     "kind": "chip",
+     "label": "Çok büyük",
+     "icon": null,
+     "variant": "filled",
+     "note": "4 adım (bağlantılı düğme grubu / ButtonGroup): Küçük 14sp, Normal 16sp (varsayılan), Büyük 20sp, Çok büyük 24sp. Seçim tek bir genel ayardır, DataStore'a kaydedilir; editördeki not gövdesine ve yapılacak öğelerine uygulanır. Başlık oranla büyür."
+    }
+   ]
+  },
+  {
+   "id": "g32",
+   "x": 1000,
+   "y": 632,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i46",
+     "kind": "slider",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "value": 33,
+     "note": "Alternatif: aynı 4 adımlı kademeli kaydırıcı (steps=2). Hangisinin kalacağı onaya bağlı."
+    }
+   ]
+  },
+  {
+   "id": "g33",
+   "x": 1000,
+   "y": 684,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i47",
+     "kind": "card",
+     "label": "Önizleme",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.",
+     "noImage": true,
+     "size": 380,
+     "size2": 100,
+     "note": "Seçilen boyutla canlı önizleme metni."
+    }
+   ]
+  },
+  {
+   "id": "g34",
+   "x": 1000,
+   "y": 796,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i48",
+     "kind": "switch",
+     "label": "Kartlarda da kullan",
+     "icon": null,
+     "variant": "filled",
+     "checked": false,
+     "size": 380,
+     "note": "İsteğe bağlı: açıksa ana ekrandaki kart metinleri de büyür (varsayılan kapalı). Aynı ayar Ayarlar alt sayfasında da yer alır."
+    }
+   ]
+  },
+  {
+   "id": "g35",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i49",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g36",
+   "x": 1492,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i50",
+     "kind": "text",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "size": 32
+    }
+   ]
+  },
+  {
+   "id": "g37",
+   "x": 1476,
+   "y": 232,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i51",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "size": 412,
+     "size2": 660,
+     "fill": "surfaceContainerLow",
+     "radiusTop": 28,
+     "note": "Modal alt sayfa 'Hatırlatıcı'. Editördeki alarm düğmesinden veya hatırlatıcı çipinden açılır."
+    }
+   ]
+  },
+  {
+   "id": "g38",
+   "x": 1492,
+   "y": 264,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i52",
+     "kind": "text",
+     "label": "Hatırlatıcı",
+     "icon": null,
+     "variant": "filled",
+     "size": 22,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g39",
+   "x": 1492,
+   "y": 312,
+   "axis": "y",
+   "items": [
+    {
+     "id": "i53",
+     "kind": "listItem",
+     "label": "Bugün 18:00",
+     "icon": "schedule",
+     "variant": "filled",
+     "note": "Saat geçtiyse gizlenir."
+    },
+    {
+     "id": "i54",
+     "kind": "listItem",
+     "label": "Yarın 09:00",
+     "icon": "wb_sunny",
+     "variant": "filled"
+    },
+    {
+     "id": "i55",
+     "kind": "listItem",
+     "label": "Gelecek hafta",
+     "icon": "date_range",
+     "variant": "filled",
+     "supporting": "Pazartesi 09:00"
+    },
+    {
+     "id": "i56",
+     "kind": "listItem",
+     "label": "Tarih ve saat seç…",
+     "icon": "edit_calendar",
+     "variant": "filled",
+     "note": "Material 3 DatePicker ardından TimePicker açılır (tr-TR, 24 saat)."
+    }
+   ]
+  },
+  {
+   "id": "g40",
+   "x": 1492,
+   "y": 616,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i57",
+     "kind": "text",
+     "label": "Tekrar",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g41",
+   "x": 1492,
+   "y": 644,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i58",
+     "kind": "chip",
+     "label": "Tekrar yok",
+     "icon": null,
+     "variant": "filled",
+     "checked": true
+    },
+    {
+     "id": "i59",
+     "kind": "chip",
+     "label": "Her gün",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "i60",
+     "kind": "chip",
+     "label": "Her hafta",
+     "icon": null,
+     "variant": "filled"
+    },
+    {
+     "id": "i61",
+     "kind": "chip",
+     "label": "Her ay",
+     "icon": null,
+     "variant": "filled",
+     "note": "Tekrarda bildirim sonraki zamana yeniden kurulur."
+    }
+   ]
+  },
+  {
+   "id": "g42",
+   "x": 1492,
+   "y": 700,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i62",
+     "kind": "button",
+     "label": "Hatırlatıcıyı kaldır",
+     "icon": "alarm_off",
+     "variant": "text",
+     "note": "Yalnızca hatırlatıcı ayarlıyken görünür; zamanlanmış alarmı ve bildirimi iptal eder."
+    }
+   ]
+  },
+  {
+   "id": "g43",
+   "x": 1492,
+   "y": 764,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i63",
+     "kind": "button",
+     "label": "Kaydet",
+     "icon": null,
+     "variant": "filled",
+     "size": 380,
+     "note": "Seçilen zamanda bildirim gönderilir (başlık + ilk satır; dokununca not açılır, 'Tamamlandı' eylemi). Android 13+ ilk kullanımda bildirim izni ister; tam zamanlı alarm için SCHEDULE_EXACT_ALARM/USE_EXACT_ALARM, verilmezse yaklaşık alarm. Cihaz yeniden başlayınca alarmlar yeniden kurulur. Notu çöpe taşımak hatırlatıcıyı iptal eder."
+    }
+   ]
+  },
+  {
+   "id": "g44",
+   "x": 1968,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i64",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g45",
+   "x": 1984,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i65",
+     "kind": "text",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "size": 32
+    }
+   ]
+  },
+  {
+   "id": "g46",
+   "x": 1968,
+   "y": 200,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i66",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "size": 412,
+     "size2": 692,
+     "fill": "surfaceContainerLow",
+     "radiusTop": 28,
+     "note": "Modal alt sayfa 'Etiketler'. Editörden açılınca notun etiketlerini seçer; 'Etiketleri düzenle' çipinden veya Ayarlar > Etiketler'den açılınca yönetim modundadır (onay kutuları yerine düzenle/sil)."
+    }
+   ]
+  },
+  {
+   "id": "g47",
+   "x": 1984,
+   "y": 232,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i67",
+     "kind": "text",
+     "label": "Etiketler",
+     "icon": null,
+     "variant": "filled",
+     "size": 22,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g48",
+   "x": 1984,
+   "y": 280,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i68",
+     "kind": "textField",
+     "label": "Yeni etiket",
+     "icon": "new_label",
+     "variant": "outlined",
+     "icon2": "check",
+     "supporting": "Enter ile eklenir; aynı ad (tr-TR, büyük/küçük harf duyarsız) tekrar eklenemez.",
+     "note": "Yeni etiket oluşturur ve bu nota hemen ekler."
+    }
+   ]
+  },
+  {
+   "id": "g49",
+   "x": 1984,
+   "y": 368,
+   "axis": "y",
+   "items": [
+    {
+     "id": "i69",
+     "kind": "listItem",
+     "label": "İş",
+     "icon": "label",
+     "variant": "filled",
+     "icon2": "check_box_outline_blank"
+    },
+    {
+     "id": "i70",
+     "kind": "listItem",
+     "label": "Ev",
+     "icon": "label",
+     "variant": "filled",
+     "icon2": "check_box_outline_blank"
+    },
+    {
+     "id": "i71",
+     "kind": "listItem",
+     "label": "Alışveriş",
+     "icon": "label",
+     "variant": "filled",
+     "icon2": "check_box",
+     "note": "İşaretli etiketler notta; değişiklik anında kaydedilir."
+    }
+   ]
+  },
+  {
+   "id": "g50",
+   "x": 1984,
+   "y": 600,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i72",
+     "kind": "text",
+     "label": "Yönetim modu",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g51",
+   "x": 1984,
+   "y": 628,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i73",
+     "kind": "listItem",
+     "label": "Alışveriş",
+     "icon": "label",
+     "variant": "filled",
+     "icon2": "more_vert",
+     "note": "Yönetim modunda satır sonu menüsü: 'Yeniden adlandır' (satır içi metin alanı) ve 'Sil' (onay iletişim kutusu; etiket notlardan kaldırılır, notlar silinmez)."
+    }
+   ]
+  },
+  {
+   "id": "g52",
+   "x": 1984,
+   "y": 716,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i74",
+     "kind": "listItem",
+     "label": "Ayarlar > Etiketler",
+     "icon": "settings",
+     "variant": "filled",
+     "supporting": "Ayarlar alt sayfasında yeni satır; aynı yönetim ekranını açar",
+     "icon2": "chevron_right"
+    }
+   ]
+  },
+  {
+   "id": "g53",
+   "x": 2460,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i75",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 412,
+     "size2": 892,
+     "fill": "primaryContainer",
+     "note": "Başlatıcı ana ekranı (temsilî). Widget'lar Jetpack Glance ile, Material You renkleriyle."
+    }
+   ]
+  },
+  {
+   "id": "g54",
+   "x": 2476,
+   "y": 64,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i76",
+     "kind": "text",
+     "label": "14:32",
+     "icon": null,
+     "variant": "filled",
+     "size": 57
+    }
+   ]
+  },
+  {
+   "id": "g55",
+   "x": 2476,
+   "y": 140,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i77",
+     "kind": "text",
+     "label": "Cumartesi, 17 Ekim",
+     "icon": null,
+     "variant": "filled",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "id": "g56",
+   "x": 2476,
+   "y": 200,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i78",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 380,
+     "size2": 260,
+     "fill": "surface",
+     "radiusTop": 24,
+     "radiusBottom": 24,
+     "note": "4x2 'Yapılacak listesi' widget'ı: yerleştirirken bir yapılacak notu seçilir (yapılandırma ekranı). Kutucuklara dokunmak öğeyi uygulamayı açmadan işaretler; başlığa dokunmak notu editörde açar. Tamamlananlar altta, üstü çizili."
+    }
+   ]
+  },
+  {
+   "id": "g57",
+   "x": 2492,
+   "y": 216,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i79",
+     "kind": "text",
+     "label": "Market · 1/4",
+     "icon": null,
+     "variant": "filled",
+     "size": 20,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "g58",
+   "x": 2492,
+   "y": 256,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i80",
+     "kind": "checkbox",
+     "label": "Süt",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g59",
+   "x": 2492,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i81",
+     "kind": "checkbox",
+     "label": "Ekmek",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g60",
+   "x": 2492,
+   "y": 344,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i82",
+     "kind": "checkbox",
+     "label": "Domates, salatalık",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g61",
+   "x": 2492,
+   "y": 388,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i83",
+     "kind": "checkbox",
+     "label": "Yumurta",
+     "icon": null,
+     "variant": "filled",
+     "checked": true
+    }
+   ]
+  },
+  {
+   "id": "g62",
+   "x": 2476,
+   "y": 488,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i84",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 182,
+     "size2": 96,
+     "fill": "surface",
+     "radiusTop": 24,
+     "radiusBottom": 24,
+     "note": "2x1 'Yeni not' hızlı widget'ı."
+    }
+   ]
+  },
+  {
+   "id": "g63",
+   "x": 2488,
+   "y": 508,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i85",
+     "kind": "button",
+     "label": "Not",
+     "icon": "note_add",
+     "variant": "tonal",
+     "note": "Uygulamayı yeni boş not editöründe açar."
+    },
+    {
+     "id": "i86",
+     "kind": "button",
+     "label": "Liste",
+     "icon": "checklist",
+     "variant": "tonal",
+     "note": "Yeni yapılacak listesi editöründe açar."
+    }
+   ]
+  },
+  {
+   "id": "g64",
+   "x": 2492,
+   "y": 780,
+   "axis": "x",
+   "items": [
+    {
+     "id": "i87",
+     "kind": "iconButton",
+     "label": "",
+     "icon": "apps",
+     "variant": "tonal"
+    },
+    {
+     "id": "i88",
+     "kind": "iconButton",
+     "label": "",
+     "icon": "call",
+     "variant": "tonal"
+    },
+    {
+     "id": "i89",
+     "kind": "iconButton",
+     "label": "",
+     "icon": "chat",
+     "variant": "tonal"
+    },
+    {
+     "id": "i90",
+     "kind": "iconButton",
+     "label": "",
+     "icon": "photo_camera",
+     "variant": "tonal"
+    }
+   ]
+  }
+ ]
+}
