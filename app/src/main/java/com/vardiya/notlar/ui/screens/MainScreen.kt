@@ -54,9 +54,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShortNavigationBar
-import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -305,13 +305,14 @@ private fun BarAction(icon: ImageVector, description: String, onClick: () -> Uni
     }
 }
 
+/** The tall bottom bar: icon in a wide pill with the label under it. */
 @Composable
 private fun SectionBar(section: Section, onSectionChange: (Section) -> Unit) {
     val haptic = LocalHapticFeedback.current
-    ShortNavigationBar {
+    NavigationBar {
         Section.entries.forEach { item ->
             val selected = item == section
-            ShortNavigationBarItem(
+            NavigationBarItem(
                 selected = selected,
                 onClick = {
                     if (!selected) haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
