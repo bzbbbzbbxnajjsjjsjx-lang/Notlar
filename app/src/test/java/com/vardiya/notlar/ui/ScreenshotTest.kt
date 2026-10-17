@@ -142,6 +142,8 @@ class ScreenshotTest {
             onTrashSelection = {},
             onSwipeArchive = {},
             onSwipeTrash = {},
+            onRememberSearch = {},
+            onForgetSearch = {},
             snackbarHostState = SnackbarHostState(),
             nowMillis = now,
         )

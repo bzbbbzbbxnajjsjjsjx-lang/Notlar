@@ -1,5 +1,6 @@
 package com.vardiya.notlar.ui
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,11 +27,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vardiya.notlar.domain.Note
+import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.ui.components.LocalSharedNoteScope
@@ -199,8 +202,8 @@ fun NotlarApp(
                             }
                         },
                         onRestore = { note ->
-                            viewModel.restore(note.id)
-                            undoable("Not geri yüklendi") { viewModel.moveToTrash(note.id) }
+                            viewModel.restore(setOf(note.id))
+                            undoable("Not geri yüklendi") { viewModel.moveToTrash(setOf(note.id)) }
                         },
                         onDeleteForever = { viewModel.deleteForever(it.id) },
                         onEmptyTrash = viewModel::emptyTrash,
@@ -224,13 +227,15 @@ fun NotlarApp(
                             selection = emptyList()
                             undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
                         },
+                        onRememberSearch = viewModel::rememberSearch,
+                        onForgetSearch = viewModel::forgetSearch,
                         onSwipeArchive = { note ->
-                            viewModel.setArchived(note.id, !note.archived)
+                            viewModel.setArchived(setOf(note.id), !note.archived)
                             val text = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
                             undoable(text) { viewModel.refile(note) }
                         },
                         onSwipeTrash = { note ->
-                            viewModel.moveToTrash(note.id)
+                            viewModel.moveToTrash(setOf(note.id))
                             undoable("Not çöp kutusuna taşındı") { viewModel.refile(note) }
                         },
                         snackbarHostState = snackbar,
@@ -249,20 +254,27 @@ fun NotlarApp(
                             message("Kopyası oluşturuldu")
                         },
                         onClose = { openId = null },
-                        onShare = { context.shareNote(it) },
+                        onShare = { context.shareNote(it, NoteRules.shareText(it)) },
+                        onShareMarkdown = { context.shareNote(it, NoteEdits.markdown(it)) },
+                        onCopy = { note ->
+                            scope.launch {
+                                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(note.title, NoteRules.shareText(note))))
+                                message("Panoya kopyalandı")
+                            }
+                        },
                         onArchive = { note ->
                             viewModel.save(note)
-                            viewModel.setArchived(note.id, !note.archived)
+                            viewModel.setArchived(setOf(note.id), !note.archived)
                             openId = null
                             val message = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
-                            undoable(message) { viewModel.setArchived(note.id, note.archived) }
+                            undoable(message) { viewModel.setArchived(setOf(note.id), note.archived) }
                         },
                         onTrash = { note ->
                             viewModel.save(note)
                             openId = null
                             if (!note.isBlank) {
-                                viewModel.moveToTrash(note.id)
-                                undoable("Not çöp kutusuna taşındı") { viewModel.restore(note.id) }
+                                viewModel.moveToTrash(setOf(note.id))
+                                undoable("Not çöp kutusuna taşındı") { viewModel.restore(setOf(note.id)) }
                             }
                         },
                     )
@@ -272,10 +284,10 @@ fun NotlarApp(
     }
 }
 
-private fun Context.shareNote(note: Note) {
+private fun Context.shareNote(note: Note, text: String) {
     val send = Intent(Intent.ACTION_SEND)
         .setType("text/plain")
         .putExtra(Intent.EXTRA_SUBJECT, note.title)
-        .putExtra(Intent.EXTRA_TEXT, NoteRules.shareText(note))
+        .putExtra(Intent.EXTRA_TEXT, text)
     startActivity(Intent.createChooser(send, "Notu paylaş"))
 }

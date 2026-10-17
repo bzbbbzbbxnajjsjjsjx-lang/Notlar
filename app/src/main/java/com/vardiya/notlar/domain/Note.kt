@@ -64,4 +64,5 @@ data class Settings(
     val dynamicColor: Boolean = false,
     val listView: Boolean = false,
     val sort: NoteSort = NoteSort.EDITED,
+    val recentSearches: List<String> = emptyList(),
 )

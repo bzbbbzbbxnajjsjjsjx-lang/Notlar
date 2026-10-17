@@ -1,17 +1,23 @@
 package com.vardiya.notlar.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
@@ -20,15 +26,18 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -39,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.Morph
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
@@ -49,6 +59,11 @@ import com.vardiya.notlar.ui.theme.onContainer
 private const val PREVIEW_ITEMS = 6
 private const val PREVIEW_LINES = 10
 private const val HIGHLIGHT_ALPHA = 0.22f
+private const val BADGE_START_SCALE = 0.4f
+private val BADGE_SIZE = 24.dp
+private val RESTING_CORNER = 16.dp
+private val PRESSED_CORNER = 24.dp
+private val SELECTED_CORNER = 32.dp
 
 /**
  * A note in the grid or list: title, then the start of its text or its first to-do items.
@@ -64,8 +79,19 @@ fun NoteCard(
     highlight: String = "",
 ) {
     val palette = notePalette
-    val shape = MaterialTheme.shapes.large
     val interactions = remember { MutableInteractionSource() }
+    // Expressive shape motion: corners round out while pressed and more when selected.
+    val pressed by interactions.collectIsPressedAsState()
+    val corner by animateDpAsState(
+        targetValue = when {
+            selected -> SELECTED_CORNER
+            pressed -> PRESSED_CORNER
+            else -> RESTING_CORNER
+        },
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+        label = "cardCorner",
+    )
+    val shape = RoundedCornerShape(corner)
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -102,12 +128,7 @@ fun NoteCard(
                     )
                     // While selected, the check badge takes the pin's place.
                     if (selected) {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = "Seçildi",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp),
-                        )
+                        SelectedBadge()
                     } else if (note.pinned) {
                         Icon(Icons.Filled.PushPin, contentDescription = "Sabitlendi", modifier = Modifier.size(18.dp))
                     }
@@ -123,6 +144,32 @@ fun NoteCard(
                 )
             }
         }
+    }
+}
+
+/** A check on a shape that grows out of a circle into a nine-sided cookie as it appears. */
+@Composable
+private fun SelectedBadge() {
+    val progress = remember { Animatable(0f) }
+    val spec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    LaunchedEffect(Unit) { progress.animateTo(1f, spec) }
+    val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
+    Box(
+        Modifier
+            .size(BADGE_SIZE)
+            .graphicsLayer {
+                scaleX = BADGE_START_SCALE + (1 - BADGE_START_SCALE) * progress.value
+                scaleY = scaleX
+            }
+            .background(MaterialTheme.colorScheme.primary, MorphShape(morph, progress.value)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.Check,
+            contentDescription = "Seçildi",
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(16.dp),
+        )
     }
 }
 

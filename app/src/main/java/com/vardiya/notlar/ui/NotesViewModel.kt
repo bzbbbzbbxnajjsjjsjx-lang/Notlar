@@ -73,15 +73,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         return NoteEdits.duplicate(note, now, now).also(::save)
     }
 
-    fun moveToTrash(id: Long) = moveToTrash(setOf(id))
-
     fun moveToTrash(ids: Set<Long>) = update(ids) { it.copy(trashedAt = now(), pinned = false) }
 
-    fun restore(id: Long) = restore(setOf(id))
-
     fun restore(ids: Set<Long>) = update(ids) { it.copy(trashedAt = null) }
-
-    fun setArchived(id: Long, archived: Boolean) = setArchived(setOf(id), archived)
 
     fun setArchived(ids: Set<Long>, archived: Boolean) = update(ids) { it.copy(archived = archived, pinned = false) }
 
@@ -91,6 +85,12 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setPinned(ids: Set<Long>, pinned: Boolean) = update(ids) { it.copy(pinned = pinned) }
+
+    fun rememberSearch(query: String) = updateSettings {
+        it.copy(recentSearches = NoteEdits.rememberSearch(it.recentSearches, query))
+    }
+
+    fun forgetSearch(query: String) = updateSettings { it.copy(recentSearches = it.recentSearches - query) }
 
     fun updateSettings(transform: (Settings) -> Settings) {
         viewModelScope.launch { repository.saveSettings(transform(settings.value)) }

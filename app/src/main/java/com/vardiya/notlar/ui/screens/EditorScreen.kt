@@ -3,6 +3,7 @@ package com.vardiya.notlar.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -31,11 +32,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteSweep
@@ -54,6 +57,8 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -77,8 +82,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -102,6 +109,7 @@ import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 
 private const val SAVE_DELAY_MS = 500L
+private const val HALF_TURN = 180f
 
 /**
  * Writes and edits one note. Changes are saved half a second after typing stops and again on the
@@ -117,6 +125,8 @@ fun EditorScreen(
     onTrash: (Note) -> Unit,
     onDuplicate: (Note) -> Unit,
     modifier: Modifier = Modifier,
+    onShareMarkdown: (Note) -> Unit = {},
+    onCopy: (Note) -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     today: LocalDate = LocalDate.now(),
 ) {
@@ -272,6 +282,8 @@ fun EditorScreen(
                 onColor = { draft = draft.copy(color = it) },
                 onArchive = { onArchive(draft) },
                 onShare = { onShare(draft) },
+                onShareMarkdown = { onShareMarkdown(draft) },
+                onCopy = { onCopy(draft) },
                 onTrash = { onTrash(draft) },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -329,6 +341,8 @@ private fun EditorToolbar(
     onColor: (NoteColor) -> Unit,
     onArchive: () -> Unit,
     onShare: () -> Unit,
+    onShareMarkdown: () -> Unit,
+    onCopy: () -> Unit,
     onTrash: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -373,9 +387,76 @@ private fun EditorToolbar(
             description = if (note.archived) "Arşivden çıkar" else "Arşivle",
             onClick = onArchive,
         )
-        ToolbarButton(icon = Icons.Filled.Share, description = "Paylaş", onClick = onShare)
+        ShareSplitButton(onShare = onShare, onShareMarkdown = onShareMarkdown, onCopy = onCopy)
         ToolbarButton(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", onClick = onTrash)
     }
+}
+
+/**
+ * Expressive split button: the left half shares right away, the arrow opens the other ways to
+ * send the note out.
+ */
+@Composable
+private fun ShareSplitButton(onShare: () -> Unit, onShareMarkdown: () -> Unit, onCopy: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    val rotation by animateFloatAsState(
+        targetValue = if (menu) HALF_TURN else 0f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "shareArrow",
+    )
+    Box {
+        SplitButtonLayout(
+            leadingButton = {
+                SplitButtonDefaults.TonalLeadingButton(onClick = onShare) {
+                    Icon(
+                        Icons.Filled.Share,
+                        contentDescription = "Paylaş",
+                        modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
+                    )
+                }
+            },
+            trailingButton = {
+                SplitButtonDefaults.TonalTrailingButton(
+                    checked = menu,
+                    onCheckedChange = { menu = it },
+                    modifier = Modifier.semantics {
+                        stateDescription = if (menu) "Açık" else "Kapalı"
+                    },
+                ) {
+                    Icon(
+                        Icons.Filled.KeyboardArrowUp,
+                        contentDescription = "Diğer paylaşma seçenekleri",
+                        modifier = Modifier
+                            .size(SplitButtonDefaults.TrailingIconSize)
+                            .graphicsLayer { rotationZ = rotation },
+                    )
+                }
+            },
+        )
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            ShareMenuItem("Metin olarak paylaş", Icons.Filled.Share) {
+                menu = false
+                onShare()
+            }
+            ShareMenuItem("Markdown olarak paylaş", Icons.Outlined.Code) {
+                menu = false
+                onShareMarkdown()
+            }
+            ShareMenuItem("Panoya kopyala", Icons.Outlined.ContentCopy) {
+                menu = false
+                onCopy()
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShareMenuItem(text: String, icon: ImageVector, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(text) },
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        onClick = onClick,
+    )
 }
 
 @Composable

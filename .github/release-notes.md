@@ -4,6 +4,12 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.5.0)
+- **Expressive arama çubuğu:** Notlar ve Arşiv'de en üstte hap biçimli arama çubuğu. Dokununca tam ekran arama açılır: son aramalar (silinebilir), *Tümü / Notlar / Yapılacaklar* süzgeçleri ve yazdıkça vurgulu sonuçlar.
+- **Bölünmüş Paylaş düğmesi:** Yazma ekranında Paylaş'ın sol yarısı hemen paylaşır, oku ise *Metin olarak paylaş*, *Markdown olarak paylaş* ve *Panoya kopyala* seçeneklerini açar.
+- **Şekil değiştiren kartlar:** Kartın köşeleri basınca ve seçilince yumuşakça yuvarlanır; seçim rozeti daireden Expressive kurabiye şekline dönüşerek belirir.
+- **Seçim modu:** Üstte küçük bir "N seçildi" çubuğu.
+
 ### Yenilikler (1.4.0)
 - **Expressive FAB menüsü:** Sağ alttaki + düğmesine basınca düğme şekil değiştirip ✕ olur ve üstünde *Not*, *Yapılacak listesi* ve *Panodan not* açılır. Arkadaki liste kararır; dışarı dokununca ya da geri tuşuyla menü kapanır.
 - **Panodan not:** Kopyaladığın metin tek dokunuşla yeni not olur. Panoda metin yoksa uyarı çıkar.

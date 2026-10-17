@@ -66,4 +66,25 @@ object NoteEdits {
         }
         return ranges
     }
+
+    /** The note as Markdown: the title as a heading, then the text or a task list. */
+    fun markdown(note: Note): String {
+        val content = if (note.isChecklist) {
+            note.items.filter { it.text.isNotBlank() }.joinToString("\n") { (if (it.checked) "- [x] " else "- [ ] ") + it.text.trim() }
+        } else {
+            note.body.trim()
+        }
+        val heading = note.title.trim().takeIf { it.isNotEmpty() }?.let { "# $it" }
+        return listOfNotNull(heading, content.takeIf { it.isNotEmpty() }).joinToString("\n\n")
+    }
+
+    /** [recent] with [query] moved to the front, case-insensitive duplicates dropped, at most [MAX_RECENT_SEARCHES]. */
+    fun rememberSearch(recent: List<String>, query: String): List<String> {
+        val entry = query.trim()
+        if (entry.isEmpty()) return recent
+        val key = entry.lowercase(turkish)
+        return (listOf(entry) + recent.filterNot { it.lowercase(turkish) == key }).take(MAX_RECENT_SEARCHES)
+    }
+
+    const val MAX_RECENT_SEARCHES = 10
 }

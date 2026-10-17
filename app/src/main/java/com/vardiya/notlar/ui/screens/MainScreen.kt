@@ -15,6 +15,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,13 +63,17 @@ import androidx.compose.material3.toShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -129,7 +135,7 @@ private val Section.motion: IconMotion
         Section.TRASH -> IconMotion.WIGGLE
     }
 
-private val NoteFilter.label: String
+internal val NoteFilter.label: String
     get() = when (this) {
         NoteFilter.ALL -> "Tümü"
         NoteFilter.TEXT -> "Notlar"
@@ -163,6 +169,8 @@ fun MainScreen(
     onTrashSelection: () -> Unit,
     onSwipeArchive: (Note) -> Unit,
     onSwipeTrash: (Note) -> Unit,
+    onRememberSearch: (String) -> Unit,
+    onForgetSearch: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     nowMillis: Long = System.currentTimeMillis(),
@@ -175,10 +183,19 @@ fun MainScreen(
     val motion = MaterialTheme.motionScheme
     val selecting = selection.isNotEmpty()
     var fabMenuOpen by rememberSaveable { mutableStateOf(false) }
+    val query = rememberTextFieldState()
+    val queryText = query.text.toString()
+    var filter by rememberSaveable { mutableStateOf(NoteFilter.ALL) }
+    val searchState = rememberSearchBarState()
+    val searchScroll = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    // Each list starts unsearched.
+    LaunchedEffect(section) { query.clearText() }
     BackHandler(enabled = selecting) { onSelectionChange(emptySet()) }
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(searchScroll.nestedScrollConnection),
         topBar = {
             AnimatedContent(
                 targetState = selecting,
@@ -187,7 +204,8 @@ fun MainScreen(
             ) { selectingBar ->
                 if (selectingBar) {
                     val allPinned = notes.filter { it.id in selection }.all { it.pinned }
-                    LargeFlexibleTopAppBar(
+                    // A small bar: the list below already starts with the section's big title.
+                    TopAppBar(
                         title = { Text("${selection.size} seçildi") },
                         navigationIcon = {
                             IconButton(onClick = { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
@@ -213,22 +231,28 @@ fun MainScreen(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
                             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                         ),
+                    )
+                } else if (section == Section.TRASH) {
+                    LargeFlexibleTopAppBar(
+                        title = { Text(section.title) },
+                        actions = { BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings) },
                         scrollBehavior = scrollBehavior,
                     )
                 } else {
-                    LargeFlexibleTopAppBar(
-                        title = { Text(section.title) },
-                        actions = {
-                            if (section != Section.TRASH) {
-                                BarAction(
-                                    icon = if (settings.listView) Icons.Outlined.GridView else Icons.AutoMirrored.Outlined.ViewList,
-                                    description = if (settings.listView) "Izgara görünümü" else "Liste görünümü",
-                                    onClick = onToggleListView,
-                                )
-                            }
-                            BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings)
-                        },
-                        scrollBehavior = scrollBehavior,
+                    SearchTopBar(
+                        section = section,
+                        notes = notes,
+                        query = query,
+                        searchState = searchState,
+                        filter = filter,
+                        onFilterChange = { filter = it },
+                        settings = settings,
+                        onToggleListView = onToggleListView,
+                        onOpenSettings = onOpenSettings,
+                        onOpen = onOpen,
+                        onRememberSearch = onRememberSearch,
+                        onForgetSearch = onForgetSearch,
+                        scrollBehavior = searchScroll,
                     )
                 }
             }
@@ -296,6 +320,9 @@ fun MainScreen(
                     },
                     onSwipeArchive = onSwipeArchive,
                     onSwipeTrash = onSwipeTrash,
+                    query = queryText,
+                    filter = filter,
+                    onFilterChange = { filter = it },
                     contentPadding = padding,
                 )
             }
@@ -367,10 +394,11 @@ private fun NoteGrid(
     onSelect: (Note) -> Unit,
     onSwipeArchive: (Note) -> Unit,
     onSwipeTrash: (Note) -> Unit,
+    query: String,
+    filter: NoteFilter,
+    onFilterChange: (NoteFilter) -> Unit,
     contentPadding: PaddingValues,
 ) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var filter by rememberSaveable { mutableStateOf(NoteFilter.ALL) }
     val visible = NoteRules.visible(
         notes,
         section,
@@ -395,26 +423,18 @@ private fun NoteGrid(
         verticalItemSpacing = 8.dp,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // The search bar sits in the app bar; the section's big title opens the list.
         item(span = StaggeredGridItemSpan.FullLine) {
-            SearchField(query = query, onQueryChange = { query = it }, modifier = Modifier.padding(bottom = 4.dp))
+            Text(
+                section.title,
+                style = MaterialTheme.typography.displaySmallEmphasized,
+                modifier = Modifier
+                    .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                    .semantics { heading() },
+            )
         }
         if (section == Section.NOTES) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NoteFilter.entries.forEach { item ->
-                        FilterChip(
-                            selected = filter == item,
-                            onClick = { filter = item },
-                            label = { Text(item.label) },
-                            leadingIcon = if (filter == item) {
-                                { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-            }
+            item(span = StaggeredGridItemSpan.FullLine) { FilterChips(filter, onFilterChange) }
         }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Sabitlenenler") }
@@ -494,34 +514,6 @@ private fun LazyStaggeredGridItemScope.GridCard(
             modifier = Modifier.sharedNoteBounds(note.id),
         )
     }
-}
-
-@Composable
-private fun SearchField(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier.fillMaxWidth(),
-        placeholder = { Text("Notlarda ara") },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-        trailingIcon = if (query.isNotEmpty()) {
-            {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Filled.Close, contentDescription = "Aramayı temizle")
-                }
-            }
-        } else {
-            null
-        },
-        singleLine = true,
-        shape = CircleShape,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-        ),
-    )
 }
 
 @Composable

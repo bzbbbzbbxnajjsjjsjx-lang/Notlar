@@ -1,0 +1,835 @@
+{
+ "title": "Notlar",
+ "brief": "Notlar: notlar ve yapılacaklar için Material 3 Expressive Android uygulaması. Bu taslak: üst çubukta Expressive arama (AppBarWithSearch), tam ekran arama ve editörde Paylaş bölünmüş düğmesi.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": false,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "home",
+   "name": "Notlar – üst çubukta arama",
+   "x": 0,
+   "y": 0,
+   "bg": "surface",
+   "note": "Notlar ana ekranı. Listedeki arama alanı yerine en üstte Expressive AppBarWithSearch: hap arama çubuğu, sağında görünüm ve Ayarlar; altında büyük 'Notlar' başlığı, filtre çipleri ve kartlar bugünkü gibi."
+  },
+  {
+   "id": "search",
+   "name": "Arama – tam ekran",
+   "x": 492,
+   "y": 0,
+   "bg": "surfaceContainerHigh",
+   "note": "Arama çubuğuna dokununca açılan tam ekran arama (ExpandedFullScreenSearchBar). Sorgu boşken filtre çipleri ve 'Son aramalar' listesi görünür; alt çubuk ve FAB gizlidir."
+  },
+  {
+   "id": "results",
+   "name": "Arama – sonuçlar",
+   "x": 984,
+   "y": 0,
+   "bg": "surfaceContainerHigh",
+   "note": "Aynı tam ekran arama, sorgu yazılmış hali: eşleşen son aramalar üstte, altında sonuç kartları ana ekrandaki gibi iki sütunlu ızgarada."
+  },
+  {
+   "id": "editor",
+   "name": "Not – Paylaş bölünmüş düğmesi",
+   "x": 1476,
+   "y": 0,
+   "bg": "tertiaryContainer",
+   "note": "Metin notu editörü (yeşil not). Yüzen araç çubuğundaki Paylaş, Expressive SplitButton oldu; sağ parçadaki menü açık çizildi."
+  }
+ ],
+ "groups": [
+  {
+   "id": "hsrch",
+   "x": 16,
+   "y": 16,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hsrchi",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled",
+     "size": 276,
+     "action": {
+      "to": "search",
+      "transition": "expand"
+     },
+     "note": "YENİ: Expressive AppBarWithSearch. Listedeki arama alanı kalktı; hap biçimli arama çubuğu en üstte, üst çubuğun içinde. Dokununca tam ekran aramaya kap dönüşümüyle (container transform, expressive spring) genişler. Liste kaydırılınca çubuk yerinde kalır, altındaki büyük başlık katlanır."
+    }
+   ]
+  },
+  {
+   "id": "hacts",
+   "x": 300,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hview",
+     "kind": "iconButton",
+     "label": "Liste görünümü",
+     "icon": "view_agenda",
+     "variant": "text",
+     "note": "Bugünkü görünüm değiştirici: ızgara ↔ liste (contentDescription 'Liste görünümü' / 'Izgara görünümü'). Arama çubuğunun sağına taşındı."
+    },
+    {
+     "id": "hset",
+     "kind": "iconButton",
+     "label": "Ayarlar",
+     "icon": "settings",
+     "variant": "text",
+     "note": "Ayarlar sayfasını (alt sayfa) açar, bugünkü gibi; arama çubuğunun sağında."
+    }
+   ]
+  },
+  {
+   "id": "htitle",
+   "x": 16,
+   "y": 88,
+   "axis": "x",
+   "items": [
+    {
+     "id": "htitlei",
+     "kind": "text",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "size": 45,
+     "note": "Büyük başlık bugünkü gibi arama çubuğunun altında kalır; kaydırınca katlanır (large flexible app bar davranışı), başlık olarak işaretli."
+    }
+   ]
+  },
+  {
+   "id": "hch",
+   "x": 16,
+   "y": 160,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hch1",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true,
+     "note": "Filtre çipleri bugünkü gibi: Tümü / Notlar / Yapılacaklar."
+    },
+    {
+     "id": "hch2",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "outlined"
+    },
+    {
+     "id": "hch3",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "outlined"
+    }
+   ]
+  },
+  {
+   "id": "hh1",
+   "x": 16,
+   "y": 208,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hh1i",
+     "kind": "text",
+     "label": "Sabitlenenler",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "hpc0",
+   "x": 16,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hpc0i",
+     "kind": "card",
+     "label": "Market",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "1/4 · ☐ Süt  ☐ Ekmek  ☐ Domates, salatalık  ☑ Yumurta",
+     "noImage": true,
+     "size": 182,
+     "size2": 176,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "primaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hpc1",
+   "x": 214,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hpc1i",
+     "kind": "card",
+     "label": "Vardiya planı",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.",
+     "noImage": true,
+     "size": 182,
+     "size2": 116,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "tertiaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hh2",
+   "x": 16,
+   "y": 432,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hh2i",
+     "kind": "text",
+     "label": "Diğerleri",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "hoc0",
+   "x": 16,
+   "y": 464,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hoc0i",
+     "kind": "card",
+     "label": "Fikirler",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Not uygulamasına ana ekran widget'ı eklensin.",
+     "noImage": true,
+     "size": 182,
+     "size2": 104,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi)."
+    }
+   ]
+  },
+  {
+   "id": "hoc1",
+   "x": 214,
+   "y": 464,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hoc1i",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.",
+     "noImage": true,
+     "size": 182,
+     "size2": 84,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "secondaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "hoc2",
+   "x": 214,
+   "y": 560,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hoc2i",
+     "kind": "card",
+     "label": "",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Akşam annemi ara.",
+     "noImage": true,
+     "size": 182,
+     "size2": 56,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi)."
+    }
+   ]
+  },
+  {
+   "id": "hoc3",
+   "x": 16,
+   "y": 580,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hoc3i",
+     "kind": "card",
+     "label": "Kitaplar",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Kürk Mantolu Madonna, Simyacı, Tutunamayanlar",
+     "noImage": true,
+     "size": 182,
+     "size2": 116,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "surfaceContainerHigh"
+    }
+   ]
+  },
+  {
+   "id": "hfab",
+   "x": 340,
+   "y": 712,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hfabi",
+     "kind": "fab",
+     "label": "",
+     "icon": "add",
+     "variant": "filled",
+     "note": "Bugünkü FAB '+': dokununca FAB menüsü açılır (Not, Yapılacak listesi, Panodan not); simge × olarak döner. Değişmedi."
+    }
+   ]
+  },
+  {
+   "id": "hnav",
+   "x": 0,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "note": "Uygulamadaki uzun (80dp) NavigationBar: Notlar, Arşiv, Çöp kutusu; simge geniş hap göstergenin içinde, etiket altında. Bugünkü gibi, değişmedi."
+    }
+   ]
+  },
+  {
+   "id": "sback",
+   "x": 500,
+   "y": 16,
+   "axis": "x",
+   "items": [
+    {
+     "id": "sbacki",
+     "kind": "iconButton",
+     "label": "Geri",
+     "icon": "arrow_back",
+     "variant": "text",
+     "action": {
+      "to": "back",
+      "transition": "expand"
+     },
+     "note": "Geri (contentDescription 'Geri'): aramayı kapatır, çubuk Notlar ekranındaki hap biçimine geri küçülür; sistem geri hareketi de aynısını yapar."
+    }
+   ]
+  },
+  {
+   "id": "sfield",
+   "x": 552,
+   "y": 12,
+   "axis": "x",
+   "items": [
+    {
+     "id": "sfieldi",
+     "kind": "textField",
+     "label": "Notlarda ara",
+     "icon": null,
+     "variant": "filled",
+     "size": 336,
+     "note": "Açılınca odak alır ve klavye açılır. Yazdıkça sonuçlar anında süzülür (Türkçe yerel ayarı, büyük/küçük harf ve İ/ı duyarsız). Metin varken sağda × ile temizlenir. Klavyedeki Ara tuşu sorguyu 'Son aramalar'a kaydeder."
+    }
+   ]
+  },
+  {
+   "id": "sch",
+   "x": 508,
+   "y": 84,
+   "axis": "x",
+   "items": [
+    {
+     "id": "sch1",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true,
+     "note": "Ana ekrandaki filtrenin aynısı; seçim iki ekran arasında paylaşılır."
+    },
+    {
+     "id": "sch2",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "outlined"
+    },
+    {
+     "id": "sch3",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "outlined"
+    }
+   ]
+  },
+  {
+   "id": "sh",
+   "x": 508,
+   "y": 136,
+   "axis": "x",
+   "items": [
+    {
+     "id": "shi",
+     "kind": "text",
+     "label": "Son aramalar",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "srec",
+   "x": 508,
+   "y": 168,
+   "axis": "y",
+   "items": [
+    {
+     "id": "sr1",
+     "kind": "listItem",
+     "label": "market",
+     "icon": "history",
+     "variant": "filled",
+     "icon2": "close",
+     "action": {
+      "to": "results",
+      "transition": "fade"
+     },
+     "note": "Son aramalar: en yeni üstte, en fazla 10 kayıt, cihazda (DataStore) saklanır. Satıra dokununca sorgu alana yazılır ve sonuçlar gelir. Sağdaki × (contentDescription 'Aramayı kaldır') yalnızca o kaydı siler; liste boşsa başlık da gizlenir."
+    },
+    {
+     "id": "sr2",
+     "kind": "listItem",
+     "label": "kira",
+     "icon": "history",
+     "variant": "filled",
+     "icon2": "close",
+     "action": {
+      "to": "results",
+      "transition": "fade"
+     }
+    },
+    {
+     "id": "sr3",
+     "kind": "listItem",
+     "label": "vardiya",
+     "icon": "history",
+     "variant": "filled",
+     "icon2": "close",
+     "action": {
+      "to": "results",
+      "transition": "fade"
+     }
+    }
+   ]
+  },
+  {
+   "id": "rback",
+   "x": 992,
+   "y": 16,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rbacki",
+     "kind": "iconButton",
+     "label": "Geri",
+     "icon": "arrow_back",
+     "variant": "text",
+     "action": {
+      "to": "back",
+      "transition": "expand"
+     },
+     "note": "Aramayı kapatır; sorgu temizlenir, Notlar ekranına döner."
+    }
+   ]
+  },
+  {
+   "id": "rfield",
+   "x": 1044,
+   "y": 12,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rfieldi",
+     "kind": "textField",
+     "label": "ki",
+     "icon": null,
+     "variant": "filled",
+     "size": 336,
+     "note": "Sorgu 'ki' yazılmış hali. Sağdaki × sorguyu siler ve boş arama görünümüne döner."
+    }
+   ]
+  },
+  {
+   "id": "rch",
+   "x": 1000,
+   "y": 84,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rch1",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true
+    },
+    {
+     "id": "rch2",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "outlined"
+    },
+    {
+     "id": "rch3",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "outlined"
+    }
+   ]
+  },
+  {
+   "id": "rh",
+   "x": 1000,
+   "y": 136,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rhi",
+     "kind": "text",
+     "label": "Son aramalar",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true
+    }
+   ]
+  },
+  {
+   "id": "rrec",
+   "x": 1000,
+   "y": 168,
+   "axis": "y",
+   "items": [
+    {
+     "id": "rr1",
+     "kind": "listItem",
+     "label": "kira",
+     "icon": "history",
+     "variant": "filled",
+     "icon2": "close",
+     "note": "Sorgu varken yalnızca sorguyla başlayan son aramalar gösterilir (burada 'kira'); dokununca sorgu tamamlanır."
+    }
+   ]
+  },
+  {
+   "id": "rh2",
+   "x": 1000,
+   "y": 256,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rh2i",
+     "kind": "text",
+     "label": "Sonuçlar · 2",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true,
+     "note": "Sonuç sayısı. Hiç sonuç yoksa 'Sonuç bulunamadı' boş durumu gösterilir."
+    }
+   ]
+  },
+  {
+   "id": "rc0",
+   "x": 1000,
+   "y": 288,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rc0i",
+     "kind": "card",
+     "label": "Kitaplar",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Kürk Mantolu Madonna, Simyacı, Tutunamayanlar",
+     "noImage": true,
+     "size": 182,
+     "size2": 116,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "surfaceContainerHigh"
+    }
+   ]
+  },
+  {
+   "id": "rc1",
+   "x": 1198,
+   "y": 288,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rc1i",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.",
+     "noImage": true,
+     "size": 182,
+     "size2": 84,
+     "action": {
+      "to": "editor",
+      "transition": "expand"
+     },
+     "note": "Dokununca not editörde açılır; basılınca hafifçe küçülür ve yaylı geri döner (bugünkü gibi).",
+     "fill": "secondaryContainer"
+    }
+   ]
+  },
+  {
+   "id": "ebar",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ebari",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "expand"
+      }
+     },
+     "note": "Bugünkü üst çubuk: Geri notu kaydedip listeye döner; Sabitle ve ⋮ menüsü değişmedi."
+    }
+   ]
+  },
+  {
+   "id": "epin",
+   "x": 1776,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "epini",
+     "kind": "iconButton",
+     "label": "Sabitle",
+     "icon": "push_pin",
+     "variant": "text"
+    }
+   ]
+  },
+  {
+   "id": "etitle",
+   "x": 1500,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "etitlei",
+     "kind": "text",
+     "label": "Vardiya planı",
+     "icon": null,
+     "variant": "filled",
+     "size": 28
+    }
+   ]
+  },
+  {
+   "id": "ebody",
+   "x": 1500,
+   "y": 152,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ebodyi",
+     "kind": "text",
+     "label": "Pazartesi sabah, çarşamba gece. Cuma izin.",
+     "icon": null,
+     "variant": "filled",
+     "size": 16
+    }
+   ]
+  },
+  {
+   "id": "emeta",
+   "x": 1500,
+   "y": 224,
+   "axis": "x",
+   "items": [
+    {
+     "id": "emetai",
+     "kind": "text",
+     "label": "Düzenlendi: Bugün 14:31 · 8 kelime",
+     "icon": null,
+     "variant": "filled",
+     "size": 12
+    }
+   ]
+  },
+  {
+   "id": "emenu",
+   "x": 1632,
+   "y": 640,
+   "axis": "y",
+   "items": [
+    {
+     "id": "em1",
+     "kind": "listItem",
+     "label": "Metin olarak paylaş",
+     "icon": "share",
+     "variant": "filled",
+     "size": 240,
+     "note": "Sistem paylaşım sayfasını açar; başlık + metin düz metin olarak gönderilir (bugünkü Paylaş davranışı)."
+    },
+    {
+     "id": "em2",
+     "kind": "listItem",
+     "label": "Panoya kopyala",
+     "icon": "content_copy",
+     "variant": "filled",
+     "size": 240,
+     "note": "Paylaşım metnini panoya kopyalar; Android 12 ve altında 'Panoya kopyalandı' snackbar'ı gösterilir."
+    }
+   ]
+  },
+  {
+   "id": "etb",
+   "x": 1492,
+   "y": 800,
+   "axis": "x",
+   "items": [
+    {
+     "id": "etbi",
+     "kind": "toolbar",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "checklist",
+       "label": "Yapılacak listesine çevir"
+      },
+      {
+       "icon": "palette",
+       "label": "Renk"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşivle"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusuna taşı"
+      }
+     ],
+     "note": "Yüzen araç çubuğu bugünkü gibi: liste/metin çevirme, Renk menüsü, Arşivle, Çöp kutusuna taşı. Yalnızca Paylaş düğmesi çubuktan çıkıp yanındaki bölünmüş düğmeye dönüştü."
+    }
+   ]
+  },
+  {
+   "id": "esplit",
+   "x": 1736,
+   "y": 804,
+   "axis": "x",
+   "items": [
+    {
+     "id": "espliti",
+     "kind": "splitButton",
+     "label": "Paylaş",
+     "icon": "share",
+     "variant": "filled",
+     "note": "YENİ: Expressive SplitButton. Sol parça 'Paylaş' (paylaş simgesi) tek dokunuşla bugünkü gibi metin olarak paylaşır. Sağ parça aşağı ok (contentDescription 'Paylaşma seçenekleri'): menüyü açar, açıkken ok yaylı biçimde döner ve parça yuvarlaklaşır. Menü: 'Metin olarak paylaş', 'Panoya kopyala' ve yalnızca yapılacak listelerinde 'Yapılacak listesi olarak paylaş' (☐/☑ işaretli satırlarla). Bu metin notunda üçüncü seçenek gizli."
+    }
+   ]
+  }
+ ]
+}

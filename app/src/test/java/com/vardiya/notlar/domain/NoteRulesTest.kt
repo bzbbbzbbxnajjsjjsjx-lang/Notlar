@@ -144,4 +144,21 @@ class NoteRulesTest {
         assertTrue(NoteEdits.matchRanges("KIRA", "kira").isEmpty())
         assertEquals(listOf(0..3), NoteEdits.matchRanges("KİRA", "kira"))
     }
+
+    @Test
+    fun markdownUsesHeadingAndTaskList() {
+        assertEquals("# Market\n\n- [ ] Süt\n- [x] Ekmek", NoteEdits.markdown(notes[0]))
+        assertEquals("# Kira\n\nAyın 5'i", NoteEdits.markdown(notes[2]))
+        assertEquals("Sadece metin", NoteEdits.markdown(Note(1, body = " Sadece metin ")))
+    }
+
+    @Test
+    fun recentSearchesKeepNewestFirstWithoutDuplicates() {
+        val recent = NoteEdits.rememberSearch(listOf("market", "kira"), " KİRA ")
+        assertEquals(listOf("KİRA", "market"), recent)
+        assertEquals(recent, NoteEdits.rememberSearch(recent, "  "))
+        val full = (1..12).fold(emptyList<String>()) { list, i -> NoteEdits.rememberSearch(list, "a$i") }
+        assertEquals(NoteEdits.MAX_RECENT_SEARCHES, full.size)
+        assertEquals("a12", full.first())
+    }
 }
