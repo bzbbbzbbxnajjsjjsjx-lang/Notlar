@@ -2,6 +2,8 @@ package com.vardiya.notlar.ui
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -28,9 +30,14 @@ import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.domain.Section
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.MainScreen
+import com.vardiya.notlar.ui.screens.SettingsSheet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 private const val EDITOR_START_SCALE = 0.92f
+private const val BACKUP_MIME = "application/json"
 
 /** What the app was opened for from outside: a launcher shortcut or text shared by another app. */
 sealed interface LaunchAction {
@@ -47,7 +54,11 @@ fun NotlarApp(
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
     var section by rememberSaveable { mutableStateOf(Section.NOTES) }
+    // Ids of the notes selected with a long press; a list so it survives configuration changes.
+    var selection by rememberSaveable { mutableStateOf(emptyList<Long>()) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
     // Id of the note open in the editor; a new note gets its id before it is first saved.
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     val snackbar = remember { SnackbarHostState() }
@@ -83,6 +94,54 @@ fun NotlarApp(
         }
     }
 
+    fun message(text: String) {
+        scope.launch {
+            snackbar.currentSnackbarData?.dismiss()
+            snackbar.showSnackbar(text)
+        }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val backup = viewModel.exportBackup()
+        scope.launch {
+            val written = runCatching {
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(backup) }
+                }
+            }.getOrNull() != null
+            message(if (written) "Yedek kaydedildi" else "Yedek kaydedilemedi")
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val raw = runCatching {
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                }
+            }.getOrNull()
+            val count = raw?.let { viewModel.importBackup(it) }
+            message(if (count == null) "Bu dosya bir Notlar yedeği değil" else "$count not içe aktarıldı")
+        }
+    }
+
+    if (showSettings) {
+        SettingsSheet(
+            settings = settings,
+            onSettingsChange = { changed -> viewModel.updateSettings { changed } },
+            onExport = {
+                showSettings = false
+                exportLauncher.launch("notlar-yedek-${LocalDate.now()}.json")
+            },
+            onImport = {
+                showSettings = false
+                importLauncher.launch(arrayOf(BACKUP_MIME, "text/plain", "application/octet-stream"))
+            },
+            onDismissRequest = { showSettings = false },
+        )
+    }
+
     AnimatedContent(
         targetState = openId,
         transitionSpec = {
@@ -96,7 +155,13 @@ fun NotlarApp(
                 notes = notes,
                 loaded = loaded,
                 section = section,
-                onSectionChange = { section = it },
+                settings = settings,
+                selection = selection.toSet(),
+                onSelectionChange = { selection = it.toList() },
+                onSectionChange = {
+                    selection = emptyList()
+                    section = it
+                },
                 onOpen = { openId = it.id },
                 onNewNote = { open(viewModel.newNote()) },
                 onRestore = { note ->
@@ -105,6 +170,26 @@ fun NotlarApp(
                 },
                 onDeleteForever = { viewModel.deleteForever(it.id) },
                 onEmptyTrash = viewModel::emptyTrash,
+                onToggleListView = { viewModel.updateSettings { it.copy(listView = !it.listView) } },
+                onOpenSettings = { showSettings = true },
+                onPinSelection = { pinned ->
+                    viewModel.setPinned(selection.toSet(), pinned)
+                    selection = emptyList()
+                },
+                onArchiveSelection = {
+                    val ids = selection.toSet()
+                    val archive = section != Section.ARCHIVE
+                    viewModel.setArchived(ids, archive)
+                    selection = emptyList()
+                    val text = if (archive) "${ids.size} not arşivlendi" else "${ids.size} not arşivden çıkarıldı"
+                    undoable(text) { viewModel.setArchived(ids, !archive) }
+                },
+                onTrashSelection = {
+                    val ids = selection.toSet()
+                    viewModel.moveToTrash(ids)
+                    selection = emptyList()
+                    undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
+                },
                 snackbarHostState = snackbar,
             )
         } else {
@@ -114,6 +199,11 @@ fun NotlarApp(
             EditorScreen(
                 initial = initial,
                 onSave = viewModel::save,
+                snackbarHostState = snackbar,
+                onDuplicate = { note ->
+                    open(viewModel.duplicate(note))
+                    message("Kopyası oluşturuldu")
+                },
                 onClose = { openId = null },
                 onShare = { context.shareNote(it) },
                 onArchive = { note ->

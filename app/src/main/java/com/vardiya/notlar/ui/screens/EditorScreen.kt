@@ -27,10 +27,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Unarchive
@@ -46,6 +50,8 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -76,10 +82,12 @@ import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
+import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.ui.components.formatEdited
 import com.vardiya.notlar.ui.theme.container
 import com.vardiya.notlar.ui.theme.label
+import com.vardiya.notlar.ui.theme.notePalette
 import com.vardiya.notlar.ui.theme.onContainer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -98,7 +106,9 @@ fun EditorScreen(
     onShare: (Note) -> Unit,
     onArchive: (Note) -> Unit,
     onTrash: (Note) -> Unit,
+    onDuplicate: (Note) -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var draft by remember(initial.id) { mutableStateOf(initial) }
     val currentSave by rememberUpdatedState(onSave)
@@ -114,14 +124,16 @@ fun EditorScreen(
     }
     BackHandler(onBack = close)
 
-    val scheme = MaterialTheme.colorScheme
-    val background = scheme.container(draft.color)
-    val content = scheme.onContainer(draft.color)
+    val palette = notePalette
+    val background = palette.container(draft.color)
+    val content = palette.onContainer(draft.color)
 
     Scaffold(
         modifier = modifier,
         containerColor = background,
         contentColor = content,
+        // Lifted above the floating toolbar.
+        snackbarHost = { SnackbarHost(snackbarHostState, Modifier.padding(bottom = 80.dp)) },
         topBar = {
             TopAppBar(
                 title = {},
@@ -143,6 +155,15 @@ fun EditorScreen(
                             )
                         }
                     }
+                    MoreMenu(
+                        note = draft,
+                        onDuplicate = {
+                            onSave(draft)
+                            onDuplicate(draft)
+                        },
+                        onUncheckAll = { draft = NoteEdits.uncheckAll(draft) },
+                        onClearCompletions = { draft = NoteEdits.removeChecked(draft) },
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = background,
@@ -185,7 +206,7 @@ fun EditorScreen(
                     )
                 }
                 Text(
-                    "Düzenlendi: ${formatEdited(draft.updatedAt)}",
+                    "Düzenlendi: ${formatEdited(draft.updatedAt)} · ${NoteEdits.wordCount(draft)} kelime",
                     style = MaterialTheme.typography.labelMedium,
                     color = content.copy(alpha = 0.7f),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -216,6 +237,45 @@ fun EditorScreen(
                     .imePadding()
                     .padding(bottom = 16.dp),
             )
+        }
+    }
+}
+
+/** Overflow actions: copy the note, and the bulk to-do actions when there are done items. */
+@Composable
+private fun MoreMenu(note: Note, onDuplicate: () -> Unit, onUncheckAll: () -> Unit, onClearCompletions: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, shapes = IconButtonDefaults.shapes()) {
+            Icon(Icons.Filled.MoreVert, contentDescription = "Diğer seçenekler")
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text("Kopyasını oluştur") },
+                leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onDuplicate()
+                },
+            )
+            if (note.isChecklist && note.items.any { it.checked }) {
+                DropdownMenuItem(
+                    text = { Text("Tüm işaretleri kaldır") },
+                    leadingIcon = { Icon(Icons.Outlined.CheckBoxOutlineBlank, contentDescription = null) },
+                    onClick = {
+                        open = false
+                        onUncheckAll()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("Tamamlananları sil") },
+                    leadingIcon = { Icon(Icons.Outlined.DeleteSweep, contentDescription = null) },
+                    onClick = {
+                        open = false
+                        onClearCompletions()
+                    },
+                )
+            }
         }
     }
 }
@@ -285,12 +345,12 @@ private fun ToolbarButton(icon: ImageVector, description: String, onClick: () ->
 
 @Composable
 private fun ColorDot(color: NoteColor) {
-    val scheme = MaterialTheme.colorScheme
+    val palette = notePalette
     Box(
         Modifier
             .size(24.dp)
-            .background(scheme.container(color), CircleShape)
-            .border(1.dp, scheme.outline, CircleShape),
+            .background(palette.container(color), CircleShape)
+            .border(1.dp, palette.outline, CircleShape),
     )
 }
 
@@ -338,7 +398,7 @@ private fun ChecklistEditor(items: List<ChecklistItem>, onItemsChange: (List<Che
                 ChecklistRow(
                     item = item,
                     requestFocus = focusId == item.id,
-                onFocus = { focusId = null },
+                    onFocus = { focusId = null },
                     onChange = { changed -> onItemsChange(items.map { if (it.id == changed.id) changed else it }) },
                     onRemove = { onItemsChange(items.filterNot { it.id == item.id }) },
                     onNext = { addAfter(open.lastOrNull()?.id) },

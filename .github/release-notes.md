@@ -4,6 +4,17 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.1.0)
+- **Dinamik renkler:** Ayarlar'da açılınca uygulama renklerini duvar kağıdından alır (Android 12 ve üzeri). Sarı, Kum, Yeşil ve Kırmızı notlar kendi renklerinde kalır.
+- **Ayarlar:** Üstteki dişli simgesinden açılır. Tema (Sistem / Açık / Koyu), sıralama (Düzenlenme / Oluşturulma / Başlık) ve yedekleme burada.
+- **Yedek:** Tüm notlar tek bir JSON dosyasına dışa aktarılır, aynı dosya geri içe aktarılabilir. Aynı not iki tarafta da varsa en son düzenlenen kalır.
+- **Liste görünümü:** Üstteki düğmeyle iki sütunlu ızgara ile tek sütunlu liste arasında geçilir.
+- **Toplu seçim:** Bir nota uzun basınca seçim başlar. Seçilen notlar birlikte sabitlenir, arşivlenir ya da çöpe taşınır ("Geri al" ile).
+- **Yapılacaklar:** Kartlarda ilerleme çubuğu ve "1/4" sayısı. Yazma ekranındaki ⋮ menüsünden "Tüm işaretleri kaldır" ve "Tamamlananları sil".
+- **Yazma ekranı:** ⋮ menüsünden "Kopyasını oluştur". Altta kelime sayısı görünür.
+- **Paylaşımdan not:** Başka bir uygulamadan paylaşılan metin, Notlar seçilince yeni not olarak açılır.
+- **Kısayollar:** Uygulama simgesine uzun basınca "Yeni not" ve "Yeni liste".
+
 ### Yenilikler (1.0.0)
 - **Notlar:** İki sütunlu kartlar; sabitlenenler üstte, sonra en son düzenlenenler. Başlık, metin ve yapılacaklar içinde arama (Türkçe büyük/küçük harf duyarsız). *Tümü / Notlar / Yapılacaklar* süzgeçleri.
 - **Yazma ekranı:** Başlık ve metin; yazdıkça otomatik kaydedilir, boş bırakılan not tutulmaz. Altta yüzen araç çubuğu: yapılacak listesine çevir / düz metne çevir, renk (Varsayılan, Sarı, Kum, Yeşil, Kırmızı), arşivle, paylaş, çöp kutusuna taşı. Üstte sabitleme.

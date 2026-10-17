@@ -1,7 +1,12 @@
 package com.vardiya.notlar.ui
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
@@ -9,9 +14,13 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
+import com.vardiya.notlar.domain.NoteSort
 import com.vardiya.notlar.domain.Section
+import com.vardiya.notlar.domain.Settings
+import com.vardiya.notlar.domain.ThemeMode
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.MainScreen
+import com.vardiya.notlar.ui.screens.SettingsContent
 import com.vardiya.notlar.ui.theme.NotlarTheme
 import org.junit.Rule
 import org.junit.Test
@@ -86,18 +95,42 @@ class ScreenshotTest {
     @Test @Config(qualifiers = "+night")
     fun editorTextDark() = capture("editor_text_dark") { Editor(notes[1]) }
 
+    @Test fun notesList() = capture("notes_list") { Main(Section.NOTES, settings = Settings(listView = true)) }
+
+    @Test fun selection() = capture("selection") { Main(Section.NOTES, selection = setOf(1L, 3L)) }
+
+    @Test fun notesDynamic() = capture("notes_dynamic", dynamicColor = true) { Main(Section.NOTES) }
+
+    @Test fun settings() = capture("settings") { Settings(Settings(dynamicColor = true, sort = NoteSort.TITLE)) }
+
+    @Test @Config(qualifiers = "+night")
+    fun settingsDark() = capture("settings_dark") { Settings(Settings(themeMode = ThemeMode.DARK)) }
+
     @Composable
-    private fun Main(section: Section, list: List<Note> = notes) {
+    private fun Main(
+        section: Section,
+        list: List<Note> = notes,
+        settings: Settings = Settings(),
+        selection: Set<Long> = emptySet(),
+    ) {
         MainScreen(
             notes = list,
             loaded = true,
             section = section,
+            settings = settings,
+            selection = selection,
+            onSelectionChange = {},
             onSectionChange = {},
             onOpen = {},
             onNewNote = {},
             onRestore = {},
             onDeleteForever = {},
             onEmptyTrash = {},
+            onToggleListView = {},
+            onOpenSettings = {},
+            onPinSelection = {},
+            onArchiveSelection = {},
+            onTrashSelection = {},
             snackbarHostState = SnackbarHostState(),
             nowMillis = now,
         )
@@ -105,12 +138,27 @@ class ScreenshotTest {
 
     @Composable
     private fun Editor(note: Note) {
-        EditorScreen(initial = note, onSave = {}, onClose = {}, onShare = {}, onArchive = {}, onTrash = {})
+        EditorScreen(initial = note, onSave = {}, onClose = {}, onShare = {}, onArchive = {}, onTrash = {}, onDuplicate = {})
     }
 
-    private fun capture(name: String, screen: @Composable () -> Unit) {
+    /** The settings sheet's content on a sheet-colored surface (a real sheet needs a window). */
+    @Composable
+    private fun Settings(settings: Settings) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, shape = MaterialTheme.shapes.extraLarge) {
+            SettingsContent(
+                settings = settings,
+                onSettingsChange = {},
+                onExport = {},
+                onImport = {},
+                modifier = Modifier.padding(top = 24.dp),
+                dynamicColorAvailable = true,
+            )
+        }
+    }
+
+    private fun capture(name: String, dynamicColor: Boolean = false, screen: @Composable () -> Unit) {
         compose.mainClock.autoAdvance = false
-        compose.setContent { NotlarTheme { screen() } }
+        compose.setContent { NotlarTheme(dynamicColor = dynamicColor) { screen() } }
         compose.mainClock.advanceTimeBy(1_000)
         compose.onRoot().captureRoboImage("src/test/screenshots/$name.png")
     }

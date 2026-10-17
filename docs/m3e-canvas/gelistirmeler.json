@@ -1,6 +1,6 @@
 {
- "title": "Notlar – geliştirmeler",
- "brief": "Notlar uygulamasına seçim modu, liste/ızgara görünümü, ayarlar (tema, dinamik renkler, sıralama, yedek) ve editör taşma menüsü ekleniyor.",
+ "title": "Notlar",
+ "brief": "Notlar: notlar ve yapılacaklar için Material 3 Expressive Android uygulaması. Yeni: seçim modu, liste/ızgara görünümü, tema seçimi, duvar kağıdından renk alan dinamik renkler (Material You, Android 12+; kapalıyken amber marka rengi), sıralama ve JSON yedek.",
  "frame": "phone",
  "platform": "android",
  "paletteKey": "amber",
@@ -19,128 +19,166 @@
    "name": "Notlar",
    "x": 0,
    "y": 0,
-   "note": "Ana ekran bugünkü gibi; üst çubuğa görünüm değiştirici ve Ayarlar eklendi, yapılacak kartları ilerleme (2/4) gösterir."
+   "note": "Ana ekran (ızgara): üst çubukta yeni görünüm değiştirici ve Ayarlar; yapılacak kartları ilerleme (2/4) gösterir. Açık ve koyu modda aynı düzen."
+  },
+  {
+   "id": "list",
+   "name": "Notlar – liste görünümü",
+   "x": 492,
+   "y": 0,
+   "note": "Aynı notlar tek sütunda, tam genişlikte kartlarla; ızgara/liste tercihi kaydedilir."
   },
   {
    "id": "select",
    "name": "Seçim modu",
-   "x": 492,
+   "x": 984,
    "y": 0,
    "note": "Karta uzun basınca açılır; birden çok not seçilip toplu sabitlenir, arşivlenir ya da çöpe taşınır. Alt çubuk ve FAB gizlenir."
   },
   {
    "id": "settings",
    "name": "Ayarlar",
-   "x": 984,
+   "x": 1476,
    "y": 0,
-   "note": "Ana ekranın üstünde modal alt sayfa: tema, dinamik renkler, sıralama ve yedekleme."
+   "note": "Ana ekranın üstünde modal alt sayfa: tema (Sistem/Açık/Koyu), dinamik renkler, sıralama ve JSON yedek."
   },
   {
    "id": "edit",
    "name": "Not",
-   "x": 1476,
+   "x": 1968,
    "y": 0,
-   "note": "Editör bugünkü gibi; üst çubuğa taşma menüsü, altbilgiye kelime sayısı eklendi."
+   "note": "Editör bugünkü gibi; üst çubuğa ⋮ taşma menüsü, altbilgiye kelime sayısı eklendi."
+  },
+  {
+   "id": "editmenu",
+   "name": "Not – menü açık",
+   "x": 2460,
+   "y": 0,
+   "note": "Editörde ⋮ menüsü açık: Kopyasını oluştur, ve yapılacak notlarında Tüm işaretleri kaldır ile Tamamlananları sil."
+  },
+  {
+   "id": "newnote",
+   "name": "Yeni not",
+   "x": 2952,
+   "y": 0,
+   "note": "FAB 'Not' ile açılan boş editör; boş bırakılan not kaydedilmez."
+  },
+  {
+   "id": "archive",
+   "name": "Arşiv",
+   "x": 3444,
+   "y": 0,
+   "note": "Arşivlenen notlar iki sütunlu ızgarada; FAB yok."
+  },
+  {
+   "id": "trash",
+   "name": "Çöp kutusu",
+   "x": 3936,
+   "y": 0,
+   "note": "Silinen notlar 30 gün kalır; satırda kalan gün, geri yükleme ve kalıcı silme; üstte Çöpü boşalt."
   }
  ],
  "groups": [
   {
-   "id": "m1",
+   "id": "hbar",
    "x": 0,
    "y": 0,
    "axis": "x",
    "items": [
     {
-     "id": "mbar",
+     "id": "hbari",
      "kind": "topAppBar",
      "label": "Notlar",
      "icon": null,
      "variant": "filled",
      "icon2": "settings",
-     "note": "LargeFlexibleTopAppBar. Yeni sağ işlemler: görünüm değiştirici ve Ayarlar (dişli) – Ayarlar alt sayfasını açar.",
      "actions": {
       "icon2": {
        "to": "settings",
        "transition": "slideUp"
       }
-     }
+     },
+     "note": "Büyük esnek üst çubuk (LargeFlexibleTopAppBar); kaydırınca küçülür. Sağdaki dişli: Ayarlar alt sayfasını açar (contentDescription 'Ayarlar')."
     }
    ]
   },
   {
-   "id": "m1b",
+   "id": "hview",
    "x": 300,
    "y": 20,
    "axis": "x",
    "items": [
     {
-     "id": "mview",
+     "id": "hviewi",
      "kind": "iconButton",
      "label": "Liste görünümü",
      "icon": "view_agenda",
-     "variant": "filled",
-     "note": "Izgara (2 sütun) ile tek sütun liste arasında geçiş yapar; seçim kaydedilir. İkon ve contentDescription duruma göre 'Liste görünümü' / 'Izgara görünümü' olur.",
-     "toggle": {
-      "icon": "grid_view",
-      "variant": "filled",
-      "label": "Izgara görünümü"
-     }
+     "variant": "text",
+     "action": {
+      "to": "list",
+      "transition": "fade"
+     },
+     "note": "Tek sütunlu liste görünümüne geçer; tercih kaydedilir ve uygulama yeniden açılınca korunur."
     }
    ]
   },
   {
-   "id": "m2",
+   "id": "hsrch",
    "x": 16,
    "y": 96,
    "axis": "x",
    "items": [
     {
-     "id": "msearch",
+     "id": "hsi",
      "kind": "searchBar",
      "label": "Notlarda ara",
      "icon": "search",
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Başlıkta ve içerikte tr-TR kurallarıyla arar; yazınca sağda 'Aramayı temizle' çıkar."
     }
    ]
   },
   {
-   "id": "m3",
+   "id": "hch",
    "x": 16,
    "y": 168,
    "axis": "x",
    "items": [
     {
-     "id": "mc1",
+     "id": "hchip1",
      "kind": "chip",
      "label": "Tümü",
      "icon": "check",
      "variant": "filled",
-     "checked": true
+     "checked": true,
+     "note": "Tüm notları gösterir."
     },
     {
-     "id": "mc2",
+     "id": "hchip2",
      "kind": "chip",
      "label": "Notlar",
      "icon": null,
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Yalnızca düz metin notları gösterir."
     },
     {
-     "id": "mc3",
+     "id": "hchip3",
      "kind": "chip",
      "label": "Yapılacaklar",
      "icon": null,
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Yalnızca yapılacak listelerini gösterir."
     }
    ]
   },
   {
-   "id": "mc0",
+   "id": "hc0",
    "x": 16,
    "y": 216,
    "axis": "x",
    "items": [
     {
-     "id": "mci0",
+     "id": "hci0",
      "kind": "card",
      "label": "Market",
      "icon": "push_pin",
@@ -150,22 +188,22 @@
      "size": 182,
      "size2": 140,
      "fill": "tertiaryContainer",
-     "note": "Yapılacak notlarında başlığın yanında tamamlanan/toplam öğe sayısı (2/4) gösterilir.",
      "action": {
       "to": "edit",
       "transition": "expand"
-     }
+     },
+     "note": "Yapılacak notu: başlığın yanında tamamlanan/toplam öğe sayısı (2/4) rozet olarak görünür. Dokununca notu editörde açar; uzun basınca seçim modu başlar."
     }
    ]
   },
   {
-   "id": "mc1",
+   "id": "hc1",
    "x": 214,
    "y": 216,
    "axis": "x",
    "items": [
     {
-     "id": "mci1",
+     "id": "hci1",
      "kind": "card",
      "label": "Vardiya planı",
      "icon": "push_pin",
@@ -176,21 +214,21 @@
      "size2": 140,
      "fill": "primaryContainer",
      "action": {
-      "to": "edit",
-      "transition": "expand"
+      "to": "select",
+      "transition": "fade"
      },
-     "note": "Uzun basınca seçim modu açılır."
+     "note": "Uzun basınca seçim modu açılır ve bu kart seçilir (Önizlemede dokunma uzun basmayı temsil eder)."
     }
    ]
   },
   {
-   "id": "mc2",
+   "id": "hc2",
    "x": 16,
    "y": 372,
    "axis": "x",
    "items": [
     {
-     "id": "mci2",
+     "id": "hci2",
      "kind": "card",
      "label": "Fikirler",
      "icon": null,
@@ -202,18 +240,19 @@
      "action": {
       "to": "edit",
       "transition": "expand"
-     }
+     },
+     "note": "Dokununca notu editörde açar; uzun basınca seçim modu başlar."
     }
    ]
   },
   {
-   "id": "mc3",
+   "id": "hc3",
    "x": 214,
    "y": 372,
    "axis": "x",
    "items": [
     {
-     "id": "mci3",
+     "id": "hci3",
      "kind": "card",
      "label": "Kira",
      "icon": null,
@@ -226,18 +265,19 @@
      "action": {
       "to": "edit",
       "transition": "expand"
-     }
+     },
+     "note": "Dokununca notu editörde açar; uzun basınca seçim modu başlar."
     }
    ]
   },
   {
-   "id": "mc4",
+   "id": "hc4",
    "x": 16,
    "y": 528,
    "axis": "x",
    "items": [
     {
-     "id": "mci4",
+     "id": "hci4",
      "kind": "card",
      "label": "Kitaplar",
      "icon": null,
@@ -250,38 +290,39 @@
      "action": {
       "to": "edit",
       "transition": "expand"
-     }
+     },
+     "note": "Dokununca notu editörde açar; uzun basınca seçim modu başlar."
     }
    ]
   },
   {
-   "id": "mfab",
+   "id": "hfab",
    "x": 254,
    "y": 692,
    "axis": "x",
    "items": [
     {
-     "id": "mfabi",
+     "id": "hfabi",
      "kind": "extendedFab",
      "label": "Not",
      "icon": "add",
      "variant": "filled",
-     "note": "Yeni boş not açar (bugünkü gibi).",
      "action": {
-      "to": "edit",
+      "to": "newnote",
       "transition": "expand"
-     }
+     },
+     "note": "Yeni boş not açar; liste kaydırılınca yalnızca + ikonuna küçülür."
     }
    ]
   },
   {
-   "id": "mnav",
+   "id": "hnav",
    "x": 0,
    "y": 788,
    "axis": "x",
    "items": [
     {
-     "id": "mnavi",
+     "id": "hnavi",
      "kind": "bottomNav",
      "label": "",
      "icon": null,
@@ -301,35 +342,320 @@
       }
      ],
      "selected": 0,
-     "note": "Uygulamadaki ShortNavigationBar ile aynı: Notlar, Arşiv, Çöp kutusu."
+     "actions": {
+      "tab:0": {
+       "to": "home",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "trash",
+       "transition": "fade"
+      }
+     },
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu arasında geçiş yapar; sekme değişince hafif titreşim verir."
     }
    ]
   },
   {
-   "id": "s1",
+   "id": "hgh",
+   "x": 20,
+   "y": 196,
+   "axis": "x",
+   "items": [
+    {
+     "id": "hghi",
+     "kind": "text",
+     "label": "Sabitlenenler",
+     "icon": null,
+     "variant": "filled",
+     "size": 12,
+     "bold": true,
+     "note": "Grup başlığı (heading); sabitli ve sabitsiz notlar birlikte varsa görünür."
+    }
+   ]
+  },
+  {
+   "id": "lbar",
    "x": 492,
    "y": 0,
    "axis": "x",
    "items": [
     {
-     "id": "sbar",
+     "id": "lbari",
      "kind": "topAppBar",
-     "label": "2 seçildi",
-     "icon": "close",
+     "label": "Notlar",
+     "icon": null,
      "variant": "filled",
-     "note": "Seçim modunda başlık çubuğu bunun yerine gelir. X seçimi temizler; geri tuşu da seçimden çıkar.",
+     "icon2": "settings",
      "actions": {
-      "icon": {
-       "to": "home",
-       "transition": "fade"
+      "icon2": {
+       "to": "settings",
+       "transition": "slideUp"
       }
+     },
+     "note": "Büyük esnek üst çubuk (LargeFlexibleTopAppBar); kaydırınca küçülür. Sağdaki dişli: Ayarlar alt sayfasını açar (contentDescription 'Ayarlar')."
+    }
+   ]
+  },
+  {
+   "id": "lview",
+   "x": 792,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lviewi",
+     "kind": "iconButton",
+     "label": "Izgara görünümü",
+     "icon": "grid_view",
+     "variant": "text",
+     "action": {
+      "to": "home",
+      "transition": "fade"
+     },
+     "note": "İki sütunlu ızgara görünümüne döner."
+    }
+   ]
+  },
+  {
+   "id": "lsrch",
+   "x": 508,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lsi",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled",
+     "note": "Başlıkta ve içerikte tr-TR kurallarıyla arar; yazınca sağda 'Aramayı temizle' çıkar."
+    }
+   ]
+  },
+  {
+   "id": "lch",
+   "x": 508,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lchip1",
+     "kind": "chip",
+     "label": "Tümü",
+     "icon": "check",
+     "variant": "filled",
+     "checked": true,
+     "note": "Tüm notları gösterir."
+    },
+    {
+     "id": "lchip2",
+     "kind": "chip",
+     "label": "Notlar",
+     "icon": null,
+     "variant": "filled",
+     "note": "Yalnızca düz metin notları gösterir."
+    },
+    {
+     "id": "lchip3",
+     "kind": "chip",
+     "label": "Yapılacaklar",
+     "icon": null,
+     "variant": "filled",
+     "note": "Yalnızca yapılacak listelerini gösterir."
+    }
+   ]
+  },
+  {
+   "id": "lc0",
+   "x": 508,
+   "y": 216,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lci0",
+     "kind": "card",
+     "label": "Market",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "2/4 · ☐ Süt  ☐ Ekmek  ☐ Domates  ☑ Yumurta",
+     "noImage": true,
+     "size": 380,
+     "size2": 104,
+     "fill": "tertiaryContainer",
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     },
+     "note": "Yapılacak notu: başlığın yanında tamamlanan/toplam öğe sayısı (2/4) rozet olarak görünür. Liste görünümünde kartlar tam genişlikte, önizleme en fazla 3 satır; dokunma ve uzun basma ızgaradakiyle aynı."
+    }
+   ]
+  },
+  {
+   "id": "lc1",
+   "x": 508,
+   "y": 332,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lci1",
+     "kind": "card",
+     "label": "Vardiya planı",
+     "icon": "push_pin",
+     "variant": "filled",
+     "supporting": "Pazartesi sabah, çarşamba gece. Cuma izin.",
+     "noImage": true,
+     "size": 380,
+     "size2": 104,
+     "fill": "primaryContainer",
+     "action": {
+      "to": "select",
+      "transition": "fade"
      }
     }
    ]
   },
   {
-   "id": "s1b",
-   "x": 728,
+   "id": "lc2",
+   "x": 508,
+   "y": 448,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lci2",
+     "kind": "card",
+     "label": "Fikirler",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Not uygulamasına ana ekran widget'ı eklensin.",
+     "noImage": true,
+     "size": 380,
+     "size2": 104,
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lc3",
+   "x": 508,
+   "y": 564,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lci3",
+     "kind": "card",
+     "label": "Kira",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Ayın 5'inde ödenecek.",
+     "noImage": true,
+     "size": 380,
+     "size2": 104,
+     "fill": "secondaryContainer",
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     }
+    }
+   ]
+  },
+  {
+   "id": "lfab",
+   "x": 746,
+   "y": 692,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lfabi",
+     "kind": "extendedFab",
+     "label": "Not",
+     "icon": "add",
+     "variant": "filled",
+     "action": {
+      "to": "newnote",
+      "transition": "expand"
+     },
+     "note": "Yeni boş not açar; liste kaydırılınca yalnızca + ikonuna küçülür."
+    }
+   ]
+  },
+  {
+   "id": "lnav",
+   "x": 492,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 0,
+     "actions": {
+      "tab:0": {
+       "to": "home",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "trash",
+       "transition": "fade"
+      }
+     },
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu arasında geçiş yapar; sekme değişince hafif titreşim verir."
+    }
+   ]
+  },
+  {
+   "id": "sbar",
+   "x": 984,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "sbari",
+     "kind": "topAppBar",
+     "label": "2 seçildi",
+     "icon": "close",
+     "variant": "filled",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "fade"
+      }
+     },
+     "note": "Seçim modunda normal üst çubuğun yerine gelir. X (contentDescription 'Seçimi kapat') ve sistem geri tuşu seçimden çıkar. Bu modda alt çubuk ve FAB gizlenir."
+    }
+   ]
+  },
+  {
+   "id": "sact",
+   "x": 1220,
    "y": 20,
    "axis": "x",
    "items": [
@@ -338,75 +664,87 @@
      "kind": "iconButton",
      "label": "Sabitle",
      "icon": "push_pin",
-     "variant": "filled",
-     "note": "Seçili notları sabitler (hepsi sabitliyse sabitlemeyi kaldırır)."
+     "variant": "text",
+     "note": "Seçili notları sabitler; hepsi zaten sabitliyse sabitlemeyi kaldırır."
     },
     {
      "id": "sarc",
      "kind": "iconButton",
      "label": "Arşivle",
      "icon": "archive",
-     "variant": "filled",
-     "note": "Seçili notları arşivler; snackbar ile geri alınabilir."
+     "variant": "text",
+     "action": {
+      "to": "home",
+      "transition": "fade"
+     },
+     "note": "Seçili notları arşivler, seçimden çıkar ve 'Geri al' içeren snackbar gösterir."
     },
     {
      "id": "sdel",
      "kind": "iconButton",
      "label": "Çöp kutusuna taşı",
      "icon": "delete",
-     "variant": "filled",
-     "note": "Seçili notları çöp kutusuna taşır; snackbar 'Geri al' sunar."
+     "variant": "text",
+     "action": {
+      "to": "home",
+      "transition": "fade"
+     },
+     "note": "Seçili notları çöp kutusuna taşır, seçimden çıkar ve 'Geri al' içeren snackbar gösterir."
     }
    ]
   },
   {
-   "id": "s2",
-   "x": 508,
+   "id": "ssrch",
+   "x": 1000,
    "y": 96,
    "axis": "x",
    "items": [
     {
-     "id": "ssearch",
+     "id": "ssi",
      "kind": "searchBar",
      "label": "Notlarda ara",
      "icon": "search",
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Başlıkta ve içerikte tr-TR kurallarıyla arar; yazınca sağda 'Aramayı temizle' çıkar."
     }
    ]
   },
   {
-   "id": "s3",
-   "x": 508,
+   "id": "sch",
+   "x": 1000,
    "y": 168,
    "axis": "x",
    "items": [
     {
-     "id": "sc1",
+     "id": "schip1",
      "kind": "chip",
      "label": "Tümü",
      "icon": "check",
      "variant": "filled",
-     "checked": true
+     "checked": true,
+     "note": "Tüm notları gösterir."
     },
     {
-     "id": "sc2",
+     "id": "schip2",
      "kind": "chip",
      "label": "Notlar",
      "icon": null,
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Yalnızca düz metin notları gösterir."
     },
     {
-     "id": "sc3",
+     "id": "schip3",
      "kind": "chip",
      "label": "Yapılacaklar",
      "icon": null,
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Yalnızca yapılacak listelerini gösterir."
     }
    ]
   },
   {
    "id": "sc0",
-   "x": 508,
+   "x": 1000,
    "y": 216,
    "axis": "x",
    "items": [
@@ -420,14 +758,14 @@
      "noImage": true,
      "size": 182,
      "size2": 140,
-     "fill": "tertiaryContainer",
-     "note": "Seçili kart: kalın (3dp) primary kenarlık ve sağ üstte check rozeti. Dokunmak seçimi açar/kapatır."
+     "fill": "secondaryContainer",
+     "note": "Seçili: kalın (3dp) primary kenarlık ve sağ üstte check rozeti. Dokunmak seçimi kaldırır."
     }
    ]
   },
   {
    "id": "sb0",
-   "x": 668,
+   "x": 1156,
    "y": 224,
    "axis": "x",
    "items": [
@@ -437,13 +775,13 @@
      "label": "✓",
      "icon": null,
      "variant": "filled",
-     "note": "Seçim rozeti (check ikonu, primary)."
+     "note": "Seçim rozeti: primary daire içinde check ikonu."
     }
    ]
   },
   {
    "id": "sc1",
-   "x": 706,
+   "x": 1198,
    "y": 216,
    "axis": "x",
    "items": [
@@ -457,13 +795,14 @@
      "noImage": true,
      "size": 182,
      "size2": 140,
-     "fill": "primaryContainer"
+     "fill": "primaryContainer",
+     "note": "Dokunmak bu notu da seçime ekler."
     }
    ]
   },
   {
    "id": "sc2",
-   "x": 508,
+   "x": 1000,
    "y": 372,
    "axis": "x",
    "items": [
@@ -477,13 +816,14 @@
      "noImage": true,
      "size": 182,
      "size2": 140,
-     "note": "Seçili kart: kalın (3dp) primary kenarlık ve sağ üstte check rozeti. Dokunmak seçimi açar/kapatır."
+     "fill": "secondaryContainer",
+     "note": "Seçili: kalın (3dp) primary kenarlık ve sağ üstte check rozeti. Dokunmak seçimi kaldırır."
     }
    ]
   },
   {
    "id": "sb2",
-   "x": 668,
+   "x": 1156,
    "y": 380,
    "axis": "x",
    "items": [
@@ -493,13 +833,13 @@
      "label": "✓",
      "icon": null,
      "variant": "filled",
-     "note": "Seçim rozeti (check ikonu, primary)."
+     "note": "Seçim rozeti: primary daire içinde check ikonu."
     }
    ]
   },
   {
    "id": "sc3",
-   "x": 706,
+   "x": 1198,
    "y": 372,
    "axis": "x",
    "items": [
@@ -513,13 +853,14 @@
      "noImage": true,
      "size": 182,
      "size2": 140,
-     "fill": "secondaryContainer"
+     "fill": "secondaryContainer",
+     "note": "Dokunmak bu notu da seçime ekler."
     }
    ]
   },
   {
    "id": "sc4",
-   "x": 508,
+   "x": 1000,
    "y": 528,
    "axis": "x",
    "items": [
@@ -534,64 +875,73 @@
      "size": 182,
      "size2": 140,
      "fill": "tertiaryContainer",
-     "note": "Uzun basılınca seçim modu başlar; uygulamada tıklanan kart da seçilir."
+     "note": "Dokunmak bu notu da seçime ekler."
     }
    ]
   },
   {
-   "id": "t1",
-   "x": 984,
+   "id": "tbar",
+   "x": 1476,
    "y": 0,
    "axis": "x",
    "items": [
     {
-     "id": "tbar",
+     "id": "tbari",
      "kind": "topAppBar",
      "label": "Notlar",
      "icon": null,
      "variant": "filled",
-     "icon2": "settings"
+     "icon2": "settings",
+     "actions": {
+      "icon2": {
+       "to": "back",
+       "transition": "slideDown"
+      }
+     },
+     "note": "Arkadaki ana ekran karartma (scrim) altında; dokunmak alt sayfayı kapatır."
     }
    ]
   },
   {
-   "id": "t2",
-   "x": 1000,
+   "id": "tsrch",
+   "x": 1492,
    "y": 96,
    "axis": "x",
    "items": [
     {
-     "id": "tsearch",
+     "id": "tsi",
      "kind": "searchBar",
      "label": "Notlarda ara",
      "icon": "search",
-     "variant": "filled"
+     "variant": "filled",
+     "note": "Başlıkta ve içerikte tr-TR kurallarıyla arar; yazınca sağda 'Aramayı temizle' çıkar."
     }
    ]
   },
   {
-   "id": "t3",
-   "x": 1000,
+   "id": "tcard",
+   "x": 1492,
    "y": 168,
    "axis": "x",
    "items": [
     {
-     "id": "tcard",
+     "id": "tcardi",
      "kind": "card",
      "label": "Market",
      "icon": "push_pin",
      "variant": "filled",
-     "supporting": "2/4 · ☐ Süt  ☐ Ekmek",
+     "supporting": "2/4 · ☐ Süt  ☐ Ekmek  ☐ Domates  ☑ Yumurta",
      "noImage": true,
      "size": 182,
      "size2": 100,
-     "fill": "tertiaryContainer"
+     "fill": "tertiaryContainer",
+     "note": "Yapılacak notu: başlığın yanında tamamlanan/toplam öğe sayısı (2/4) rozet olarak görünür."
     }
    ]
   },
   {
    "id": "tnav",
-   "x": 984,
+   "x": 1476,
    "y": 788,
    "axis": "x",
    "items": [
@@ -616,13 +966,27 @@
       }
      ],
      "selected": 0,
-     "note": "Uygulamadaki ShortNavigationBar ile aynı: Notlar, Arşiv, Çöp kutusu."
+     "actions": {
+      "tab:0": {
+       "to": "home",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "trash",
+       "transition": "fade"
+      }
+     },
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu arasında geçiş yapar; sekme değişince hafif titreşim verir."
     }
    ]
   },
   {
    "id": "tsheet",
-   "x": 984,
+   "x": 1476,
    "y": 236,
    "axis": "x",
    "items": [
@@ -638,13 +1002,13 @@
      "fill": "surfaceContainerLow",
      "radiusTop": 28,
      "radiusBottom": 0,
-     "note": "ModalBottomSheet; dışına dokunmak ya da aşağı kaydırmak kapatır. Ayarlar DataStore'a kaydedilir."
+     "note": "ModalBottomSheet (sürükleme tutamaçlı); aşağı kaydırmak, dışına dokunmak ya da geri tuşu kapatır. Tüm ayarlar Preferences DataStore'a kaydedilir ve anında uygulanır."
     }
    ]
   },
   {
    "id": "th1",
-   "x": 1008,
+   "x": 1500,
    "y": 272,
    "axis": "x",
    "items": [
@@ -656,13 +1020,13 @@
      "variant": "filled",
      "size": 16,
      "bold": true,
-     "note": "Başlık (semantics heading)."
+     "note": "Bölüm başlığı (semantics heading)."
     }
    ]
   },
   {
    "id": "tt",
-   "x": 1008,
+   "x": 1500,
    "y": 306,
    "axis": "x",
    "items": [
@@ -678,7 +1042,7 @@
   },
   {
    "id": "tg",
-   "x": 1000,
+   "x": 1492,
    "y": 330,
    "axis": "x",
    "items": [
@@ -689,7 +1053,7 @@
      "icon": null,
      "variant": "filled",
      "size": 124,
-     "note": "Bağlı düğme grubu (ButtonGroup, tek seçim). Sistem: cihaz temasını izler; Açık/Koyu: zorlar."
+     "note": "Bağlı düğme grubu, tek seçim. Sistem: cihazın açık/koyu ayarını izler (varsayılan)."
     },
     {
      "id": "tb2",
@@ -697,7 +1061,8 @@
      "label": "Açık",
      "icon": null,
      "variant": "tonal",
-     "size": 124
+     "size": 124,
+     "note": "Her zaman açık tema."
     },
     {
      "id": "tb3",
@@ -705,13 +1070,14 @@
      "label": "Koyu",
      "icon": null,
      "variant": "tonal",
-     "size": 124
+     "size": 124,
+     "note": "Her zaman koyu tema; not renkleri container rollerine bağlı olduğundan koyu modda da okunur kalır, durum ve gezinme çubuğu simgeleri temaya göre değişir."
     }
    ]
   },
   {
    "id": "tsw",
-   "x": 1000,
+   "x": 1492,
    "y": 400,
    "axis": "x",
    "items": [
@@ -724,13 +1090,13 @@
      "supporting": "Duvar kağıdından renk al (Android 12+)",
      "switch": true,
      "checked": true,
-     "note": "Açıkken dynamicLight/DarkColorScheme kullanılır; kapalıyken amber marka şeması. Android 12 altında gizlenir ya da devre dışı gösterilir. Not renkleri container rollerine bağlı olduğu için dinamik paleti izler."
+     "note": "Açıkken dynamicLightColorScheme / dynamicDarkColorScheme (Material You) kullanılır, seçili açık/koyu temaya uyar; kapalıyken amber marka şeması (#7C5800). Not renkleri de dinamik paleti izler. Android 12 altında anahtar pasif görünür. Varsayılan: açık."
     }
    ]
   },
   {
    "id": "ts",
-   "x": 1008,
+   "x": 1500,
    "y": 488,
    "axis": "x",
    "items": [
@@ -746,7 +1112,7 @@
   },
   {
    "id": "tsg",
-   "x": 1000,
+   "x": 1492,
    "y": 512,
    "axis": "x",
    "items": [
@@ -757,7 +1123,7 @@
      "icon": null,
      "variant": "filled",
      "size": 136,
-     "note": "Bağlı düğme grubu, tek seçim. Sabitlenenler her sıralamada üstte kalır; Başlık sıralaması tr-TR Collator ile yapılır."
+     "note": "Bağlı düğme grubu, tek seçim. Son düzenlenen en üstte (bugünkü davranış). Sabitlenenler her sıralamada üstte kalır."
     },
     {
      "id": "ts2",
@@ -765,7 +1131,8 @@
      "label": "Oluşturulma",
      "icon": null,
      "variant": "tonal",
-     "size": 120
+     "size": 120,
+     "note": "En yeni oluşturulan not en üstte."
     },
     {
      "id": "ts3",
@@ -773,13 +1140,14 @@
      "label": "Başlık",
      "icon": null,
      "variant": "tonal",
-     "size": 108
+     "size": 108,
+     "note": "Başlığa göre A–Z, tr-TR sıralaması (ç, ğ, ı, ö, ş, ü doğru yerde)."
     }
    ]
   },
   {
    "id": "tdiv",
-   "x": 1000,
+   "x": 1492,
    "y": 580,
    "axis": "x",
    "items": [
@@ -794,7 +1162,7 @@
   },
   {
    "id": "th2",
-   "x": 1008,
+   "x": 1500,
    "y": 606,
    "axis": "x",
    "items": [
@@ -806,13 +1174,13 @@
      "variant": "filled",
      "size": 16,
      "bold": true,
-     "note": "Başlık (semantics heading)."
+     "note": "Bölüm başlığı (semantics heading)."
     }
    ]
   },
   {
    "id": "tbk",
-   "x": 1000,
+   "x": 1492,
    "y": 642,
    "axis": "x",
    "items": [
@@ -823,7 +1191,7 @@
      "icon": "upload",
      "variant": "tonal",
      "size": 182,
-     "note": "Sistem dosya seçicisiyle (CreateDocument) tüm notları .json olarak kaydeder; çöp kutusu ve arşiv dahil."
+     "note": "Sistem dosya seçicisiyle (CreateDocument) arşiv ve çöp kutusu dahil tüm notları tek .json dosyasına kaydeder; bitince snackbar gösterir."
     },
     {
      "id": "tim",
@@ -832,13 +1200,13 @@
      "icon": "download",
      "variant": "tonal",
      "size": 182,
-     "note": "OpenDocument ile .json seçilir; aynı id'li notlar yeni olanla birleşir, sonuç snackbar ile bildirilir. Geçersiz dosyada hata mesajı."
+     "note": "OpenDocument ile .json dosyası seçilir; notlar eklenir, aynı kimlikli notlarda daha yeni olan kalır. Sonuç ('12 not içe aktarıldı') ya da geçersiz dosya hatası snackbar ile bildirilir."
     }
    ]
   },
   {
    "id": "tnote",
-   "x": 1008,
+   "x": 1500,
    "y": 712,
    "axis": "x",
    "items": [
@@ -848,90 +1216,101 @@
      "label": "Tüm notlar tek bir JSON dosyasına kaydedilir.",
      "icon": null,
      "variant": "filled",
-     "size": 14
+     "size": 14,
+     "note": "Yedek bölümünün açıklama satırı."
     }
    ]
   },
   {
-   "id": "e1",
-   "x": 1476,
+   "id": "ebar",
+   "x": 1968,
    "y": 0,
    "axis": "x",
    "items": [
     {
-     "id": "ebar",
+     "id": "ebari",
      "kind": "topAppBar",
      "label": "",
      "icon": "arrow_back",
      "variant": "filled",
      "icon2": "more_vert",
-     "note": "Geri ok kaydedip listeye döner. Yeni: taşma menüsü (⋮, contentDescription 'Diğer seçenekler').",
      "actions": {
       "icon": {
        "to": "back",
        "transition": "expand"
+      },
+      "icon2": {
+       "to": "editmenu",
+       "transition": "fade"
       }
-     }
+     },
+     "note": "Geri ok (contentDescription 'Geri') notu kaydedip listeye döner. Yeni ⋮ (contentDescription 'Diğer seçenekler') taşma menüsünü açar/kapatır."
     }
    ]
   },
   {
-   "id": "e1b",
-   "x": 1784,
+   "id": "epin",
+   "x": 2276,
    "y": 20,
    "axis": "x",
    "items": [
     {
-     "id": "epin",
+     "id": "epini",
      "kind": "iconButton",
      "label": "Sabitle",
      "icon": "push_pin",
-     "variant": "filled",
-     "note": "Bugünkü sabitleme anahtarı, ⋮'nin soluna kayar."
+     "variant": "text",
+     "toggle": {
+      "icon": "push_pin",
+      "variant": "tonal",
+      "label": "Sabitlemeyi kaldır"
+     },
+     "note": "Bugünkü sabitleme anahtarı; ⋮'nin soluna kayar."
     }
    ]
   },
   {
-   "id": "e2",
-   "x": 1500,
+   "id": "etitle",
+   "x": 1992,
    "y": 100,
    "axis": "x",
    "items": [
     {
-     "id": "etitle",
+     "id": "ett",
      "kind": "text",
      "label": "Market",
      "icon": null,
      "variant": "filled",
      "size": 28,
-     "note": "Başlık alanı (placeholder 'Başlık')."
+     "note": "Başlık alanı (boşken 'Başlık' yazar); değişiklikler otomatik kaydedilir."
     }
    ]
   },
   {
-   "id": "ec0",
-   "x": 1492,
+   "id": "eck0",
+   "x": 1984,
    "y": 156,
    "axis": "x",
    "items": [
     {
-     "id": "eci0",
+     "id": "ecki0",
      "kind": "checkbox",
      "label": "Süt",
      "icon": null,
      "variant": "filled",
-     "checked": false
+     "checked": false,
+     "note": "İşaretlenince 'Tamamlananlar' bölümüne iner."
     }
    ]
   },
   {
-   "id": "ec1",
-   "x": 1492,
+   "id": "eck1",
+   "x": 1984,
    "y": 204,
    "axis": "x",
    "items": [
     {
-     "id": "eci1",
+     "id": "ecki1",
      "kind": "checkbox",
      "label": "Ekmek",
      "icon": null,
@@ -941,13 +1320,13 @@
    ]
   },
   {
-   "id": "ec2",
-   "x": 1492,
+   "id": "eck2",
+   "x": 1984,
    "y": 252,
    "axis": "x",
    "items": [
     {
-     "id": "eci2",
+     "id": "ecki2",
      "kind": "checkbox",
      "label": "Domates, salatalık",
      "icon": null,
@@ -958,7 +1337,7 @@
   },
   {
    "id": "eadd",
-   "x": 1492,
+   "x": 1984,
    "y": 304,
    "axis": "x",
    "items": [
@@ -967,46 +1346,49 @@
      "kind": "button",
      "label": "Öğe ekle",
      "icon": "add",
-     "variant": "text"
+     "variant": "text",
+     "note": "Listeye yeni boş öğe ekler ve ona odaklanır."
     }
    ]
   },
   {
-   "id": "edone",
-   "x": 1500,
+   "id": "edn",
+   "x": 1992,
    "y": 364,
    "axis": "x",
    "items": [
     {
-     "id": "edt",
+     "id": "ednt",
      "kind": "text",
      "label": "Tamamlananlar (1)",
      "icon": null,
      "variant": "filled",
      "size": 14,
-     "bold": true
+     "bold": true,
+     "note": "İşaretli öğelerin bölüm başlığı."
     }
    ]
   },
   {
-   "id": "ec3",
-   "x": 1492,
+   "id": "eck3",
+   "x": 1984,
    "y": 392,
    "axis": "x",
    "items": [
     {
-     "id": "eci3",
+     "id": "ecki3",
      "kind": "checkbox",
      "label": "Yumurta",
      "icon": null,
      "variant": "filled",
-     "checked": true
+     "checked": true,
+     "note": "İşareti kaldırınca yukarı, yapılacaklara geri çıkar."
     }
    ]
   },
   {
    "id": "efoot",
-   "x": 1500,
+   "x": 1992,
    "y": 448,
    "axis": "x",
    "items": [
@@ -1017,69 +1399,13 @@
      "icon": null,
      "variant": "filled",
      "size": 12,
-     "note": "Altbilgiye kelime sayısı eklendi (yapılacak notlarında öğe metinleri sayılır)."
-    }
-   ]
-  },
-  {
-   "id": "emenu",
-   "x": 1644,
-   "y": 72,
-   "axis": "x",
-   "items": [
-    {
-     "id": "emb",
-     "kind": "box",
-     "label": "",
-     "icon": null,
-     "variant": "filled",
-     "size": 232,
-     "size2": 176,
-     "fill": "surfaceContainer",
-     "radiusTop": 12,
-     "radiusBottom": 12,
-     "note": "⋮ ile açılan DropdownMenu."
-    }
-   ]
-  },
-  {
-   "id": "emi",
-   "x": 1644,
-   "y": 76,
-   "axis": "y",
-   "items": [
-    {
-     "id": "em1",
-     "kind": "listItem",
-     "label": "Kopyasını oluştur",
-     "icon": "content_copy",
-     "variant": "filled",
-     "size": 232,
-     "note": "Notun kopyasını oluşturur ve kopyayı açar; snackbar 'Kopya oluşturuldu'."
-    },
-    {
-     "id": "em2",
-     "kind": "listItem",
-     "label": "Tüm işaretleri kaldır",
-     "icon": "check_box_outline_blank",
-     "variant": "filled",
-     "size": 232,
-     "note": "Yalnızca yapılacak notlarında görünür; tüm öğeleri işaretsiz yapar."
-    },
-    {
-     "id": "em3",
-     "kind": "listItem",
-     "label": "Tamamlananları sil",
-     "icon": "delete_sweep",
-     "variant": "filled",
-     "size": 232,
-     "note": "Yalnızca yapılacak notlarında görünür; işaretli öğeleri siler, snackbar ile geri alınabilir."
+     "note": "Altbilgiye kelime sayısı eklendi; yapılacak notlarında öğe metinleri sayılır, yazdıkça güncellenir."
     }
    ]
   },
   {
    "id": "etool",
-   "x": 1552,
+   "x": 2044,
    "y": 792,
    "axis": "x",
    "items": [
@@ -1088,7 +1414,7 @@
      "kind": "toolbar",
      "label": "",
      "icon": null,
-     "variant": "tonal",
+     "variant": "filled",
      "tabs": [
       {
        "icon": "notes",
@@ -1111,7 +1437,679 @@
        "label": "Çöp kutusuna taşı"
       }
      ],
-     "note": "Bugünkü yüzen araç çubuğu, değişmedi."
+     "note": "Bugünkü yüzen araç çubuğu (değişmedi): düz metin/liste çevirme, Renk menüsü, Arşivle, Paylaş, Çöp kutusuna taşı. Sarı notta standart, diğerlerinde canlı renkler."
+    }
+   ]
+  },
+  {
+   "id": "mbar",
+   "x": 2460,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mbari",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "expand"
+      },
+      "icon2": {
+       "to": "edit",
+       "transition": "fade"
+      }
+     },
+     "note": "Geri ok (contentDescription 'Geri') notu kaydedip listeye döner. Yeni ⋮ (contentDescription 'Diğer seçenekler') taşma menüsünü açar/kapatır."
+    }
+   ]
+  },
+  {
+   "id": "mpin",
+   "x": 2768,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mpini",
+     "kind": "iconButton",
+     "label": "Sabitle",
+     "icon": "push_pin",
+     "variant": "text",
+     "toggle": {
+      "icon": "push_pin",
+      "variant": "tonal",
+      "label": "Sabitlemeyi kaldır"
+     },
+     "note": "Bugünkü sabitleme anahtarı; ⋮'nin soluna kayar."
+    }
+   ]
+  },
+  {
+   "id": "mtitle",
+   "x": 2484,
+   "y": 100,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mtt",
+     "kind": "text",
+     "label": "Market",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "note": "Başlık alanı (boşken 'Başlık' yazar); değişiklikler otomatik kaydedilir."
+    }
+   ]
+  },
+  {
+   "id": "mck0",
+   "x": 2476,
+   "y": 156,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mcki0",
+     "kind": "checkbox",
+     "label": "Süt",
+     "icon": null,
+     "variant": "filled",
+     "checked": false,
+     "note": "İşaretlenince 'Tamamlananlar' bölümüne iner."
+    }
+   ]
+  },
+  {
+   "id": "mck1",
+   "x": 2476,
+   "y": 204,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mcki1",
+     "kind": "checkbox",
+     "label": "Ekmek",
+     "icon": null,
+     "variant": "filled",
+     "checked": false
+    }
+   ]
+  },
+  {
+   "id": "mck2",
+   "x": 2476,
+   "y": 252,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mcki2",
+     "kind": "checkbox",
+     "label": "Domates, salatalık",
+     "icon": null,
+     "variant": "filled",
+     "checked": false
+    }
+   ]
+  },
+  {
+   "id": "madd",
+   "x": 2476,
+   "y": 304,
+   "axis": "x",
+   "items": [
+    {
+     "id": "maddb",
+     "kind": "button",
+     "label": "Öğe ekle",
+     "icon": "add",
+     "variant": "text",
+     "note": "Listeye yeni boş öğe ekler ve ona odaklanır."
+    }
+   ]
+  },
+  {
+   "id": "mdn",
+   "x": 2484,
+   "y": 364,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mdnt",
+     "kind": "text",
+     "label": "Tamamlananlar (1)",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "bold": true,
+     "note": "İşaretli öğelerin bölüm başlığı."
+    }
+   ]
+  },
+  {
+   "id": "mck3",
+   "x": 2476,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mcki3",
+     "kind": "checkbox",
+     "label": "Yumurta",
+     "icon": null,
+     "variant": "filled",
+     "checked": true,
+     "note": "İşareti kaldırınca yukarı, yapılacaklara geri çıkar."
+    }
+   ]
+  },
+  {
+   "id": "mfoot",
+   "x": 2484,
+   "y": 448,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mft",
+     "kind": "text",
+     "label": "Düzenlendi: Bugün 14:32 · 42 kelime",
+     "icon": null,
+     "variant": "filled",
+     "size": 12,
+     "note": "Altbilgiye kelime sayısı eklendi; yapılacak notlarında öğe metinleri sayılır, yazdıkça güncellenir."
+    }
+   ]
+  },
+  {
+   "id": "mtool",
+   "x": 2536,
+   "y": 792,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mtb",
+     "kind": "toolbar",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Düz metne çevir"
+      },
+      {
+       "icon": "palette",
+       "label": "Renk"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşivle"
+      },
+      {
+       "icon": "share",
+       "label": "Paylaş"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusuna taşı"
+      }
+     ],
+     "note": "Bugünkü yüzen araç çubuğu (değişmedi): düz metin/liste çevirme, Renk menüsü, Arşivle, Paylaş, Çöp kutusuna taşı. Sarı notta standart, diğerlerinde canlı renkler."
+    }
+   ]
+  },
+  {
+   "id": "mmb",
+   "x": 2628,
+   "y": 72,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mmbi",
+     "kind": "box",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "size": 232,
+     "size2": 176,
+     "fill": "surfaceContainer",
+     "radiusTop": 12,
+     "radiusBottom": 12,
+     "note": "⋮ ile açılan DropdownMenu; dışına dokunmak kapatır."
+    }
+   ]
+  },
+  {
+   "id": "mmi",
+   "x": 2628,
+   "y": 76,
+   "axis": "y",
+   "items": [
+    {
+     "id": "mm1",
+     "kind": "listItem",
+     "label": "Kopyasını oluştur",
+     "icon": "content_copy",
+     "variant": "filled",
+     "size": 232,
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     },
+     "note": "Notun kopyasını (başlık, içerik, renk) oluşturur ve kopyayı editörde açar; snackbar 'Kopya oluşturuldu'."
+    },
+    {
+     "id": "mm2",
+     "kind": "listItem",
+     "label": "Tüm işaretleri kaldır",
+     "icon": "check_box_outline_blank",
+     "variant": "filled",
+     "size": 232,
+     "action": {
+      "to": "edit",
+      "transition": "fade"
+     },
+     "note": "Yalnızca yapılacak notlarında görünür; tüm öğelerin işaretini kaldırır. Hiç işaretli öğe yoksa pasiftir."
+    },
+    {
+     "id": "mm3",
+     "kind": "listItem",
+     "label": "Tamamlananları sil",
+     "icon": "delete_sweep",
+     "variant": "filled",
+     "size": 232,
+     "action": {
+      "to": "edit",
+      "transition": "fade"
+     },
+     "note": "Yalnızca yapılacak notlarında görünür; işaretli öğeleri siler, snackbar 'Geri al' sunar."
+    }
+   ]
+  },
+  {
+   "id": "nbar",
+   "x": 2952,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "nbari",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "variant": "filled",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "expand"
+      },
+      "icon2": {
+       "to": "editmenu",
+       "transition": "fade"
+      }
+     },
+     "note": "Geri ok listeye döner; not boş kaldıysa kaydedilmez (silinir)."
+    }
+   ]
+  },
+  {
+   "id": "npin",
+   "x": 3260,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "id": "npini",
+     "kind": "iconButton",
+     "label": "Sabitle",
+     "icon": "push_pin",
+     "variant": "text",
+     "note": "Yeni notu sabitler."
+    }
+   ]
+  },
+  {
+   "id": "nt",
+   "x": 2976,
+   "y": 100,
+   "axis": "x",
+   "items": [
+    {
+     "id": "nti",
+     "kind": "text",
+     "label": "Başlık",
+     "icon": null,
+     "variant": "filled",
+     "size": 28,
+     "note": "Boş başlık alanı (placeholder); açılınca gövdeye odaklanır ve klavye açılır."
+    }
+   ]
+  },
+  {
+   "id": "nb",
+   "x": 2976,
+   "y": 156,
+   "axis": "x",
+   "items": [
+    {
+     "id": "nbi",
+     "kind": "text",
+     "label": "Not",
+     "icon": null,
+     "variant": "filled",
+     "size": 16,
+     "note": "Boş gövde alanı (placeholder 'Not')."
+    }
+   ]
+  },
+  {
+   "id": "ntool",
+   "x": 3028,
+   "y": 792,
+   "axis": "x",
+   "items": [
+    {
+     "id": "ntb",
+     "kind": "toolbar",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "checklist",
+       "label": "Yapılacak listesine çevir"
+      },
+      {
+       "icon": "palette",
+       "label": "Renk"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşivle"
+      },
+      {
+       "icon": "share",
+       "label": "Paylaş"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusuna taşı"
+      }
+     ],
+     "note": "Aynı yüzen araç çubuğu; ilk düğme notu yapılacak listesine çevirir."
+    }
+   ]
+  },
+  {
+   "id": "abar",
+   "x": 3444,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "abari",
+     "kind": "topAppBar",
+     "label": "Arşiv",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "settings",
+     "actions": {
+      "icon2": {
+       "to": "settings",
+       "transition": "slideUp"
+      }
+     },
+     "note": "Büyük esnek üst çubuk (LargeFlexibleTopAppBar); kaydırınca küçülür. Sağdaki dişli: Ayarlar alt sayfasını açar (contentDescription 'Ayarlar')."
+    }
+   ]
+  },
+  {
+   "id": "asrch",
+   "x": 3460,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "asi",
+     "kind": "searchBar",
+     "label": "Notlarda ara",
+     "icon": "search",
+     "variant": "filled",
+     "note": "Başlıkta ve içerikte tr-TR kurallarıyla arar; yazınca sağda 'Aramayı temizle' çıkar."
+    }
+   ]
+  },
+  {
+   "id": "ac0",
+   "x": 3460,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aci0",
+     "kind": "card",
+     "label": "Eski adres",
+     "icon": null,
+     "variant": "outlined",
+     "supporting": "Atatürk Cad. No 12",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     },
+     "note": "Arşivlenen not; dokununca açılır, araç çubuğundan 'Arşivden çıkar' ile geri döner. Uzun basınca seçim modu."
+    }
+   ]
+  },
+  {
+   "id": "ac1",
+   "x": 3658,
+   "y": 168,
+   "axis": "x",
+   "items": [
+    {
+     "id": "aci1",
+     "kind": "card",
+     "label": "Toplantı notu",
+     "icon": null,
+     "variant": "filled",
+     "supporting": "Bütçe onaylandı, sunum cuma.",
+     "noImage": true,
+     "size": 182,
+     "size2": 140,
+     "fill": "secondaryContainer",
+     "action": {
+      "to": "edit",
+      "transition": "expand"
+     }
+    }
+   ]
+  },
+  {
+   "id": "anav",
+   "x": 3444,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "anavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 1,
+     "actions": {
+      "tab:0": {
+       "to": "home",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "trash",
+       "transition": "fade"
+      }
+     },
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu arasında geçiş yapar; sekme değişince hafif titreşim verir."
+    }
+   ]
+  },
+  {
+   "id": "rbar",
+   "x": 3936,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rbari",
+     "kind": "topAppBar",
+     "label": "Çöp kutusu",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "settings",
+     "actions": {
+      "icon2": {
+       "to": "settings",
+       "transition": "slideUp"
+      }
+     },
+     "note": "Büyük esnek üst çubuk; dişli Ayarlar alt sayfasını açar."
+    }
+   ]
+  },
+  {
+   "id": "rinfo",
+   "x": 3960,
+   "y": 100,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rinfoi",
+     "kind": "text",
+     "label": "Çöp kutusundaki notlar 30 gün sonra kalıcı olarak silinir.",
+     "icon": null,
+     "variant": "filled",
+     "size": 14,
+     "note": "Bilgi satırı."
+    }
+   ]
+  },
+  {
+   "id": "rempty",
+   "x": 3952,
+   "y": 148,
+   "axis": "x",
+   "items": [
+    {
+     "id": "remptyi",
+     "kind": "button",
+     "label": "Çöpü boşalt",
+     "icon": "delete_forever",
+     "variant": "tonal",
+     "note": "Onay iletişim kutusu açar: 'Çöp kutusu boşaltılsın mı?' / 'Boşalt' – 'Vazgeç'. Geri alınamaz."
+    }
+   ]
+  },
+  {
+   "id": "rlist",
+   "x": 3952,
+   "y": 220,
+   "axis": "y",
+   "items": [
+    {
+     "id": "rl1",
+     "kind": "listItem",
+     "label": "Eski liste",
+     "icon": "note",
+     "variant": "filled",
+     "supporting": "28 gün sonra silinecek",
+     "icon2": "restore_from_trash",
+     "note": "Satırda 'Geri yükle' ve 'Kalıcı olarak sil' düğmeleri; kalıcı silme onay ister."
+    },
+    {
+     "id": "rl2",
+     "kind": "listItem",
+     "label": "Doğum günü fikirleri",
+     "icon": "note",
+     "variant": "filled",
+     "supporting": "12 gün sonra silinecek",
+     "icon2": "restore_from_trash"
+    },
+    {
+     "id": "rl3",
+     "kind": "listItem",
+     "label": "Başlıksız not",
+     "icon": "note",
+     "variant": "filled",
+     "supporting": "3 gün sonra silinecek",
+     "icon2": "restore_from_trash"
+    }
+   ]
+  },
+  {
+   "id": "rnav",
+   "x": 3936,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rnavi",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      }
+     ],
+     "selected": 2,
+     "actions": {
+      "tab:0": {
+       "to": "home",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "archive",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "trash",
+       "transition": "fade"
+      }
+     },
+     "note": "Uygulamadaki ShortNavigationBar: Notlar, Arşiv, Çöp kutusu arasında geçiş yapar; sekme değişince hafif titreşim verir."
     }
    ]
   }

@@ -1,5 +1,6 @@
 package com.vardiya.notlar.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridItemScope
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -19,19 +21,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.outlined.Notes
+import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -65,6 +74,7 @@ import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteFilter
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.domain.Section
+import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.ui.components.NoteCard
 
 private val Section.title: String
@@ -95,18 +105,29 @@ private val NoteFilter.label: String
         NoteFilter.CHECKLIST -> "Yapılacaklar"
     }
 
-/** The three lists behind the bottom bar: notes, archive and trash. */
+/**
+ * The three lists behind the bottom bar: notes, archive and trash. A long press on a note starts
+ * selection; while notes are [selection] the top bar acts on all of them and the bottom bar hides.
+ */
 @Composable
 fun MainScreen(
     notes: List<Note>,
     loaded: Boolean,
     section: Section,
+    settings: Settings,
+    selection: Set<Long>,
+    onSelectionChange: (Set<Long>) -> Unit,
     onSectionChange: (Section) -> Unit,
     onOpen: (Note) -> Unit,
     onNewNote: () -> Unit,
     onRestore: (Note) -> Unit,
     onDeleteForever: (Note) -> Unit,
     onEmptyTrash: () -> Unit,
+    onToggleListView: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onPinSelection: (pinned: Boolean) -> Unit,
+    onArchiveSelection: () -> Unit,
+    onTrashSelection: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     nowMillis: Long = System.currentTimeMillis(),
@@ -115,33 +136,66 @@ fun MainScreen(
     val gridState = rememberLazyStaggeredGridState()
     val fabExpanded by remember { derivedStateOf { gridState.firstVisibleItemIndex == 0 } }
     val haptic = LocalHapticFeedback.current
+    val selecting = selection.isNotEmpty()
+    BackHandler(enabled = selecting) { onSelectionChange(emptySet()) }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(section.title) },
-                scrollBehavior = scrollBehavior,
-            )
+            if (selecting) {
+                val allPinned = notes.filter { it.id in selection }.all { it.pinned }
+                LargeFlexibleTopAppBar(
+                    title = { Text("${selection.size} seçildi") },
+                    navigationIcon = {
+                        IconButton(onClick = { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
+                            Icon(Icons.Filled.Close, contentDescription = "Seçimi kapat")
+                        }
+                    },
+                    actions = {
+                        if (section == Section.NOTES) {
+                            BarAction(
+                                icon = if (allPinned) Icons.Outlined.PushPin else Icons.Filled.PushPin,
+                                description = if (allPinned) "Sabitlemeyi kaldır" else "Sabitle",
+                                onClick = { onPinSelection(!allPinned) },
+                            )
+                        }
+                        BarAction(
+                            icon = if (section == Section.ARCHIVE) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
+                            description = if (section == Section.ARCHIVE) "Arşivden çıkar" else "Arşivle",
+                            onClick = onArchiveSelection,
+                        )
+                        BarAction(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", onClick = onTrashSelection)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
+                    scrollBehavior = scrollBehavior,
+                )
+            } else {
+                LargeFlexibleTopAppBar(
+                    title = { Text(section.title) },
+                    actions = {
+                        if (section != Section.TRASH) {
+                            BarAction(
+                                icon = if (settings.listView) Icons.Outlined.GridView else Icons.AutoMirrored.Outlined.ViewList,
+                                description = if (settings.listView) "Izgara görünümü" else "Liste görünümü",
+                                onClick = onToggleListView,
+                            )
+                        }
+                        BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings)
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
         bottomBar = {
-            ShortNavigationBar {
-                Section.entries.forEach { item ->
-                    val selected = item == section
-                    ShortNavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            if (!selected) haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                            onSectionChange(item)
-                        },
-                        icon = { Icon(if (selected) item.selectedIcon else item.icon, contentDescription = null) },
-                        label = { Text(item.title) },
-                    )
-                }
+            if (!selecting) {
+                SectionBar(section = section, onSectionChange = onSectionChange)
             }
         },
         floatingActionButton = {
-            if (section == Section.NOTES) {
+            if (section == Section.NOTES && !selecting) {
                 ExtendedFloatingActionButton(
                     text = { Text("Not") },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
@@ -168,9 +222,47 @@ fun MainScreen(
                 notes = notes,
                 loaded = loaded,
                 section = section,
+                settings = settings,
                 gridState = gridState,
-                onOpen = onOpen,
+                selection = selection,
+                onOpen = { note ->
+                    when {
+                        !selecting -> onOpen(note)
+                        note.id in selection -> onSelectionChange(selection - note.id)
+                        else -> onSelectionChange(selection + note.id)
+                    }
+                },
+                onSelect = { note ->
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSelectionChange(if (note.id in selection) selection - note.id else selection + note.id)
+                },
                 contentPadding = padding,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BarAction(icon: ImageVector, description: String, onClick: () -> Unit) {
+    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
+        Icon(icon, contentDescription = description)
+    }
+}
+
+@Composable
+private fun SectionBar(section: Section, onSectionChange: (Section) -> Unit) {
+    val haptic = LocalHapticFeedback.current
+    ShortNavigationBar {
+        Section.entries.forEach { item ->
+            val selected = item == section
+            ShortNavigationBarItem(
+                selected = selected,
+                onClick = {
+                    if (!selected) haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                    onSectionChange(item)
+                },
+                icon = { Icon(if (selected) item.selectedIcon else item.icon, contentDescription = null) },
+                label = { Text(item.title) },
             )
         }
     }
@@ -181,18 +273,27 @@ private fun NoteGrid(
     notes: List<Note>,
     loaded: Boolean,
     section: Section,
+    settings: Settings,
     gridState: LazyStaggeredGridState,
+    selection: Set<Long>,
     onOpen: (Note) -> Unit,
+    onSelect: (Note) -> Unit,
     contentPadding: PaddingValues,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf(NoteFilter.ALL) }
-    val visible = NoteRules.visible(notes, section, query, if (section == Section.NOTES) filter else NoteFilter.ALL)
+    val visible = NoteRules.visible(
+        notes,
+        section,
+        query,
+        if (section == Section.NOTES) filter else NoteFilter.ALL,
+        settings.sort,
+    )
     val pinned = visible.filter { it.pinned }
     val others = visible.filterNot { it.pinned }
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Fixed(if (settings.listView) 1 else 2),
         state = gridState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -229,11 +330,11 @@ private fun NoteGrid(
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Sabitlenenler") }
         }
-        items(pinned, key = { it.id }) { note -> NoteCard(note, onClick = { onOpen(note) }, Modifier.animateItem()) }
+        items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect) }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Diğerleri") }
         }
-        items(others, key = { it.id }) { note -> NoteCard(note, onClick = { onOpen(note) }, Modifier.animateItem()) }
+        items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect) }
         if (loaded && visible.isEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 EmptyState(
@@ -247,6 +348,22 @@ private fun NoteGrid(
             }
         }
     }
+}
+
+@Composable
+private fun LazyStaggeredGridItemScope.GridCard(
+    note: Note,
+    selected: Boolean,
+    onOpen: (Note) -> Unit,
+    onSelect: (Note) -> Unit,
+) {
+    NoteCard(
+        note,
+        onClick = { onOpen(note) },
+        onLongClick = { onSelect(note) },
+        selected = selected,
+        modifier = Modifier.animateItem(),
+    )
 }
 
 @Composable

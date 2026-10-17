@@ -1,6 +1,7 @@
 package com.vardiya.notlar.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,44 +9,70 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
+import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.ui.theme.container
+import com.vardiya.notlar.ui.theme.notePalette
 import com.vardiya.notlar.ui.theme.onContainer
 
 private const val PREVIEW_ITEMS = 6
 private const val PREVIEW_LINES = 10
 
-/** A note in the grid: title, then the start of its text or its first to-do items. */
+/**
+ * A note in the grid or list: title, then the start of its text or its first to-do items.
+ * A long press starts selection; a [selected] card gets a thick outline and a check badge.
+ */
 @Composable
-fun NoteCard(note: Note, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
+fun NoteCard(
+    note: Note,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
+    selected: Boolean = false,
+) {
+    val palette = notePalette
+    val shape = MaterialTheme.shapes.large
     Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .semantics { this.selected = selected }
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "Seç"),
+        shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = scheme.container(note.color),
-            contentColor = scheme.onContainer(note.color),
+            containerColor = palette.container(note.color),
+            contentColor = palette.onContainer(note.color),
         ),
-        border = if (note.color == NoteColor.DEFAULT) BorderStroke(1.dp, scheme.outlineVariant) else null,
+        border = when {
+            selected -> BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
+            note.color == NoteColor.DEFAULT -> BorderStroke(1.dp, palette.outlineVariant)
+            else -> null
+        },
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (note.title.isNotBlank() || note.pinned) {
+            if (note.title.isNotBlank() || note.pinned || selected) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
                         note.title,
@@ -54,7 +81,15 @@ fun NoteCard(note: Note, onClick: () -> Unit, modifier: Modifier = Modifier) {
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    if (note.pinned) {
+                    // While selected, the check badge takes the pin's place.
+                    if (selected) {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = "Seçildi",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    } else if (note.pinned) {
                         Icon(Icons.Filled.PushPin, contentDescription = "Sabitlendi", modifier = Modifier.size(18.dp))
                     }
                 }
@@ -74,26 +109,45 @@ fun NoteCard(note: Note, onClick: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 private fun ChecklistPreview(note: Note) {
-    val items = note.items.filter { it.text.isNotBlank() }.sortedBy { it.checked }
-    items.take(PREVIEW_ITEMS).forEach { item ->
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                if (item.checked) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
-                contentDescription = if (item.checked) "Tamamlandı" else "Yapılacak",
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(18.dp),
-            )
-            Text(
-                item.text,
-                style = MaterialTheme.typography.bodyMedium,
-                textDecoration = if (item.checked) TextDecoration.LineThrough else null,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        NoteEdits.progress(note)?.let { (done, total) ->
+            val content = LocalContentColor.current
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LinearProgressIndicator(
+                    progress = { done.toFloat() / total },
+                    modifier = Modifier.weight(1f),
+                    color = content,
+                    trackColor = content.copy(alpha = 0.2f),
+                    drawStopIndicator = {},
+                )
+                Text(
+                    "$done/$total",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.semantics { contentDescription = "$total öğeden $done tamamlandı" },
+                )
+            }
         }
-    }
-    if (items.size > PREVIEW_ITEMS) {
-        Text("+${items.size - PREVIEW_ITEMS} öğe daha", style = MaterialTheme.typography.labelMedium)
+        val items = note.items.filter { it.text.isNotBlank() }.sortedBy { it.checked }
+        items.take(PREVIEW_ITEMS).forEach { item ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (item.checked) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                    contentDescription = if (item.checked) "Tamamlandı" else "Yapılacak",
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .size(18.dp),
+                )
+                Text(
+                    item.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textDecoration = if (item.checked) TextDecoration.LineThrough else null,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (items.size > PREVIEW_ITEMS) {
+            Text("+${items.size - PREVIEW_ITEMS} öğe daha", style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
