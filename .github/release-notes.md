@@ -4,6 +4,9 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.7.2)
+- **Açılış hatası düzeltildi:** Uygulama açılmadan kapanıyordu (1.7.0 ve 1.7.1). Artık normal açılıyor.
+
 ### Yenilikler (1.7.1)
 - **Daha büyük alt ikonlar:** Alttaki Notlar, Arşiv ve Çöp kutusu ikonları büyütüldü, artık daha rahat görünüyor ve basılıyor.
 
