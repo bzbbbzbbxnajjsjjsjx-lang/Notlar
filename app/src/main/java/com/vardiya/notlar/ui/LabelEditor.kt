@@ -27,6 +27,16 @@ class LabelEditor(private val repository: NoteRepository, private val scope: Cor
         }
     }
 
+    /** Undoes [delete]: the label comes back to the list and to the notes [noteIds] that carried it. */
+    fun restore(name: String, noteIds: Set<Long>) {
+        scope.launch {
+            repository.editLabels { settings, notes ->
+                settings.copy(labels = Labels.add(settings.labels, name)) to
+                    notes.map { if (it.id in noteIds && it.labels.none { label -> Labels.same(label, name) }) Labels.toggle(it, name) else it }
+            }
+        }
+    }
+
     /** Deletes a label: it leaves the list and every note, the notes themselves stay. */
     fun delete(name: String) {
         scope.launch {

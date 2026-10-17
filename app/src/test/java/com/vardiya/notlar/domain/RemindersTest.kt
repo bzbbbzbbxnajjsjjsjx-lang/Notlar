@@ -76,4 +76,19 @@ class RemindersTest {
         assertEquals(ReminderRepeat.NONE, copy.reminderRepeat)
         assertEquals(listOf("Ev"), copy.labels)
     }
+
+    @Test
+    fun theEditorTakesOutsideChangesButKeepsItsOwn() {
+        val base = Note(1, isChecklist = true, items = listOf(ChecklistItem(1, "Süt"), ChecklistItem(2, "Ekmek")), reminderAt = 100)
+        // Outside: the widget checked "Süt" and the reminder rang and was cleared.
+        val stored = base.copy(items = listOf(ChecklistItem(1, "Süt", checked = true), ChecklistItem(2, "Ekmek")), reminderAt = null)
+        // The draft renamed "Ekmek" and checked it itself.
+        val draft = base.copy(items = listOf(ChecklistItem(1, "Süt"), ChecklistItem(2, "Tam buğday ekmek", checked = true)))
+        val merged = OutsideEdits.merge(draft, base, stored)
+        assertEquals(listOf(true, true), merged.items.map { it.checked })
+        assertEquals("Tam buğday ekmek", merged.items[1].text)
+        assertNull(merged.reminderAt)
+        // A reminder the draft set itself stays.
+        assertEquals(500L, OutsideEdits.merge(draft.copy(reminderAt = 500), base, stored).reminderAt)
+    }
 }

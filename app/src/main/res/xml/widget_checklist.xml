@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 4x2 to-do list widget; resizable, the list scrolls. -->
+<!-- targetCell* size the widget on Android 12+; min sizes cover older launchers. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:description="@string/widget_checklist_description"
     android:initialLayout="@layout/glance_default_loading_layout"
     android:minWidth="250dp"
@@ -11,4 +13,5 @@
     android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
-    android:widgetCategory="home_screen" />
+    android:widgetCategory="home_screen"
+    tools:ignore="UnusedAttribute" />

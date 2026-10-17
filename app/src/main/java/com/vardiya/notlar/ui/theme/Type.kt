@@ -46,16 +46,23 @@ private val DisplayFamily = family(Display)
 private val TitleFamily = family(Title)
 
 private fun TextStyle.display() = copy(fontFamily = DisplayFamily, fontWeight = FontWeight.ExtraBold)
+private fun TextStyle.wide() = copy(fontFamily = DisplayFamily)
 private fun TextStyle.headline() = copy(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold)
 private fun TextStyle.title() = copy(fontFamily = TitleFamily, fontWeight = FontWeight.Bold)
 
 /**
- * The Expressive type scale in Google Sans Flex. Reading text stays plain; the emphasized display
- * and headline roles are wide, rounded and heavy, the emphasized titles rounded and bold, so the
- * big titles of the app carry the Expressive character.
+ * The Expressive type scale in Google Sans Flex. Reading text stays plain; display and headline
+ * roles (what the large app bars use too) are wide and rounded, their emphasized twins also heavy,
+ * the emphasized titles rounded and bold, so every big title carries the Expressive character.
  */
 internal val NotlarTypography: Typography = Typography(fontFamily = TextFamily).let { base ->
     base.copy(
+        displayLarge = base.displayLarge.wide(),
+        displayMedium = base.displayMedium.wide(),
+        displaySmall = base.displaySmall.wide(),
+        headlineLarge = base.headlineLarge.wide(),
+        headlineMedium = base.headlineMedium.wide(),
+        headlineSmall = base.headlineSmall.wide(),
         displayLargeEmphasized = base.displayLargeEmphasized.display(),
         displayMediumEmphasized = base.displayMediumEmphasized.display(),
         displaySmallEmphasized = base.displaySmallEmphasized.display(),

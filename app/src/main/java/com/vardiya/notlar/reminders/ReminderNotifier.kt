@@ -7,11 +7,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.vardiya.notlar.MainActivity
 import com.vardiya.notlar.R
 import com.vardiya.notlar.domain.Note
@@ -32,7 +32,7 @@ object ReminderNotifier {
         val open = PendingIntent.getActivity(
             context,
             0,
-            MainActivity.openNoteIntent(context, note.id).setData(Uri.parse("notlar://note/${note.id}")),
+            MainActivity.openNoteIntent(context, note.id).setData("notlar://note/${note.id}".toUri()),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         // What the lock screen and a locked app show: no title, no text.

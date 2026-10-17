@@ -95,6 +95,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.Labels
@@ -255,7 +256,8 @@ fun MainScreen(
                     )
                 } else if (section == Section.TRASH) {
                     LargeFlexibleTopAppBar(
-                        title = { Text(section.title) },
+                        // Heavy like the Notlar and Arşiv titles; the bar keeps sizing it as it collapses.
+                        title = { Text(section.title, fontWeight = FontWeight.ExtraBold) },
                         actions = { BarAction(icon = Icons.Outlined.Settings, description = "Ayarlar", onClick = onOpenSettings) },
                         scrollBehavior = scrollBehavior,
                     )

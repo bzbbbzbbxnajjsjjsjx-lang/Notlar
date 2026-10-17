@@ -35,9 +35,13 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <!-- Rings reminders; the system broadcasts below clear or shift alarms, so they are set again. -->
+        <!-- Rings reminders: only the app's own alarms reach it. -->
         <receiver
             android:name=".reminders.ReminderReceiver"
+            android:exported="false" />
+        <!-- The system broadcasts below clear or shift alarms, so they are set again. -->
+        <receiver
+            android:name=".reminders.RescheduleReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

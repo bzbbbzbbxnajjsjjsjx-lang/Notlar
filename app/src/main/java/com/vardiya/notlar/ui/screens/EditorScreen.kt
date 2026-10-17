@@ -103,6 +103,7 @@ import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
 import com.vardiya.notlar.domain.NoteRules
+import com.vardiya.notlar.domain.OutsideEdits
 import com.vardiya.notlar.domain.ReminderRepeat
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.ui.components.AnimatedIcon
@@ -143,6 +144,14 @@ fun EditorScreen(
     today: LocalDate = LocalDate.now(),
 ) {
     var draft by remember(initial.id) { mutableStateOf(initial) }
+    // The stored note as the draft last saw it; what changes outside (widget, reminder) is merged in.
+    var seen by remember(initial.id) { mutableStateOf(initial) }
+    LaunchedEffect(initial) {
+        if (initial != seen) {
+            draft = OutsideEdits.merge(draft, seen, initial)
+            seen = initial
+        }
+    }
     val history = remember(initial.id) { EditHistory(initial) }
     // Bumped after every recorded change so the undo and redo buttons recompose.
     var historyVersion by remember(initial.id) { mutableIntStateOf(0) }

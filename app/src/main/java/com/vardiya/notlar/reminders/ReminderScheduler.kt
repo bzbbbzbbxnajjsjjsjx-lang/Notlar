@@ -4,13 +4,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
+import androidx.core.net.toUri
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.Reminders
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 /**
  * Sets one alarm per note with a reminder. Each alarm's intent carries the note id in its data, so
@@ -23,8 +20,8 @@ class ReminderScheduler(private val context: Context) {
     private val alarms = context.getSystemService(AlarmManager::class.java)
 
     /** Sets the alarm of [note], or cancels it if the note has no reminder left to ring. */
-    fun schedule(note: Note, nowMillis: Long = System.currentTimeMillis(), zone: ZoneId = ZoneId.systemDefault()) {
-        val at = ringTime(note, nowMillis, zone)
+    fun schedule(note: Note) {
+        val at = ringTime(note)
         if (at == null) {
             cancel(note.id)
             return
@@ -49,22 +46,18 @@ class ReminderScheduler(private val context: Context) {
     }
 
     /**
-     * When the alarm should ring: the reminder time, or for a repeating reminder whose time has
-     * passed, its next time. A single reminder whose time has passed is not rung late.
+     * When the alarm should ring: the reminder time. A reminder still set past its time has not
+     * rung yet (ringing clears or moves it), for example after a restart or a late inexact alarm,
+     * so it rings now rather than being dropped; an alarm set in the past goes off at once.
      */
-    private fun ringTime(note: Note, nowMillis: Long, zone: ZoneId): Long? {
-        val at = note.reminderAt?.takeIf { !note.isTrashed } ?: return null
-        val local = LocalDateTime.ofInstant(Instant.ofEpochMilli(at), zone)
-        val now = LocalDateTime.ofInstant(Instant.ofEpochMilli(nowMillis), zone)
-        return if (at > nowMillis) at else Reminders.next(local, note.reminderRepeat, now)?.atZone(zone)?.toInstant()?.toEpochMilli()
-    }
+    private fun ringTime(note: Note): Long? = note.reminderAt?.takeIf { !note.isTrashed }
 
     private fun pendingIntent(noteId: Long): PendingIntent = PendingIntent.getBroadcast(
         context,
         0,
         Intent(context, ReminderReceiver::class.java)
             .setAction(ReminderReceiver.ACTION_RING)
-            .setData(Uri.parse("notlar://reminder/$noteId")),
+            .setData("notlar://reminder/$noteId".toUri()),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 

@@ -54,8 +54,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            repository.notes.first()
+            val stored = repository.notes.first()
             repository.edit { NoteRules.purgeExpired(it, now()) }
+            // The editor opened before a restart must see the stored note, not an empty list.
+            notes.first { it.isNotEmpty() || stored.isEmpty() }
             _loaded.value = true
         }
         // Alarms follow the stored reminders: set when one is added or moved, cancelled when it goes.

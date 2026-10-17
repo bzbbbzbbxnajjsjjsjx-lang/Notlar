@@ -132,9 +132,12 @@ class ScreenshotTest {
         Main(Section.NOTES)
     }
 
-    @Test fun settings() = capture("settings") { Settings(Settings(dynamicColor = true, sort = NoteSort.TITLE)) }
+    // The settings sheet is taller than a phone; a tall screen shows every group.
+    @Test @Config(qualifiers = "+h1600dp")
+    fun settings() = capture("settings") { Settings(Settings(dynamicColor = true, sort = NoteSort.TITLE)) }
 
-    @Test fun settingsPrivacy() = capture("settings_privacy") {
+    @Test @Config(qualifiers = "+h1600dp")
+    fun settingsPrivacy() = capture("settings_privacy") {
         Settings(Settings(lockEnabled = true, biometricUnlock = true, lockTimeout = LockTimeout.ONE_MINUTE, hideContent = true))
     }
 
@@ -179,7 +182,7 @@ class ScreenshotTest {
 
     @Test fun pinSetup() = capture("pin_setup") { PinSetupScreen(onPinConfirm = {}, onCancel = {}) }
 
-    @Test @Config(qualifiers = "+night")
+    @Test @Config(qualifiers = "+h1600dp-night")
     fun settingsDark() = capture("settings_dark") { Settings(Settings(themeMode = ThemeMode.DARK)) }
 
     @Composable

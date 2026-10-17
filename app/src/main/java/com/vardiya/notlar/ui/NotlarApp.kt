@@ -14,6 +14,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -28,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -235,8 +239,9 @@ fun NotlarApp(
             onCreate = viewModel.labels::add,
             onRename = viewModel.labels::rename,
             onDelete = { name ->
+                val carriers = notes.filter { note -> note.labels.any { Labels.same(it, name) } }.map { it.id }.toSet()
                 viewModel.labels.delete(name)
-                message("\"$name\" etiketi silindi")
+                undoable("\"$name\" etiketi silindi") { viewModel.labels.restore(name, carriers) }
             },
             onDismissRequest = { showLabels = false },
         )
@@ -400,55 +405,63 @@ fun NotlarApp(
                         onManageLabels = { showLabels = true },
                     )
                 } else {
-                    val initial = notes.firstOrNull { it.id == id }
-                        ?: pending?.takeIf { it.id == id }
-                        ?: Note(id = id, createdAt = id, updatedAt = id)
-                    EditorScreen(
-                        initial = initial,
-                        onSave = viewModel::save,
-                        settings = settings,
-                        onSettingsChange = { changed -> viewModel.updateSettings { changed } },
-                        onCreateLabel = viewModel.labels::add,
-                        modifier = Modifier.sharedNoteBounds(id),
-                        snackbarHostState = snackbar,
-                        onDuplicate = { note ->
-                            open(viewModel.duplicate(note))
-                            message("Kopyası oluşturuldu")
-                        },
-                        onClose = { openId = null },
-                        onShare = { note -> shareOrWarn(NoteRules.shareText(note)) {
-                            lockViewModel.stayOpenThroughNextTrip()
-                            context.shareNote(note, it)
-                        } },
-                        onShareMarkdown = { note -> shareOrWarn(NoteEdits.markdown(note)) {
-                            lockViewModel.stayOpenThroughNextTrip()
-                            context.shareNote(note, it)
-                        } },
-                        onCopy = { note ->
-                            shareOrWarn(NoteRules.shareText(note)) { text ->
-                                scope.launch {
-                                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(note.title, text)))
-                                    // Android 13 and later confirm a copy themselves.
-                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) message("Panoya kopyalandı")
+                    val stored = notes.firstOrNull { it.id == id }
+                    val opened = pending?.takeIf { it.id == id }
+                    // After a restart the editor comes back before the notes are loaded; a blank
+                    // draft then would be saved over the stored note, so it waits instead.
+                    if (!loaded && stored == null && opened == null) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
+                    } else {
+                        EditorScreen(
+                            initial = stored ?: opened ?: Note(id = id, createdAt = id, updatedAt = id),
+                            onSave = viewModel::save,
+                            settings = settings,
+                            // Only the text size is changed here, so a stale copy cannot undo another setting.
+                            onSettingsChange = { changed ->
+                                viewModel.updateSettings { it.copy(textSize = changed.textSize, textSizeOnCards = changed.textSizeOnCards) }
+                            },
+                            onCreateLabel = viewModel.labels::add,
+                            modifier = Modifier.sharedNoteBounds(id),
+                            snackbarHostState = snackbar,
+                            onDuplicate = { note ->
+                                open(viewModel.duplicate(note))
+                                message("Kopyası oluşturuldu")
+                            },
+                            onClose = { openId = null },
+                            onShare = { note -> shareOrWarn(NoteRules.shareText(note)) {
+                                lockViewModel.stayOpenThroughNextTrip()
+                                context.shareNote(note, it)
+                            } },
+                            onShareMarkdown = { note -> shareOrWarn(NoteEdits.markdown(note)) {
+                                lockViewModel.stayOpenThroughNextTrip()
+                                context.shareNote(note, it)
+                            } },
+                            onCopy = { note ->
+                                shareOrWarn(NoteRules.shareText(note)) { text ->
+                                    scope.launch {
+                                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(note.title, text)))
+                                        // Android 13 and later confirm a copy themselves.
+                                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) message("Panoya kopyalandı")
+                                    }
                                 }
-                            }
-                        },
-                        onArchive = { note ->
-                            viewModel.save(note)
-                            viewModel.setArchived(setOf(note.id), !note.archived)
-                            openId = null
-                            val message = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
-                            undoable(message) { viewModel.setArchived(setOf(note.id), note.archived) }
-                        },
-                        onTrash = { note ->
-                            viewModel.save(note)
-                            openId = null
-                            if (!note.isBlank) {
-                                viewModel.moveToTrash(setOf(note.id))
-                                undoable("Not çöp kutusuna taşındı") { viewModel.restore(setOf(note.id)) }
-                            }
-                        },
-                    )
+                            },
+                            onArchive = { note ->
+                                viewModel.save(note)
+                                viewModel.setArchived(setOf(note.id), !note.archived)
+                                openId = null
+                                val message = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
+                                undoable(message) { viewModel.setArchived(setOf(note.id), note.archived) }
+                            },
+                            onTrash = { note ->
+                                viewModel.save(note)
+                                openId = null
+                                if (!note.isBlank) {
+                                    viewModel.moveToTrash(setOf(note.id))
+                                    undoable("Not çöp kutusuna taşındı") { viewModel.restore(setOf(note.id)) }
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
