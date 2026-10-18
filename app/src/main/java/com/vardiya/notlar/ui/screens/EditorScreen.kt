@@ -3,6 +3,7 @@ package com.vardiya.notlar.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -120,6 +121,8 @@ import kotlinx.coroutines.flow.collectLatest
 
 private const val SAVE_DELAY_MS = 500L
 private const val HALF_TURN = 180f
+private const val CHECK_POP = 1.3f
+private const val DONE_ALPHA = 0.6f
 
 /**
  * Writes and edits one note. Changes are saved half a second after typing stops and again on the
@@ -637,8 +640,31 @@ private fun ChecklistRow(
             currentOnFocus()
         }
     }
+    // Ticking an item pops its box; a finished item's text softens.
+    val pop = remember { Animatable(1f) }
+    val spatial = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
+    var shown by remember { mutableStateOf(item.checked) }
+    LaunchedEffect(item.checked) {
+        if (item.checked && !shown) {
+            pop.snapTo(CHECK_POP)
+            pop.animateTo(1f, spatial)
+        }
+        shown = item.checked
+    }
+    val textAlpha by animateFloatAsState(
+        targetValue = if (item.checked) DONE_ALPHA else 1f,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+        label = "itemAlpha",
+    )
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(checked = item.checked, onCheckedChange = { onChange(item.copy(checked = it)) })
+        Checkbox(
+            checked = item.checked,
+            onCheckedChange = { onChange(item.copy(checked = it)) },
+            modifier = Modifier.graphicsLayer {
+                scaleX = pop.value
+                scaleY = pop.value
+            },
+        )
         PlainField(
             value = item.text,
             onValueChange = { onChange(item.copy(text = it.replace("\n", ""))) },
@@ -650,6 +676,7 @@ private fun ChecklistRow(
             onImeAction = onNext,
             modifier = Modifier
                 .weight(1f)
+                .graphicsLayer { alpha = textAlpha }
                 .focusRequester(focusRequester),
         )
         IconButton(onClick = onRemove, shapes = IconButtonDefaults.shapes()) {

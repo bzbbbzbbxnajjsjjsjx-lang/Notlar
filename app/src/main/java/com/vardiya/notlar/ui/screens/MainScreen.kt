@@ -3,6 +3,7 @@ package com.vardiya.notlar.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -15,10 +16,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.text.input.clearText
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,7 +32,10 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.outlined.Label
@@ -65,12 +66,10 @@ import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.toShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -78,6 +77,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,6 +89,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -110,10 +112,16 @@ import com.vardiya.notlar.ui.components.NewNoteFabMenu
 import com.vardiya.notlar.ui.components.NoteCard
 import com.vardiya.notlar.ui.components.SwipeAction
 import com.vardiya.notlar.ui.components.SwipeActions
+import com.vardiya.notlar.ui.components.entrance
+import com.vardiya.notlar.ui.components.rememberMotionEnabled
 import com.vardiya.notlar.ui.components.sharedNoteBounds
+import kotlinx.coroutines.delay
 
 // Lists slide by a sixth of their width when the section changes.
 private const val SLIDE_FRACTION = 6
+private const val INTRO_MS = 700L
+private const val EMPTY_TURN = -40f
+private const val SECTION_SCALE = 0.94f
 private const val SCRIM_ALPHA = 0.32f
 
 private val Section.title: String
@@ -309,9 +317,15 @@ fun MainScreen(
             targetState = section,
             transitionSpec = {
                 val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
-                (slideInHorizontally(motion.defaultSpatialSpec()) { it / SLIDE_FRACTION * direction } + fadeIn(motion.defaultEffectsSpec()))
+                (
+                    slideInHorizontally(motion.defaultSpatialSpec()) { it / SLIDE_FRACTION * direction } +
+                        scaleIn(motion.defaultSpatialSpec(), SECTION_SCALE) +
+                        fadeIn(motion.defaultEffectsSpec())
+                    )
                     .togetherWith(
-                        slideOutHorizontally(motion.fastSpatialSpec()) { -it / SLIDE_FRACTION * direction } + fadeOut(motion.fastEffectsSpec()),
+                        slideOutHorizontally(motion.fastSpatialSpec()) { -it / SLIDE_FRACTION * direction } +
+                            scaleOut(motion.fastSpatialSpec(), SECTION_SCALE) +
+                            fadeOut(motion.fastEffectsSpec()),
                     )
             },
             label = "section",
@@ -440,6 +454,15 @@ private fun NoteGrid(
     val pinned = visible.filter { it.pinned }
     val others = visible.filterNot { it.pinned }
 
+    // The first moments after a list opens its cards cascade in; cards that appear later (scrolling,
+    // a new note) just show up.
+    var intro by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(INTRO_MS)
+        intro = false
+    }
+    val order = remember(visible) { visible.withIndex().associate { it.value.id to it.index } }
+
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(if (settings.listView) 1 else 2),
         state = gridState,
@@ -482,11 +505,11 @@ private fun NoteGrid(
             textScale = if (settings.textSizeOnCards) settings.textSize.scale else 1f,
             nowMillis = nowMillis,
         )
-        items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
+        items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe, intro, order[note.id] ?: 0) }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Diğerleri") }
         }
-        items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe) }
+        items(others, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe, intro, order[note.id] ?: 0) }
         if (!loaded) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Box(Modifier.fillMaxWidth().padding(vertical = 64.dp), contentAlignment = Alignment.Center) {
@@ -528,6 +551,8 @@ private fun LazyStaggeredGridItemScope.GridCard(
     onOpen: (Note) -> Unit,
     onSelect: (Note) -> Unit,
     swipe: SwipeSetup,
+    intro: Boolean,
+    index: Int,
 ) {
     val scheme = MaterialTheme.colorScheme
     val inArchive = swipe.section == Section.ARCHIVE
@@ -548,7 +573,7 @@ private fun LazyStaggeredGridItemScope.GridCard(
             onSwipe = { swipe.onTrash(note) },
         ),
         enabled = swipe.swipeEnabled,
-        modifier = Modifier.animateItem(),
+        modifier = Modifier.animateItem().entrance(play = intro, index = index),
     ) {
         NoteCard(
             note,
@@ -583,10 +608,23 @@ internal fun EmptyState(icon: ImageVector, text: String, modifier: Modifier = Mo
             .padding(vertical = 64.dp),
         contentAlignment = Alignment.Center,
     ) {
+        // The shape pops in with a spring and turns into place; the text follows it.
+        val enabled = rememberMotionEnabled()
+        val pop = remember { Animatable(if (enabled) 0f else 1f) }
+        val spring = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
+        if (enabled) {
+            LaunchedEffect(Unit) { pop.animateTo(1f, spring) }
+        }
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
             // The icon sits on one of the Expressive shapes.
             Box(
                 Modifier
+                    .graphicsLayer {
+                        val p = pop.value
+                        scaleX = p
+                        scaleY = p
+                        rotationZ = (1f - p) * EMPTY_TURN
+                    }
                     .size(112.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer, MaterialShapes.Cookie9Sided.toShape()),
                 contentAlignment = Alignment.Center,
@@ -598,6 +636,7 @@ internal fun EmptyState(icon: ImageVector, text: String, modifier: Modifier = Mo
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.graphicsLayer { alpha = pop.value.coerceIn(0f, 1f) },
             )
         }
     }

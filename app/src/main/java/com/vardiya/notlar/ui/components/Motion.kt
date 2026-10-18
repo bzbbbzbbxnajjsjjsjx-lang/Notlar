@@ -1,5 +1,6 @@
 package com.vardiya.notlar.ui.components
 
+import android.provider.Settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
@@ -22,13 +23,19 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
+import kotlinx.coroutines.delay
 
 private const val PRESSED_SCALE = 0.96f
+private const val ENTRANCE_STEP_MS = 45L
+private const val ENTRANCE_MAX_STEPS = 8
+private const val ENTRANCE_SCALE = 0.9f
+private const val ENTRANCE_LIFT_DP = 28
 private const val WIGGLE_MS = 420
 private const val SQUASH = 0.8f
 
@@ -142,5 +149,42 @@ class MorphShape(private val morph: Morph, private val progress: Float) : Shape 
         val path = morph.toPath(progress)
         path.transform(Matrix().apply { scale(size.width, size.height) })
         return Outline.Generic(path)
+    }
+}
+
+/**
+ * False when the user turned animations off (Settings > Accessibility > Remove animations, or the
+ * developer animation scale at 0): entrances then show their end state at once.
+ */
+@Composable
+fun rememberMotionEnabled(): Boolean {
+    val resolver = LocalContext.current.contentResolver
+    return remember(resolver) { Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f }
+}
+
+/**
+ * Fades, lifts and scales an item in once, [index] steps after the first one, so a list opens as a
+ * quick cascade. Items that are not [play]ing (scrolled into view later, or composed after the
+ * cascade ended) simply appear.
+ */
+@Composable
+fun Modifier.entrance(play: Boolean, index: Int): Modifier {
+    val enabled = rememberMotionEnabled() && play
+    val progress = remember { Animatable(if (enabled) 0f else 1f) }
+    val spec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    val lift = with(LocalDensity.current) { ENTRANCE_LIFT_DP.dp.toPx() }
+    if (enabled) {
+        LaunchedEffect(Unit) {
+            delay(index.coerceAtMost(ENTRANCE_MAX_STEPS) * ENTRANCE_STEP_MS)
+            progress.animateTo(1f, spec)
+        }
+    }
+    return graphicsLayer {
+        val p = progress.value
+        alpha = p.coerceIn(0f, 1f)
+        translationY = (1f - p) * lift
+        val scale = ENTRANCE_SCALE + (1f - ENTRANCE_SCALE) * p
+        scaleX = scale
+        scaleY = scale
     }
 }
