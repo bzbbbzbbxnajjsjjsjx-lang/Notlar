@@ -4,6 +4,11 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.8.0)
+- **Akıcı hareketler:** Not listesi açılırken kartlar sırayla yükselip yerine oturur. Notlar, Arşiv ve Çöp kutusu arasında geçerken ekran hafifçe ölçeklenerek kayar. Boş ekranlarda şekil yaylanarak belirir.
+- **Yapılacak listeleri:** Madde işaretlenince kutu küçük bir "pop" yapar, biten maddenin yazısı yumuşar.
+- Telefonda animasyonlar kapalıysa (Erişilebilirlik > Animasyonları kaldır) bu hareketler oynamaz.
+
 ### Yenilikler (1.7.2)
 - **Açılış hatası düzeltildi:** Uygulama açılmadan kapanıyordu (1.7.0 ve 1.7.1). Artık normal açılıyor.
 
