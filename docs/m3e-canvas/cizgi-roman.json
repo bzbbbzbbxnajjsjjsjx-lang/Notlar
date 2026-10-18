@@ -1,0 +1,651 @@
+{
+ "title": "Notlar",
+ "brief": "Yerel CBZ ve PDF çizgi romanları okumak için kütüphane, okuyucu ve ayrıntı ekranları. Çevrimiçi kaynak yok (v1).",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": true,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "library",
+   "name": "Çizgi roman kütüphanesi",
+   "x": 0,
+   "y": 0,
+   "note": "Seçilen klasördeki CBZ/PDF kapakları iki sütunlu ızgarada; üstte 'Devam et' satırı okuma ilerlemesiyle."
+  },
+  {
+   "id": "empty",
+   "name": "Kütüphane boş",
+   "x": 492,
+   "y": 0,
+   "note": "Klasör seçilmemişse ya da klasörde çizgi roman yoksa gösterilir."
+  },
+  {
+   "id": "detail",
+   "name": "Çizgi roman ayrıntısı",
+   "x": 984,
+   "y": 0,
+   "note": "Kapak, başlık, ilerleme ve okuma düğmesi."
+  },
+  {
+   "id": "reader",
+   "name": "Okuyucu",
+   "x": 1476,
+   "y": 0,
+   "bg": "inverseSurface",
+   "note": "Tam ekran okuyucu; katman açık hali gösteriliyor. Mod seçimi çizgi roman başına hatırlanır."
+  }
+ ],
+ "groups": [
+  {
+   "id": "l1",
+   "x": 0,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lbar",
+     "kind": "topAppBar",
+     "label": "Çizgi roman",
+     "icon2": "create_new_folder",
+     "note": "Sağdaki simge klasör seçiciyi açar; seçilen klasör hatırlanır ve yeniden taranır.",
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "l2",
+   "x": 16,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lsec",
+     "kind": "text",
+     "label": "Devam et",
+     "size": 22,
+     "bold": true,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "l3",
+   "x": 16,
+   "y": 140,
+   "axis": "y",
+   "items": [
+    {
+     "id": "lc1",
+     "kind": "listItem",
+     "label": "Küçük Prens #3",
+     "supporting": "Sayfa 42 / 96  •  %44",
+     "icon": "menu_book",
+     "variant": "filled",
+     "action": {
+      "to": "reader",
+      "transition": "expand"
+     },
+     "note": "Kalınan sayfadan okumaya devam eder."
+    },
+    {
+     "id": "lc2",
+     "kind": "listItem",
+     "label": "Kaptan Tsubasa 12",
+     "supporting": "Sayfa 8 / 180  •  %4",
+     "icon": "menu_book",
+     "variant": "filled",
+     "action": {
+      "to": "reader",
+      "transition": "expand"
+     }
+    }
+   ]
+  },
+  {
+   "id": "l4",
+   "x": 16,
+   "y": 324,
+   "axis": "x",
+   "items": [
+    {
+     "id": "lsec2",
+     "kind": "text",
+     "label": "Kütüphane",
+     "size": 22,
+     "bold": true,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "lg0",
+   "x": 16,
+   "y": 368,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cv0",
+     "kind": "card",
+     "label": "Küçük Prens #3",
+     "supporting": "CBZ  •  96 sayfa",
+     "variant": "filled",
+     "size": 182,
+     "size2": 184,
+     "action": {
+      "to": "detail",
+      "transition": "slide"
+     },
+     "note": "Kapak küçük resmi; dokununca çizgi roman ayrıntısını açar.",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "lg1",
+   "x": 214,
+   "y": 368,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cv1",
+     "kind": "card",
+     "label": "Kaptan Tsubasa 12",
+     "supporting": "CBZ  •  180 sayfa",
+     "variant": "filled",
+     "size": 182,
+     "size2": 184,
+     "action": {
+      "to": "detail",
+      "transition": "slide"
+     },
+     "note": "",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "lg2",
+   "x": 16,
+   "y": 568,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cv2",
+     "kind": "card",
+     "label": "Sandman Cilt 1",
+     "supporting": "PDF  •  240 sayfa",
+     "variant": "filled",
+     "size": 182,
+     "size2": 184,
+     "action": {
+      "to": "detail",
+      "transition": "slide"
+     },
+     "note": "",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "lg3",
+   "x": 214,
+   "y": 568,
+   "axis": "x",
+   "items": [
+    {
+     "id": "cv3",
+     "kind": "card",
+     "label": "Tenten: Ay'a Yolculuk",
+     "supporting": "PDF  •  62 sayfa",
+     "variant": "filled",
+     "size": 182,
+     "size2": 184,
+     "action": {
+      "to": "detail",
+      "transition": "slide"
+     },
+     "note": "",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "l9",
+   "x": 0,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "l9n",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      },
+      {
+       "icon": "auto_stories",
+       "label": "Çizgi roman"
+      }
+     ],
+     "selected": 3,
+     "note": "Dördüncü sekme yeni: çizgi roman kütüphanesi. Diğer sekmeler mevcut ekranlara gider."
+    }
+   ]
+  },
+  {
+   "id": "m1",
+   "x": 492,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mbar",
+     "kind": "topAppBar",
+     "label": "Çizgi roman",
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "m2",
+   "x": 638,
+   "y": 300,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mimg",
+     "kind": "image",
+     "label": "",
+     "icon": "auto_stories",
+     "size": 120,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "m3",
+   "x": 508,
+   "y": 440,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mt",
+     "kind": "text",
+     "label": "Henüz çizgi roman yok",
+     "size": 22,
+     "bold": true,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "m4",
+   "x": 508,
+   "y": 480,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mt2",
+     "kind": "text",
+     "label": "CBZ ve PDF dosyalarının bulunduğu klasörü seç.",
+     "size": 14,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "m5",
+   "x": 508,
+   "y": 540,
+   "axis": "x",
+   "items": [
+    {
+     "id": "mbtn",
+     "kind": "button",
+     "label": "Klasör seç",
+     "icon": "folder_open",
+     "size": 380,
+     "action": {
+      "to": "library",
+      "transition": "fade"
+     },
+     "note": "Sistem klasör seçicisini açar (Storage Access Framework); izin kalıcı saklanır, CBZ ve PDF dosyaları listelenir.",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "m9",
+   "x": 492,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "id": "m9n",
+     "kind": "bottomNav",
+     "label": "",
+     "icon": null,
+     "variant": "filled",
+     "tabs": [
+      {
+       "icon": "notes",
+       "label": "Notlar"
+      },
+      {
+       "icon": "archive",
+       "label": "Arşiv"
+      },
+      {
+       "icon": "delete",
+       "label": "Çöp kutusu"
+      },
+      {
+       "icon": "auto_stories",
+       "label": "Çizgi roman"
+      }
+     ],
+     "selected": 3,
+     "note": "Dördüncü sekme yeni: çizgi roman kütüphanesi. Diğer sekmeler mevcut ekranlara gider."
+    }
+   ]
+  },
+  {
+   "id": "d1",
+   "x": 984,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dbar",
+     "kind": "topAppBar",
+     "label": "",
+     "icon": "arrow_back",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "back",
+       "transition": "slide"
+      }
+     },
+     "note": "Geri kütüphaneye döner.",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "x": 1090,
+   "y": 100,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dcover",
+     "kind": "image",
+     "label": "",
+     "icon": "menu_book",
+     "size": 200,
+     "note": "Kapak: CBZ'de ilk görsel, PDF'de ilk sayfa.",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "x": 1000,
+   "y": 320,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dt",
+     "kind": "text",
+     "label": "Küçük Prens #3",
+     "size": 28,
+     "bold": true,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "x": 1000,
+   "y": 366,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dsub",
+     "kind": "text",
+     "label": "CBZ  •  96 sayfa  •  48 MB",
+     "size": 14,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "d5",
+   "x": 1000,
+   "y": 408,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dprog",
+     "kind": "linearProgress",
+     "label": "",
+     "value": 44,
+     "note": "Okuma ilerlemesi: 42. sayfa / 96.",
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "d6",
+   "x": 1000,
+   "y": 436,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dpt",
+     "kind": "text",
+     "label": "Sayfa 42 / 96  •  %44",
+     "size": 14,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "d7",
+   "x": 1000,
+   "y": 490,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dbtn",
+     "kind": "button",
+     "label": "Devam et",
+     "icon": "play_arrow",
+     "size": 380,
+     "action": {
+      "to": "reader",
+      "transition": "expand"
+     },
+     "toggle": null,
+     "note": "Kayıtlı sayfadan okuyucuyu açar. Hiç okunmadıysa etiket 'Okumaya başla' olur ve ilk sayfadan başlar.",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "d8",
+   "x": 1000,
+   "y": 558,
+   "axis": "x",
+   "items": [
+    {
+     "id": "dbtn2",
+     "kind": "button",
+     "label": "Baştan başla",
+     "icon": "restart_alt",
+     "variant": "outlined",
+     "size": 380,
+     "action": {
+      "to": "reader",
+      "transition": "expand"
+     },
+     "note": "İlerlemeyi sıfırlar ve 1. sayfadan açar."
+    }
+   ]
+  },
+  {
+   "id": "r0",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rpage",
+     "kind": "box",
+     "label": "",
+     "size": 412,
+     "size2": 892,
+     "fill": "inverseSurface",
+     "note": "Tam ekran sayfa görüntüleyici (HorizontalPager). Çift parmakla yakınlaştırma, yakınlaştırınca kaydırarak gezinme. Ortaya dokunmak katmanı açar/kapatır; kenarlara dokunmak sayfa çevirir. Sayfa görseli sistem çubuklarını gizler.",
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "r1",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rbar",
+     "kind": "topAppBar",
+     "label": "Küçük Prens #3",
+     "icon": "arrow_back",
+     "icon2": "more_vert",
+     "actions": {
+      "icon": {
+       "to": "detail",
+       "transition": "slide"
+      }
+     },
+     "note": "Katman: dokununca gelir/gider. Geri ayrıntıya döner ve sayfayı kaydeder.",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "r2",
+   "x": 1492,
+   "y": 620,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rcnt",
+     "kind": "text",
+     "label": "42 / 96",
+     "size": 14,
+     "bold": true,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "r3",
+   "x": 1492,
+   "y": 652,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rsl",
+     "kind": "slider",
+     "label": "",
+     "value": 44,
+     "note": "Sayfaya atlamak için sürüklenir; bırakınca o sayfa açılır ve ilerleme kaydedilir.",
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "r4",
+   "x": 1492,
+   "y": 720,
+   "axis": "x",
+   "items": [
+    {
+     "id": "m_ltr",
+     "kind": "chip",
+     "label": "Soldan sağa",
+     "icon": "arrow_forward",
+     "checked": true,
+     "note": "Sayfalar sağa kaydırınca ilerler (batı çizgi romanı)."
+    },
+    {
+     "id": "m_rtl",
+     "kind": "chip",
+     "label": "Sağdan sola",
+     "icon": "arrow_back",
+     "note": "Sayfalar sola kaydırınca ilerler (manga)."
+    },
+    {
+     "id": "m_v",
+     "kind": "chip",
+     "label": "Dikey kaydırma",
+     "icon": "swap_vert",
+     "note": "Sayfalar alt alta sürekli kayar (webtoon)."
+    }
+   ]
+  },
+  {
+   "id": "r5",
+   "x": 1492,
+   "y": 780,
+   "axis": "x",
+   "items": [
+    {
+     "id": "rhint",
+     "kind": "text",
+     "label": "Ortaya dokun: katmanı gizle  •  İki parmakla yakınlaştır",
+     "size": 12,
+     "variant": "filled",
+     "icon": null
+    }
+   ]
+  }
+ ]
+}
