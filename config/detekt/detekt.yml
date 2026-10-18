@@ -26,5 +26,6 @@ style:
 Compose:
   # LocalNotePalette keeps note colors on the amber scheme while dynamic colors restyle the app;
   # LocalSharedNoteScope lets a note card grow into its editor without threading scopes through every screen.
+  # LocalImageStore hands the pictures' store to cards and the editor, like the palette it is not a screen's input.
   CompositionLocalAllowlist:
-    allowedCompositionLocals: ['LocalNotePalette', 'LocalSharedNoteScope']
+    allowedCompositionLocals: ['LocalNotePalette', 'LocalSharedNoteScope', 'LocalImageStore']

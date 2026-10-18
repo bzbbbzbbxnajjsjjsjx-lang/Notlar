@@ -24,10 +24,13 @@ before calling a change done.
 ## Layout
 
 - `domain/` — pure Kotlin, unit-tested. `Note.kt` (`Note`, `ChecklistItem`, `NoteColor`,
-  `Section`, `NoteFilter`, `ReminderRepeat`, `TextSize`), `NoteRules.kt` (list order, search,
-  filters, 30-day trash, text ↔ checklist conversion, share text), `Reminders.kt` (quick times,
+  `Section`, `NoteFilter`, `NoteSort` incl. MANUAL, `ReminderRepeat`, `TextSize`), `NoteRules.kt` (list order, search,
+  filters, 30-day trash, text ↔ checklist conversion, share text), `Markdown.kt` (the marks the
+  editor writes: **bold**, *italic*, "# ", "- "; bodies are stored as Markdown), `Reminders.kt` (quick times,
   repeats), `Labels.kt` (label names, rename/merge/delete).
-- `data/NoteRepository.kt` — all notes as one JSON list in Preferences DataStore.
+- `data/NoteRepository.kt` — all notes as one JSON list in Preferences DataStore. `ImageStore.kt`
+  keeps note pictures as JPEGs in `filesDir/images` (notes hold file names; unused files are deleted
+  at start; they are not in backups). `AutoBackup.kt` writes the daily JSON backup into a SAF folder.
 - `ui/NotesViewModel.kt` — single `AndroidViewModel`; saving a blank note removes it. It keeps
   reminder alarms in step with the stored notes and refreshes the widgets.
 - `reminders/` — `ReminderScheduler` (one AlarmManager alarm per note), `ReminderReceiver` (rings,

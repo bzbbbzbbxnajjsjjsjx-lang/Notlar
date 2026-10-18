@@ -4,7 +4,6 @@ package com.vardiya.notlar.domain
 object NoteEdits {
 
     private val whitespace = Regex("\\s+")
-    private val markdownStart = Regex("^\\s*[#>*+-]")
     private val turkish = java.util.Locale.forLanguageTag("tr-TR")
 
     /** Done and total to-do items, blank rows left out; null for a text note or an empty list. */
@@ -82,8 +81,8 @@ object NoteEdits {
         val content = if (note.isChecklist) {
             note.items.filter { it.text.isNotBlank() }.joinToString("\n") { (if (it.checked) "- [x] " else "- [ ] ") + it.text.trim() }
         } else {
-            // Plain text that happens to start like Markdown (a heading, list or quote) stays text.
-            note.body.trim().lines().joinToString("\n") { if (markdownStart.containsMatchIn(it)) "\\$it" else it }
+            // The editor writes Markdown marks (**bold**, # heading, - list), so the text goes out as it is.
+            note.body.trim()
         }
         val heading = note.title.trim().takeIf { it.isNotEmpty() }?.let { "# $it" }
         return listOfNotNull(heading, content.takeIf { it.isNotEmpty() }).joinToString("\n\n")

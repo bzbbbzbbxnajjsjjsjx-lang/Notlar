@@ -22,6 +22,7 @@ object NoteRules {
         filter: NoteFilter = NoteFilter.ALL,
         sort: NoteSort = NoteSort.EDITED,
         label: String? = null,
+        manualOrder: List<Long> = emptyList(),
     ): List<Note> {
         val needle = query.trim().lowercase(Turkish)
         return notes
@@ -37,9 +38,21 @@ object NoteRules {
             .sortedWith(
                 when (section) {
                     Section.TRASH -> compareByDescending { it.trashedAt }
-                    else -> compareByDescending<Note> { it.pinned }.then(sort.comparator)
+                    // The archive has no manual order, it falls back to the last edit.
+                    else -> compareByDescending<Note> { it.pinned }
+                        .then(if (sort == NoteSort.MANUAL) manualComparator(manualOrder, section) else sort.comparator)
                 },
             )
+    }
+
+    /**
+     * [order] with the note at [from] moved to [to] among [shownIds], the ids of the notes in the
+     * order they are shown. Ids in [order] that are not shown keep their place at the end.
+     */
+    fun reorder(order: List<Long>, shownIds: List<Long>, from: Int, to: Int): List<Long> {
+        if (from !in shownIds.indices || to !in shownIds.indices || from == to) return order.ifEmpty { shownIds }
+        val moved = shownIds.toMutableList().apply { add(to, removeAt(from)) }
+        return moved + order.filterNot { it in moved }
     }
 
     /** Drops notes that have been in the trash for [TRASH_DAYS] days. */
@@ -72,13 +85,21 @@ object NoteRules {
         val content = if (note.isChecklist) {
             note.items.filter { it.text.isNotBlank() }.joinToString("\n") { (if (it.checked) "☑ " else "☐ ") + it.text }
         } else {
-            note.body.trim()
+            Markdown.strip(note.body.trim())
         }
         return listOf(note.title.trim(), content).filter { it.isNotEmpty() }.joinToString("\n\n")
     }
 
+    /** Notes in [order] first by position, then notes the order does not know yet, newest edit first. */
+    private fun manualComparator(order: List<Long>, section: Section): Comparator<Note> {
+        if (section != Section.NOTES) return NoteSort.EDITED.comparator
+        val position = order.withIndex().associate { it.value to it.index }
+        return compareBy<Note> { position[it.id] != null }.thenBy { position[it.id] ?: 0 }.thenByDescending { it.updatedAt }
+    }
+
     private val NoteSort.comparator: Comparator<Note>
         get() = when (this) {
+            NoteSort.MANUAL -> compareByDescending { it.updatedAt }
             NoteSort.EDITED -> compareByDescending { it.updatedAt }
             NoteSort.CREATED -> compareByDescending { it.createdAt }
             NoteSort.TITLE -> compareBy<Note> { it.title.isBlank() }

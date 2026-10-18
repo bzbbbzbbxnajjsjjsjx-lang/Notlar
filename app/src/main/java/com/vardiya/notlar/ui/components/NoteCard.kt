@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
+import com.vardiya.notlar.domain.Markdown
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteColor
 import com.vardiya.notlar.domain.NoteEdits
@@ -58,6 +60,8 @@ import com.vardiya.notlar.ui.theme.onContainer
 
 private const val PREVIEW_ITEMS = 6
 private const val PREVIEW_LINES = 10
+private const val THUMB_SIDE = 480
+private val THUMB_HEIGHT = 120.dp
 private const val HIGHLIGHT_ALPHA = 0.22f
 private const val BADGE_START_SCALE = 0.4f
 private val BADGE_SIZE = 24.dp
@@ -119,6 +123,28 @@ fun NoteCard(
         },
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            note.images.firstOrNull()?.let { first ->
+                Box {
+                    NoteImage(
+                        first,
+                        maxSide = THUMB_SIDE,
+                        contentDescription = "Notun resmi",
+                        modifier = Modifier.fillMaxWidth().height(THUMB_HEIGHT).clip(RoundedCornerShape(12.dp)),
+                    )
+                    if (note.images.size > 1) {
+                        Text(
+                            "+${note.images.size - 1}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+            }
             if (note.title.isNotBlank() || note.pinned || selected) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
@@ -139,7 +165,7 @@ fun NoteCard(
             when {
                 note.isChecklist -> ChecklistPreview(note, highlight, textScale)
                 note.body.isNotBlank() -> Text(
-                    highlighted(note.body.trim(), highlight),
+                    highlighted(Markdown.strip(note.body.trim()), highlight),
                     style = MaterialTheme.typography.bodyMedium.scaled(textScale),
                     maxLines = PREVIEW_LINES,
                     overflow = TextOverflow.Ellipsis,

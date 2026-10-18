@@ -153,6 +153,25 @@ class ScreenshotTest {
         LockScreen(onPin = { UnlockResult.Wrong(triesLeft = 4, lockedOutUntil = 0) }, onForgetPin = {})
     }
 
+    @Test fun editorReading() = capture("editor_reading") {
+        val note = Note(
+            9,
+            title = "Hafta sonu",
+            body = "# Yapılacaklar\n- **Market** alışverişi\n- Kitabı *bitir*\n\nAkşam arkadaşlarla yemek.",
+            updatedAt = now - 1_000,
+        )
+        Editor(note, Settings(readingView = true))
+    }
+
+    @Test fun notesManualOrder() = capture("notes_manual") {
+        Main(Section.NOTES, settings = Settings(sort = NoteSort.MANUAL, manualOrder = listOf(3, 5, 4)))
+    }
+
+    @Test @Config(qualifiers = "+h1700dp")
+    fun settingsBackup() = capture("settings_backup") {
+        Settings(Settings(sort = NoteSort.MANUAL, autoBackup = true, backupFolder = "content://backup", lastBackupAt = now - day))
+    }
+
     @Test fun editorLargeText() = capture("editor_large_text") { Editor(notes[1], Settings(textSize = TextSize.HUGE)) }
 
     @Test fun reminderSheet() = capture("reminder_sheet") {

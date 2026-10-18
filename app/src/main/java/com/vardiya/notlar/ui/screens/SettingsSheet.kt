@@ -35,6 +35,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -53,6 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vardiya.notlar.domain.LockTimeout
 import com.vardiya.notlar.domain.NoteSort
+import com.vardiya.notlar.ui.components.formatEdited
+import com.vardiya.notlar.ui.components.rememberHaptics
 import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.domain.ThemeMode
 import com.vardiya.notlar.ui.theme.DynamicColorAvailable
@@ -77,9 +81,10 @@ private val LockTimeout.label: String
 
 private val NoteSort.label: String
     get() = when (this) {
-        NoteSort.EDITED -> "Düzenlenme"
-        NoteSort.CREATED -> "Oluşturulma"
+        NoteSort.EDITED -> "Güncel"
+        NoteSort.CREATED -> "Yeni"
         NoteSort.TITLE -> "Başlık"
+        NoteSort.MANUAL -> "Elle"
     }
 
 /** What the privacy rows do beyond changing a setting: the lock needs a PIN first. */
@@ -87,6 +92,13 @@ class PrivacyActions(
     val onLockChange: (enabled: Boolean) -> Unit,
     val onChangePin: () -> Unit,
     val biometricAvailable: Boolean,
+)
+
+/** What the automatic backup rows do; [folderName] is the chosen folder as it is shown, null if none. */
+class BackupActions(
+    val onPickFolder: () -> Unit = {},
+    val onBackupNow: () -> Unit = {},
+    val folderName: String? = null,
 )
 
 /** Appearance, privacy, order and backup, in a bottom sheet over the lists. */
@@ -100,6 +112,7 @@ fun SettingsSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onManageLabels: () -> Unit = {},
+    backup: BackupActions = BackupActions(),
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     ModalBottomSheet(onDismissRequest = onDismissRequest, modifier = modifier, sheetState = sheetState) {
@@ -111,6 +124,7 @@ fun SettingsSheet(
             onImport,
             Modifier.verticalScroll(rememberScrollState()),
             onManageLabels = onManageLabels,
+            backup = backup,
         )
     }
 }
@@ -125,6 +139,7 @@ internal fun SettingsContent(
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
     onManageLabels: () -> Unit = {},
+    backup: BackupActions = BackupActions(),
     dynamicColorAvailable: Boolean = DynamicColorAvailable,
 ) {
     Column(
@@ -200,6 +215,34 @@ internal fun SettingsContent(
             },
         )
         SettingsGroup(
+            "Otomatik yedek",
+            buildList {
+                add {
+                    SwitchRow(
+                        Icons.Outlined.FileUpload,
+                        "Her gün yedekle",
+                        "Seçtiğin klasöre günde bir JSON yedeği yazılır, son 7 yedek kalır",
+                        settings.autoBackup && settings.backupFolder != null,
+                    ) { on ->
+                        // Without a folder there is nowhere to write, so switching on asks for one first.
+                        if (on && settings.backupFolder == null) backup.onPickFolder() else onSettingsChange(settings.copy(autoBackup = on))
+                    }
+                }
+                add { ActionRow(Icons.Outlined.Folder, "Yedek klasörü", backup.folderName ?: "Seçilmedi", backup.onPickFolder) }
+                if (settings.backupFolder != null) {
+                    add {
+                        ActionRow(
+                            Icons.Outlined.Backup,
+                            "Şimdi yedekle",
+                            if (settings.lastBackupAt > 0L) "Son yedek: ${formatEdited(settings.lastBackupAt)}" else "Henüz yedek alınmadı",
+                            backup.onBackupNow,
+                        )
+                    }
+                }
+                add { InfoRow(Icons.Outlined.Shield, "Otomatik yedek şifresiz yazılır; klasörü güvenli bir yerde tut. Resimler yedeğe girmez.") }
+            },
+        )
+        SettingsGroup(
             "Yedek",
             listOf(
                 { ActionRow(Icons.Outlined.FileUpload, "Dışa aktar", "Tüm notları bir JSON dosyasına kaydet, istersen parolayla", onExport) },
@@ -249,6 +292,7 @@ internal fun RowText(icon: ImageVector, title: String, subtitle: String?, modifi
 
 @Composable
 private fun ActionRow(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    val haptics = rememberHaptics()
     RowText(
         icon,
         title,
@@ -256,7 +300,10 @@ private fun ActionRow(icon: ImageVector, title: String, subtitle: String, onClic
         Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .clickable(onClick = onClick)
+            .clickable {
+                haptics.tick()
+                onClick()
+            }
             .padding(horizontal = 16.dp, vertical = 12.dp),
     )
 }
@@ -300,6 +347,7 @@ private fun <T> ChoiceRow(
 /** A single-choice connected button group that fills the width. */
 @Composable
 internal fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> String, onSelect: (T) -> Unit) {
+    val haptics = rememberHaptics()
     Row(
         Modifier
             .fillMaxWidth()
@@ -309,7 +357,10 @@ internal fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> St
         options.forEachIndexed { index, option ->
             ToggleButton(
                 checked = option == selected,
-                onCheckedChange = { onSelect(option) },
+                onCheckedChange = {
+                    if (option != selected) haptics.tick()
+                    onSelect(option)
+                },
                 shapes = when (index) {
                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
@@ -330,11 +381,19 @@ internal fun <T> ConnectedChoice(options: List<T>, selected: T, label: (T) -> St
 /** A row that flips a setting; the switch shows a check while it is on. */
 @Composable
 internal fun SwitchRow(icon: ImageVector, title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val haptics = rememberHaptics()
     Row(
         Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .toggleable(
+                value = checked,
+                role = Role.Switch,
+                onValueChange = {
+                    haptics.toggle(it)
+                    onCheckedChange(it)
+                },
+            )
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

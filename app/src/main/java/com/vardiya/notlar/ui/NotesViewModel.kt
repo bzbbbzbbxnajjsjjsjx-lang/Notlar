@@ -3,6 +3,8 @@ package com.vardiya.notlar.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.vardiya.notlar.data.AutoBackup
+import com.vardiya.notlar.data.ImageStore
 import com.vardiya.notlar.data.NoteRepository
 import com.vardiya.notlar.domain.ChecklistItem
 import com.vardiya.notlar.domain.Note
@@ -13,6 +15,7 @@ import com.vardiya.notlar.domain.Settings
 import com.vardiya.notlar.reminders.ReminderScheduler
 import com.vardiya.notlar.widget.NotlarWidgets
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -23,14 +26,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 private const val WIDGET_REFRESH_DELAY_MS = 1_000L
+private const val BACKUP_CHECK_MS = 60 * 60 * 1000L
 
 @OptIn(FlowPreview::class)
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = NoteRepository.get(application)
     private val scheduler = ReminderScheduler(application)
+
+    /** The pictures of notes. */
+    val images = ImageStore(application)
 
     val notes: StateFlow<List<Note>> =
         repository.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -59,6 +67,21 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             // The editor opened before a restart must see the stored note, not an empty list.
             notes.first { it.isNotEmpty() || stored.isEmpty() }
             _loaded.value = true
+            // Pictures left behind by removed ones, deleted notes and the emptied trash go; only at
+            // start, when no draft is waiting to be saved with a picture the stored notes lack.
+            images.deleteUnused(repository.notes.first().flatMapTo(mutableSetOf()) { it.images })
+            // A day-old backup is written at start, and at once when the backup is switched on.
+            settings.distinctUntilChangedBy { it.autoBackup to it.backupFolder }.collect { current ->
+                if (AutoBackup.due(current.autoBackup, current.backupFolder, current.lastBackupAt, now())) backupNow()
+            }
+        }
+        // A process that stays alive for days still backs up once a day.
+        viewModelScope.launch {
+            while (true) {
+                delay(BACKUP_CHECK_MS)
+                val current = settings.value
+                if (loaded.value && AutoBackup.due(current.autoBackup, current.backupFolder, current.lastBackupAt, now())) backupNow()
+            }
         }
         // Alarms follow the stored reminders: set when one is added or moved, cancelled when it goes.
         viewModelScope.launch {
@@ -82,6 +105,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Adds, renames and deletes labels. */
     val labels = LabelEditor(repository, viewModelScope)
+
+    /** The recent searches. */
+    val searches = SearchHistory(::updateSettings)
 
     /** The stored note [id], once the notes are loaded; null if there is no such note. */
     suspend fun find(id: Long): Note? = repository.notes.first().firstOrNull { it.id == id && !it.isTrashed }
@@ -134,12 +160,6 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPinned(ids: Set<Long>, pinned: Boolean) = update(ids) { it.copy(pinned = pinned) }
 
-    fun rememberSearch(query: String) = updateSettings {
-        it.copy(recentSearches = NoteEdits.rememberSearch(it.recentSearches, query))
-    }
-
-    fun forgetSearch(query: String) = updateSettings { it.copy(recentSearches = it.recentSearches - query) }
-
     fun updateSettings(transform: (Settings) -> Settings) {
         viewModelScope.launch { repository.updateSettings(transform) }
     }
@@ -147,6 +167,23 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     /** Erases notes that cannot be read any more, on the user's explicit choice. */
     fun wipeUnreadableNotes() {
         viewModelScope.launch { repository.wipeNotes() }
+    }
+
+    /**
+     * Writes a backup into the chosen folder now; true if it worked. The time of the last one is
+     * kept only when it did, so a failing folder is tried again next time.
+     */
+    suspend fun backupNow(): Boolean {
+        val current = settings.value
+        val folder = current.backupFolder ?: return false
+        val written = AutoBackup.write(getApplication(), folder, exportBackup(), LocalDate.now())
+        if (written) updateSettings { it.copy(lastBackupAt = now()) }
+        return written
+    }
+
+    /** Moves a card from position [from] to [to] among the [shownIds] and remembers the order. */
+    fun reorder(shownIds: List<Long>, from: Int, to: Int) = updateSettings {
+        it.copy(manualOrder = NoteRules.reorder(it.manualOrder, shownIds, from, to))
     }
 
     fun exportBackup(): String = repository.encodeBackup(notes.value)

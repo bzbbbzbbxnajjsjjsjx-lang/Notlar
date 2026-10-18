@@ -35,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.ui.components.hapticClick
+import com.vardiya.notlar.ui.components.hapticConfirmClick
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteRules
 import com.vardiya.notlar.ui.components.SwipeAction
@@ -76,7 +78,7 @@ internal fun TrashList(
             item {
                 val height = ButtonDefaults.MediumContainerHeight
                 FilledTonalButton(
-                    onClick = { confirmEmpty = true },
+                    onClick = hapticClick { confirmEmpty = true },
                     shapes = ButtonDefaults.shapesFor(height),
                     contentPadding = ButtonDefaults.contentPaddingFor(height, hasStartIcon = true),
                     modifier = Modifier.fillMaxWidth(),
@@ -106,10 +108,10 @@ internal fun TrashList(
                         supportingContent = { Text("${NoteRules.daysLeft(note, nowMillis)} gün sonra silinecek") },
                         trailingContent = {
                             Row {
-                                IconButton(onClick = { onRestore(note) }, shapes = IconButtonDefaults.shapes()) {
+                                IconButton(onClick = hapticConfirmClick { onRestore(note) }, shapes = IconButtonDefaults.shapes()) {
                                     Icon(Icons.Filled.RestoreFromTrash, contentDescription = "Geri yükle")
                                 }
-                                IconButton(onClick = { confirmDeleteId = note.id }, shapes = IconButtonDefaults.shapes()) {
+                                IconButton(onClick = hapticClick { confirmDeleteId = note.id }, shapes = IconButtonDefaults.shapes()) {
                                     Icon(Icons.Filled.DeleteForever, contentDescription = "Kalıcı olarak sil")
                                 }
                             }

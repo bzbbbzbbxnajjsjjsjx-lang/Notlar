@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.ui.components.hapticClick
 import com.vardiya.notlar.domain.Note
 import com.vardiya.notlar.domain.NoteFilter
 import com.vardiya.notlar.domain.NoteRules
@@ -92,7 +93,7 @@ fun SearchTopBar(
             },
             leadingIcon = {
                 if (expanded) {
-                    IconButton(onClick = ::collapse, shapes = IconButtonDefaults.shapes()) {
+                    IconButton(onClick = hapticClick(::collapse), shapes = IconButtonDefaults.shapes()) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Aramayı kapat")
                     }
                 } else {
@@ -101,7 +102,7 @@ fun SearchTopBar(
             },
             trailingIcon = if (query.text.isNotEmpty()) {
                 {
-                    IconButton(onClick = { query.clearText() }, shapes = IconButtonDefaults.shapes()) {
+                    IconButton(onClick = hapticClick { query.clearText() }, shapes = IconButtonDefaults.shapes()) {
                         Icon(Icons.Filled.Close, contentDescription = "Aramayı temizle")
                     }
                 }
@@ -117,13 +118,13 @@ fun SearchTopBar(
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         actions = {
-            IconButton(onClick = onToggleListView, shapes = IconButtonDefaults.shapes()) {
+            IconButton(onClick = hapticClick(onToggleListView), shapes = IconButtonDefaults.shapes()) {
                 Icon(
                     if (settings.listView) Icons.Outlined.GridView else Icons.AutoMirrored.Outlined.ViewList,
                     contentDescription = if (settings.listView) "Izgara görünümü" else "Liste görünümü",
                 )
             }
-            IconButton(onClick = onOpenSettings, shapes = IconButtonDefaults.shapes()) {
+            IconButton(onClick = hapticClick(onOpenSettings), shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Outlined.Settings, contentDescription = "Ayarlar")
             }
         },
@@ -213,7 +214,7 @@ internal fun FilterChips(filter: NoteFilter, onFilterChange: (NoteFilter) -> Uni
         NoteFilter.entries.forEach { item ->
             FilterChip(
                 selected = filter == item,
-                onClick = { onFilterChange(item) },
+                onClick = hapticClick { onFilterChange(item) },
                 label = { Text(item.label) },
                 leadingIcon = if (filter == item) {
                     { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) }

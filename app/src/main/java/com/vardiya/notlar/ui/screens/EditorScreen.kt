@@ -1,5 +1,29 @@
 package com.vardiya.notlar.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.FileUpload
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import com.vardiya.notlar.domain.Markdown
+import com.vardiya.notlar.ui.components.LocalImageStore
+import com.vardiya.notlar.ui.components.Haptics
+import com.vardiya.notlar.ui.components.renderMarkdown
+import com.vardiya.notlar.ui.components.rememberHaptics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -123,6 +147,9 @@ private const val SAVE_DELAY_MS = 500L
 private const val HALF_TURN = 180f
 private const val CHECK_POP = 1.3f
 private const val DONE_ALPHA = 0.6f
+private const val MAX_PICKED_IMAGES = 5
+private const val HEADING_SCALE = 1.35f
+private val FORMAT_ROW_LIFT = 88.dp
 
 /**
  * Writes and edits one note. Changes are saved half a second after typing stops and again on the
@@ -143,6 +170,7 @@ fun EditorScreen(
     settings: Settings = Settings(),
     onSettingsChange: (Settings) -> Unit = {},
     onCreateLabel: (String) -> Unit = {},
+    onExternal: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     today: LocalDate = LocalDate.now(),
 ) {
@@ -187,6 +215,68 @@ fun EditorScreen(
     }
     BackHandler(onBack = close)
 
+    val haptics = rememberHaptics()
+    val motion = MaterialTheme.motionScheme
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val images = LocalImageStore.current
+    // The text note's field keeps its selection here; what changes outside it (undo, a widget) is taken over.
+    var body by remember(initial.id) { mutableStateOf(TextFieldValue(initial.body)) }
+    LaunchedEffect(draft.body) {
+        if (draft.body != body.text) body = TextFieldValue(draft.body, TextRange(draft.body.length))
+    }
+    var openedImage by remember { mutableStateOf<String?>(null) }
+    // The picture the camera is about to write, kept across the trip to the camera app.
+    var cameraTarget by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun message(text: String) {
+        scope.launch { snackbarHostState.showSnackbar(text) }
+    }
+
+    fun addImages(sources: List<Uri>) {
+        val store = images ?: return
+        scope.launch {
+            val names = sources.mapNotNull { store.add(it) }
+            if (names.isEmpty()) {
+                haptics.reject()
+                message("Resim eklenemedi")
+            } else {
+                draft = draft.copy(images = draft.images + names)
+                haptics.confirm()
+            }
+            store.clearCamera()
+        }
+    }
+
+    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(MAX_PICKED_IMAGES)) { uris ->
+        if (uris.isNotEmpty()) addImages(uris)
+    }
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
+        val target = cameraTarget
+        cameraTarget = null
+        if (taken && target != null) addImages(listOf(Uri.parse(target)))
+    }
+
+    /** Writes the note to the file the user picked as plain text or Markdown. */
+    fun export(uri: Uri?, text: String) {
+        uri ?: return
+        scope.launch {
+            val written = runCatching {
+                withContext(Dispatchers.IO) { context.contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(text) } }
+            }.isSuccess
+            if (written) haptics.confirm() else haptics.reject()
+            message(if (written) "Not dışa aktarıldı" else "Not dışa aktarılamadı")
+        }
+    }
+
+    val exportText = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        export(uri, NoteRules.shareText(draft))
+    }
+    val exportMarkdown = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/markdown")) { uri ->
+        export(uri, NoteEdits.markdown(draft))
+    }
+    val exportName = draft.title.trim().ifEmpty { "Not" }.replace(Regex("[\\\\/:*?\"<>|]"), "-")
+
     var sheet by rememberSaveable { mutableStateOf<EditorSheet?>(null) }
     val askNotifications = rememberNotificationPermission()
     val scale = settings.textSize.scale
@@ -213,15 +303,15 @@ fun EditorScreen(
                     // Undo and redo show up after the first change.
                     AnimatedVisibility(visible = canUndo || canRedo) {
                         Row {
-                            IconButton(onClick = { step(history.undo()) }, enabled = canUndo, shapes = IconButtonDefaults.shapes()) {
+                            IconButton(onClick = { haptics.tick(); step(history.undo()) }, enabled = canUndo, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Geri al")
                             }
-                            IconButton(onClick = { step(history.redo()) }, enabled = canRedo, shapes = IconButtonDefaults.shapes()) {
+                            IconButton(onClick = { haptics.tick(); step(history.redo()) }, enabled = canRedo, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = "Yinele")
                             }
                         }
                     }
-                    IconButton(onClick = { sheet = EditorSheet.REMINDER }, shapes = IconButtonDefaults.shapes()) {
+                    IconButton(onClick = { haptics.tick(); sheet = EditorSheet.REMINDER }, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             if (draft.reminderAt != null) Icons.Filled.Alarm else Icons.Outlined.AlarmAdd,
                             contentDescription = if (draft.reminderAt != null) "Hatırlatıcıyı değiştir" else "Hatırlatıcı kur",
@@ -230,7 +320,10 @@ fun EditorScreen(
                     if (!draft.archived) {
                         IconToggleButton(
                             checked = draft.pinned,
-                            onCheckedChange = { draft = draft.copy(pinned = it) },
+                            onCheckedChange = {
+                                haptics.toggle(it)
+                                draft = draft.copy(pinned = it)
+                            },
                             shapes = IconButtonDefaults.toggleableShapes(),
                         ) {
                             AnimatedIcon(
@@ -250,6 +343,18 @@ fun EditorScreen(
                         onUncheckAll = { draft = NoteEdits.uncheckAll(draft) },
                         onClearCompletions = { draft = NoteEdits.removeChecked(draft) },
                         onLabels = { sheet = EditorSheet.LABELS },
+                        readingView = settings.readingView,
+                        onReadingView = { onSettingsChange(settings.copy(readingView = it)) },
+                        onAddImage = { sheet = EditorSheet.IMAGE },
+                        onExportText = {
+                            onExternal()
+                            exportText.launch("$exportName.txt")
+                        },
+                        onExportMarkdown = {
+                            onExternal()
+                            exportMarkdown.launch("$exportName.md")
+                        },
+                        haptics = haptics,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -290,12 +395,38 @@ fun EditorScreen(
                 if (draft.isChecklist) {
                     ChecklistEditor(items = draft.items, textScale = scale, onItemsChange = { draft = draft.copy(items = it) })
                 } else {
-                    PlainField(
-                        value = draft.body,
-                        onValueChange = { draft = draft.copy(body = it) },
-                        placeholder = "Not",
-                        style = MaterialTheme.typography.bodyLarge.scaled(scale),
-                        singleLine = false,
+                    // The reading view draws the Markdown; an empty note always shows the field to write in.
+                    val reading = settings.readingView && draft.body.isNotBlank()
+                    Crossfade(
+                        targetState = reading,
+                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                        label = "readingView",
+                    ) { readingNow ->
+                        val bodyStyle = MaterialTheme.typography.bodyLarge.scaled(scale)
+                        if (readingNow) {
+                            Text(
+                                renderMarkdown(draft.body, headingSize = bodyStyle.fontSize * HEADING_SCALE),
+                                style = bodyStyle,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            )
+                        } else {
+                            BodyField(
+                                value = body,
+                                onValueChange = {
+                                    body = it
+                                    draft = draft.copy(body = it.text)
+                                },
+                                style = bodyStyle,
+                            )
+                        }
+                    }
+                }
+                AnimatedVisibility(visible = draft.images.isNotEmpty()) {
+                    ImageStrip(
+                        images = draft.images,
+                        haptics = haptics,
+                        onOpen = { openedImage = it },
+                        onRemove = { name -> draft = draft.copy(images = draft.images - name) },
                     )
                 }
                 Text(
@@ -308,8 +439,31 @@ fun EditorScreen(
                 Spacer(Modifier.height(112.dp))
             }
 
+            // Formatting and the picture button sit just above the toolbar while a text note is edited.
+            AnimatedVisibility(
+                visible = !draft.isChecklist && !(settings.readingView && draft.body.isNotBlank()),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(bottom = FORMAT_ROW_LIFT),
+                enter = slideInVertically(motion.defaultSpatialSpec()) { it } + fadeIn(motion.defaultEffectsSpec()),
+                exit = slideOutVertically(motion.fastSpatialSpec()) { it } + fadeOut(motion.fastEffectsSpec()),
+            ) {
+                FormatRow(
+                    body = body,
+                    haptics = haptics,
+                    onEdit = { edit ->
+                        body = TextFieldValue(edit.text, TextRange(edit.start, edit.end))
+                        draft = draft.copy(body = edit.text)
+                    },
+                    onAddImage = { sheet = EditorSheet.IMAGE },
+                )
+            }
+
             EditorToolbar(
                 note = draft,
+                haptics = haptics,
                 onToggleChecklist = {
                     draft = if (draft.isChecklist) {
                         NoteRules.toText(draft)
@@ -360,12 +514,38 @@ fun EditorScreen(
             onDismissRequest = { sheet = null },
         )
         EditorSheet.TEXT_SIZE -> TextSizeSheet(settings, onSettingsChange, onDismissRequest = { sheet = null })
+        EditorSheet.IMAGE -> AddImageSheet(
+            onGallery = {
+                sheet = null
+                onExternal()
+                gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onCamera = {
+                sheet = null
+                val store = images
+                if (store == null) {
+                    message("Kamera kullanılamıyor")
+                } else {
+                    onExternal()
+                    val target = store.newCameraTarget()
+                    cameraTarget = target.toString()
+                    // A phone without a camera app has nothing to start.
+                    runCatching { camera.launch(target) }.onFailure {
+                        cameraTarget = null
+                        haptics.reject()
+                        message("Kamera uygulaması bulunamadı")
+                    }
+                }
+            },
+            onDismissRequest = { sheet = null },
+        )
         null -> Unit
     }
+    openedImage?.let { ImageDialog(it, onDismiss = { openedImage = null }) }
 }
 
 /** The sheets the editor opens over the note. */
-private enum class EditorSheet { REMINDER, LABELS, TEXT_SIZE }
+private enum class EditorSheet { REMINDER, LABELS, TEXT_SIZE, IMAGE }
 
 /** Overflow actions: copy the note, and the bulk to-do actions when there are done items. */
 @Composable
@@ -375,13 +555,60 @@ private fun MoreMenu(
     onUncheckAll: () -> Unit,
     onClearCompletions: () -> Unit,
     onLabels: () -> Unit,
+    readingView: Boolean,
+    onReadingView: (Boolean) -> Unit,
+    onAddImage: () -> Unit,
+    onExportText: () -> Unit,
+    onExportMarkdown: () -> Unit,
+    haptics: Haptics,
 ) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }, shapes = IconButtonDefaults.shapes()) {
+        IconButton(
+            onClick = {
+                haptics.tick()
+                open = true
+            },
+            shapes = IconButtonDefaults.shapes(),
+        ) {
             Icon(Icons.Filled.MoreVert, contentDescription = "Diğer seçenekler")
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text("Resim ekle") },
+                leadingIcon = { Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onAddImage()
+                },
+            )
+            if (!note.isChecklist) {
+                DropdownMenuItem(
+                    text = { Text(if (readingView) "Düzenleme görünümü" else "Okuma görünümü") },
+                    leadingIcon = { Icon(Icons.Outlined.AutoStories, contentDescription = null) },
+                    onClick = {
+                        open = false
+                        haptics.toggle(!readingView)
+                        onReadingView(!readingView)
+                    },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text("Dışa aktar (.txt)") },
+                leadingIcon = { Icon(Icons.Outlined.FileUpload, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onExportText()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text("Dışa aktar (.md)") },
+                leadingIcon = { Icon(Icons.Outlined.Code, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onExportMarkdown()
+                },
+            )
             DropdownMenuItem(
                 text = { Text("Etiketler") },
                 leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Label, contentDescription = null) },
@@ -423,6 +650,7 @@ private fun MoreMenu(
 @Composable
 private fun EditorToolbar(
     note: Note,
+    haptics: Haptics,
     onToggleChecklist: () -> Unit,
     onColor: (NoteColor) -> Unit,
     onTextSize: () -> Unit,
@@ -447,10 +675,11 @@ private fun EditorToolbar(
         ToolbarButton(
             icon = if (note.isChecklist) Icons.AutoMirrored.Filled.Notes else Icons.Filled.Checklist,
             description = if (note.isChecklist) "Düz metne çevir" else "Yapılacak listesine çevir",
+            haptics = haptics,
             onClick = onToggleChecklist,
         )
         Box {
-            ToolbarButton(icon = Icons.Outlined.Palette, description = "Renk", onClick = { colorMenu = true })
+            ToolbarButton(icon = Icons.Outlined.Palette, description = "Renk", haptics = haptics, onClick = { colorMenu = true })
             DropdownMenu(expanded = colorMenu, onDismissRequest = { colorMenu = false }) {
                 NoteColor.entries.forEach { color ->
                     DropdownMenuItem(
@@ -462,6 +691,7 @@ private fun EditorToolbar(
                             null
                         },
                         onClick = {
+                            haptics.confirm()
                             onColor(color)
                             colorMenu = false
                         },
@@ -469,14 +699,15 @@ private fun EditorToolbar(
                 }
             }
         }
-        ToolbarButton(icon = Icons.Outlined.FormatSize, description = "Yazı boyutu", onClick = onTextSize)
+        ToolbarButton(icon = Icons.Outlined.FormatSize, description = "Yazı boyutu", haptics = haptics, onClick = onTextSize)
         ToolbarButton(
             icon = if (note.archived) Icons.Outlined.Unarchive else Icons.Outlined.Archive,
             description = if (note.archived) "Arşivden çıkar" else "Arşivle",
+            haptics = haptics,
             onClick = onArchive,
         )
         ShareSplitButton(onShare = onShare, onShareMarkdown = onShareMarkdown, onCopy = onCopy)
-        ToolbarButton(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", onClick = onTrash)
+        ToolbarButton(icon = Icons.Outlined.Delete, description = "Çöp kutusuna taşı", haptics = haptics, onClick = onTrash)
     }
 }
 
@@ -548,8 +779,14 @@ private fun ShareMenuItem(text: String, icon: ImageVector, onClick: () -> Unit) 
 }
 
 @Composable
-private fun ToolbarButton(icon: ImageVector, description: String, onClick: () -> Unit) {
-    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
+private fun ToolbarButton(icon: ImageVector, description: String, haptics: Haptics, onClick: () -> Unit) {
+    IconButton(
+        onClick = {
+            haptics.tick()
+            onClick()
+        },
+        shapes = IconButtonDefaults.shapes(),
+    ) {
         Icon(icon, contentDescription = description)
     }
 }
@@ -657,9 +894,13 @@ private fun ChecklistRow(
         label = "itemAlpha",
     )
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        val haptics = rememberHaptics()
         Checkbox(
             checked = item.checked,
-            onCheckedChange = { onChange(item.copy(checked = it)) },
+            onCheckedChange = {
+                haptics.toggle(it)
+                onChange(item.copy(checked = it))
+            },
             modifier = Modifier.graphicsLayer {
                 scaleX = pop.value
                 scaleY = pop.value

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Pictures the camera writes before they are copied into the app: cache/camera/. -->
+    <cache-path name="camera" path="camera/" />
+</paths>

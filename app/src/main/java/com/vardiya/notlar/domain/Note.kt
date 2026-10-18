@@ -36,12 +36,14 @@ data class Note(
     val reminderRepeat: ReminderRepeat = ReminderRepeat.NONE,
     /** Names of the labels the note carries, in the order they were added. */
     val labels: List<String> = emptyList(),
+    /** File names of the pictures in the note, in the order they were added; see `ImageStore`. */
+    val images: List<String> = emptyList(),
 ) {
     val isTrashed: Boolean get() = trashedAt != null
 
     /** Nothing written yet; such a note is not kept. */
     val isBlank: Boolean
-        get() = title.isBlank() && body.isBlank() && items.all { it.text.isBlank() }
+        get() = title.isBlank() && body.isBlank() && items.all { it.text.isBlank() } && images.isEmpty()
 
     /** Same content, ignoring timestamps; used to skip saves that change nothing. */
     fun sameContentAs(other: Note): Boolean =
@@ -62,9 +64,12 @@ enum class Section { NOTES, ARCHIVE, TRASH }
 /** Chips above the main list. */
 enum class NoteFilter { ALL, TEXT, CHECKLIST }
 
-/** Order of the notes and archive lists; pinned notes stay on top in every order. */
+/**
+ * Order of the notes list; pinned notes stay on top in every order. [MANUAL] follows
+ * [Settings.manualOrder], which the user sets by dragging cards; the archive keeps [EDITED].
+ */
 @Serializable
-enum class NoteSort { EDITED, CREATED, TITLE }
+enum class NoteSort { EDITED, CREATED, TITLE, MANUAL }
 
 /** Light or dark appearance; [SYSTEM] follows the device. */
 @Serializable
@@ -86,4 +91,14 @@ data class Settings(
     val labels: List<String> = emptyList(),
     val textSize: TextSize = TextSize.NORMAL,
     val textSizeOnCards: Boolean = false,
+    /** Note ids in the order the user dragged them to; notes not listed come first, newest edit first. */
+    val manualOrder: List<Long> = emptyList(),
+    /** Show the text of notes as formatted Markdown instead of the editable text. */
+    val readingView: Boolean = false,
+    /** Write a JSON backup into [backupFolder] about once a day. */
+    val autoBackup: Boolean = false,
+    /** Tree URI of the folder chosen for the automatic backups; null until one is picked. */
+    val backupFolder: String? = null,
+    /** When the last automatic backup was written, in epoch millis; 0 if never. */
+    val lastBackupAt: Long = 0L,
 )

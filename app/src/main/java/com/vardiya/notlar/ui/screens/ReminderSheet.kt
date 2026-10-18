@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.ui.components.hapticClick
 import com.vardiya.notlar.domain.ReminderRepeat
 import com.vardiya.notlar.domain.Reminders
 import com.vardiya.notlar.ui.components.formatReminder
@@ -218,7 +219,7 @@ private fun ChoiceTile(icon: ImageVector, title: String, subtitle: String?, onCl
         Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = hapticClick(onClick))
             .padding(horizontal = 16.dp, vertical = 12.dp),
     )
 }

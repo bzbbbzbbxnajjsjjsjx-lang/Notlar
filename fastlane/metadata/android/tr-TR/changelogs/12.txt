@@ -1,0 +1,6 @@
+- Resim ekleme (galeri ve kamera)
+- Kartları sürükleyerek elle sıralama
+- Kalın, italik, başlık ve madde işareti; okuma görünümü
+- Notu .txt veya .md olarak dışa aktarma
+- Günlük otomatik yedek
+- Her yerde titreşim geri bildirimi ve animasyon

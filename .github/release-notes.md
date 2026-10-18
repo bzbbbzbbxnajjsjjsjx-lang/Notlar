@@ -4,6 +4,15 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.9.0)
+- **Resim ekleme:** Yazma ekranında biçim satırındaki resim düğmesiyle (ya da ⋮ > Resim ekle) galeriden ya da kameradan resim ekle. Resimler notun altında küçük görünür, dokununca büyür, çarpıyla kaldırılır; kartta ilk resmin önizlemesi çıkar. Resimler telefonun özel alanında saklanır, yedek dosyasına girmez.
+- **Sürükleyerek sıralama:** Ayarlar > Sıralama > *Elle* seçince bir kartı basılı tutup sürükleyerek yerini değiştir. Sabitlenenler kendi aralarında sıralanır. Sürüklemeden basılı tutmak kartı eskisi gibi seçer.
+- **Biçimlendirme:** Metin notlarında *kalın*, *italik*, başlık ve madde işareti. ⋮ > *Okuma görünümü* biçimli hâlini gösterir. Notun metni Markdown olarak saklanır; paylaşırken ve .txt olarak dışa aktarırken işaretler temizlenir, "Markdown olarak paylaş" ve .md işaretleri korur.
+- **Dışa aktar:** ⋮ > Dışa aktar ile tek bir notu .txt ya da .md dosyası olarak kaydet.
+- **Otomatik yedek:** Ayarlar > Otomatik yedek ile bir klasör seç; her gün bir JSON yedeği yazılır, son 7 yedek kalır. Yedek şifresiz yazılır.
+- **Daha canlı:** Titreşim geri bildirimi düğmelerde, anahtarlarda, çiplerde, sürüklemede ve eklemelerde; biçim satırı, resimler ve okuma görünümü animasyonla gelir.
+- **Not:** Sıralama seçeneklerinin adları kısaldı: Güncel, Yeni, Başlık, Elle.
+
 ### Yenilikler (1.8.0)
 - **Akıcı hareketler:** Not listesi açılırken kartlar sırayla yükselip yerine oturur. Notlar, Arşiv ve Çöp kutusu arasında geçerken ekran hafifçe ölçeklenerek kayar. Boş ekranlarda şekil yaylanarak belirir.
 - **Yapılacak listeleri:** Madde işaretlenince kutu küçük bir "pop" yapar, biten maddenin yazısı yumuşar.

@@ -150,7 +150,7 @@ class NoteRulesTest {
         assertEquals("# Market\n\n- [ ] Süt\n- [x] Ekmek", NoteEdits.markdown(notes[0]))
         assertEquals("# Kira\n\nAyın 5'i", NoteEdits.markdown(notes[2]))
         assertEquals("Sadece metin", NoteEdits.markdown(Note(1, body = " Sadece metin ")))
-        assertEquals("\\# değil başlık\n\\- değil madde\nnormal", NoteEdits.markdown(Note(1, body = "# değil başlık\n- değil madde\nnormal")))
+        assertEquals("# başlık\n- madde\n**kalın**", NoteEdits.markdown(Note(1, body = "# başlık\n- madde\n**kalın**")))
         assertEquals("", NoteEdits.markdown(Note(1)))
     }
 
@@ -162,5 +162,36 @@ class NoteRulesTest {
         val full = (1..12).fold(emptyList<String>()) { list, i -> NoteEdits.rememberSearch(list, "a$i") }
         assertEquals(NoteEdits.MAX_RECENT_SEARCHES, full.size)
         assertEquals("a12", full.first())
+    }
+
+    @Test
+    fun manualOrderFollowsTheDraggedOrderAndKeepsPinnedOnTop() {
+        val list = listOf(
+            Note(1, title = "a", updatedAt = 1),
+            Note(2, title = "b", updatedAt = 2),
+            Note(3, title = "c", updatedAt = 3),
+            Note(4, title = "d", pinned = true, updatedAt = 4),
+            Note(5, title = "e", updatedAt = 9),
+        )
+        // 5 is not in the order yet, so it comes first among the unpinned notes.
+        val shown = NoteRules.visible(list, Section.NOTES, sort = NoteSort.MANUAL, manualOrder = listOf(3, 1, 2)).map { it.id }
+        assertEquals(listOf(4L, 5L, 3L, 1L, 2L), shown)
+        // The archive ignores the manual order.
+        val archived = list.map { it.copy(archived = true, pinned = false) }
+        val archive = NoteRules.visible(archived, Section.ARCHIVE, sort = NoteSort.MANUAL, manualOrder = listOf(3, 1, 2))
+        assertEquals(listOf(5L, 4L, 3L, 2L, 1L), archive.map { it.id })
+    }
+
+    @Test
+    fun reorderMovesOneNoteAndKeepsTheHiddenOnes() {
+        assertEquals(listOf(3L, 1L, 2L, 9L), NoteRules.reorder(listOf(1, 2, 3, 9), listOf(1, 2, 3), from = 2, to = 0))
+        assertEquals(listOf(1L, 2L), NoteRules.reorder(emptyList(), listOf(1, 2), from = 0, to = 0))
+        assertEquals(listOf(2L, 1L), NoteRules.reorder(emptyList(), listOf(1, 2), from = 0, to = 1))
+    }
+
+    @Test
+    fun imagesCountAsContentAndShareTextDropsMarkdownMarks() {
+        assertFalse(Note(1, images = listOf("a.jpg")).isBlank)
+        assertEquals("Başlık\n\nSelam **dünya**".replace("**", ""), NoteRules.shareText(Note(1, title = "Başlık", body = "Selam **dünya**")))
     }
 }

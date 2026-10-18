@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.vardiya.notlar.ui.components.hapticClick
 import com.vardiya.notlar.domain.Labels
 
 /** Puts labels on one note: tick the ones it should carry, or make a new one. */
@@ -148,10 +149,10 @@ internal fun LabelManagerContent(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             RowText(Icons.AutoMirrored.Outlined.Label, name, subtitle = null, Modifier.weight(1f))
-                            IconButton(onClick = { onRename(name) }, shapes = IconButtonDefaults.shapes()) {
+                            IconButton(onClick = hapticClick { onRename(name) }, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.Outlined.Edit, contentDescription = "$name etiketini yeniden adlandır")
                             }
-                            IconButton(onClick = { onDelete(name) }, shapes = IconButtonDefaults.shapes()) {
+                            IconButton(onClick = hapticClick { onDelete(name) }, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.Outlined.Delete, contentDescription = "$name etiketini sil")
                             }
                         }

@@ -1,5 +1,14 @@
 package com.vardiya.notlar.ui.screens
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.material.icons.outlined.DragHandle
+import androidx.compose.runtime.rememberCoroutineScope
+import com.vardiya.notlar.ui.components.hapticClick
+import com.vardiya.notlar.domain.NoteSort
+import com.vardiya.notlar.ui.components.Haptics
+import com.vardiya.notlar.ui.components.rememberHaptics
+import kotlinx.coroutines.launch
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -193,6 +202,7 @@ fun MainScreen(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onManageLabels: () -> Unit = {},
+    onReorder: (shownIds: List<Long>, from: Int, to: Int) -> Unit = { _, _, _ -> },
     nowMillis: Long = System.currentTimeMillis(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -240,7 +250,7 @@ fun MainScreen(
                     TopAppBar(
                         title = { Text("${selection.size} seçildi") },
                         navigationIcon = {
-                            IconButton(onClick = { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
+                            IconButton(onClick = hapticClick { onSelectionChange(emptySet()) }, shapes = IconButtonDefaults.shapes()) {
                                 Icon(Icons.Filled.Close, contentDescription = "Seçimi kapat")
                             }
                         },
@@ -365,6 +375,7 @@ fun MainScreen(
                     labels = LabelFilter(labels, label, onLabelChange = { chosenLabel = it }, onManage = onManageLabels),
                     nowMillis = nowMillis,
                     contentPadding = padding,
+                    onReorder = onReorder,
                 )
             }
         }
@@ -391,7 +402,7 @@ fun MainScreen(
 
 @Composable
 private fun BarAction(icon: ImageVector, description: String, onClick: () -> Unit) {
-    IconButton(onClick = onClick, shapes = IconButtonDefaults.shapes()) {
+    IconButton(onClick = hapticClick(onClick), shapes = IconButtonDefaults.shapes()) {
         Icon(icon, contentDescription = description)
     }
 }
@@ -442,6 +453,7 @@ private fun NoteGrid(
     labels: LabelFilter,
     nowMillis: Long,
     contentPadding: PaddingValues,
+    onReorder: (shownIds: List<Long>, from: Int, to: Int) -> Unit,
 ) {
     val visible = NoteRules.visible(
         notes,
@@ -450,9 +462,17 @@ private fun NoteGrid(
         if (section == Section.NOTES) filter else NoteFilter.ALL,
         settings.sort,
         label = if (section == Section.NOTES) labels.selected else null,
+        manualOrder = settings.manualOrder,
     )
-    val pinned = visible.filter { it.pinned }
-    val others = visible.filterNot { it.pinned }
+    val haptics = rememberHaptics()
+    val scope = rememberCoroutineScope()
+    val reorder = remember(gridState) { ReorderState(gridState, onReorder) }
+    // Dragging reorders only the plain notes list; the archive and searches keep their own order.
+    val canReorder = section == Section.NOTES && settings.sort == NoteSort.MANUAL && query.isBlank()
+    val shown = reorder.arrange(visible)
+    val pinned = shown.filter { it.pinned }
+    val others = shown.filterNot { it.pinned }
+    var hintDismissed by rememberSaveable { mutableStateOf(false) }
 
     // The first moments after a list opens its cards cascade in; cards that appear later (scrolling,
     // a new note) just show up.
@@ -493,6 +513,14 @@ private fun NoteGrid(
                 item(span = StaggeredGridItemSpan.FullLine) { LabelChips(labels) }
             }
         }
+        if (canReorder && !hintDismissed && visible.size > 1) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                ReorderHint(onDismiss = {
+                    haptics.tick()
+                    hintDismissed = true
+                })
+            }
+        }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
             item(span = StaggeredGridItemSpan.FullLine) { GroupHeader("Sabitlenenler") }
         }
@@ -504,6 +532,7 @@ private fun NoteGrid(
             onSwipeTrash,
             textScale = if (settings.textSizeOnCards) settings.textSize.scale else 1f,
             nowMillis = nowMillis,
+            reorder = ReorderSetup(canReorder, reorder, shown, haptics) { scope.launch { gridState.scrollBy(it) } },
         )
         items(pinned, key = { it.id }) { note -> GridCard(note, note.id in selection, onOpen, onSelect, swipe, intro, order[note.id] ?: 0) }
         if (pinned.isNotEmpty() && others.isNotEmpty()) {
@@ -542,6 +571,16 @@ private class SwipeSetup(
     val onTrash: (Note) -> Unit,
     val textScale: Float,
     val nowMillis: Long,
+    val reorder: ReorderSetup,
+)
+
+/** What a card needs to be dragged: whether dragging is on, its state and the list it moves in. */
+private class ReorderSetup(
+    val enabled: Boolean,
+    val state: ReorderState,
+    val shown: List<Note>,
+    val haptics: Haptics,
+    val scrollBy: (Float) -> Unit,
 )
 
 @Composable
@@ -572,13 +611,25 @@ private fun LazyStaggeredGridItemScope.GridCard(
             contentColor = scheme.onErrorContainer,
             onSwipe = { swipe.onTrash(note) },
         ),
-        enabled = swipe.swipeEnabled,
-        modifier = Modifier.animateItem().entrance(play = intro, index = index),
+        enabled = swipe.swipeEnabled && swipe.reorder.state.dragId == null,
+        modifier = Modifier
+            .animateItem()
+            .entrance(play = intro, index = index)
+            .reorderable(
+                id = note.id,
+                enabled = swipe.reorder.enabled && swipe.swipeEnabled,
+                state = swipe.reorder.state,
+                shown = swipe.reorder.shown,
+                haptics = swipe.reorder.haptics,
+                scrollBy = swipe.reorder.scrollBy,
+                onTap = { onSelect(note) },
+            ),
     ) {
         NoteCard(
             note,
             onClick = { onOpen(note) },
-            onLongClick = { onSelect(note) },
+            // A long press drags the card in the manual order, and selects it if it is not moved.
+            onLongClick = if (swipe.reorder.enabled) null else ({ onSelect(note) }),
             selected = selected,
             highlight = swipe.query,
             textScale = swipe.textScale,
@@ -586,6 +637,17 @@ private fun LazyStaggeredGridItemScope.GridCard(
             modifier = Modifier.sharedNoteBounds(note.id),
         )
     }
+}
+
+@Composable
+private fun ReorderHint(onDismiss: () -> Unit) {
+    AssistChip(
+        onClick = onDismiss,
+        label = { Text("Sıralamak için bir kartı basılı tutup sürükle") },
+        leadingIcon = { Icon(Icons.Outlined.DragHandle, contentDescription = null, Modifier.size(AssistChipDefaults.IconSize)) },
+        trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "İpucunu kapat", Modifier.size(AssistChipDefaults.IconSize)) },
+        modifier = Modifier.animateContentSize(),
+    )
 }
 
 @Composable
@@ -676,7 +738,7 @@ private fun LabelChip(text: String, selected: Boolean, icon: ImageVector?, onCli
     val shown = if (selected) Icons.Filled.Check else icon
     FilterChip(
         selected = selected,
-        onClick = onClick,
+        onClick = hapticClick(onClick),
         label = { Text(text) },
         leadingIcon = shown?.let { { Icon(it, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) } },
     )

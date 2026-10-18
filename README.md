@@ -11,6 +11,10 @@ Material 3 Expressive (Jetpack Compose) not ve yapılacaklar uygulaması.
 - **Etiketler**: Notlara etiket ver, ana ekranda etikete göre süz; etiketleri yeniden adlandır ya da sil.
 - **Ana ekran widget'ları**: Bir yapılacak listesini ana ekranda göster ve işaretle; tek dokunuşla yeni not ya da liste.
 - **Yazı**: Material 3 Expressive yazı tipi Google Sans Flex; not yazısının boyutu dört kademede ayarlanır.
+- **Resimler**: Nota galeriden ya da kameradan resim ekle; kartta önizleme görünür.
+- **Biçimlendirme**: Kalın, italik, başlık, madde işareti ve okuma görünümü; not .txt ya da .md olarak dışa aktarılır.
+- **Elle sıralama**: Kartları sürükleyerek istediğin sıraya diz.
+- **Otomatik yedek**: Seçtiğin klasöre günde bir JSON yedeği.
 - **Ek özellikler**: Liste görünümü, uzun basarak toplu seçim, yapılacak ilerlemesi, not kopyalama, başka uygulamalardan paylaşılan metni not olarak kaydetme, ana ekran kısayolları.
 
 ## Tasarım

@@ -3,6 +3,7 @@ package com.vardiya.notlar.ui
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -47,6 +48,8 @@ import com.vardiya.notlar.ui.components.LocalSharedNoteScope
 import com.vardiya.notlar.ui.components.SharedNoteScope
 import com.vardiya.notlar.ui.components.sharedNoteBounds
 import com.vardiya.notlar.domain.Security
+import com.vardiya.notlar.ui.components.LocalImageStore
+import com.vardiya.notlar.ui.screens.BackupActions
 import com.vardiya.notlar.ui.screens.EditorScreen
 import com.vardiya.notlar.ui.screens.ExportBackupDialog
 import com.vardiya.notlar.ui.screens.ImportPasswordDialog
@@ -183,6 +186,18 @@ fun NotlarApp(
             message(if (written) "Yedek kaydedildi$sealedNote" else "Yedek kaydedilemedi")
         }
     }
+    val backupFolderLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        // The folder stays writable after a restart, so the daily backup can run unattended.
+        runCatching {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }
+        viewModel.updateSettings { it.copy(backupFolder = uri.toString(), autoBackup = true) }
+        message("Yedek klasörü seçildi")
+    }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
@@ -231,6 +246,19 @@ fun NotlarApp(
                 showSettings = false
                 showLabels = true
             },
+            backup = BackupActions(
+                onPickFolder = {
+                    lockViewModel.stayOpenThroughNextTrip()
+                    backupFolderLauncher.launch(null)
+                },
+                onBackupNow = {
+                    scope.launch {
+                        val written = viewModel.backupNow()
+                        message(if (written) "Yedek kaydedildi" else "Yedek yazılamadı; klasörü yeniden seç")
+                    }
+                },
+                folderName = settings.backupFolder?.let(::backupFolderName),
+            ),
         )
     }
     if (showLabels) {
@@ -334,7 +362,10 @@ fun NotlarApp(
             },
             label = "editor",
         ) { id ->
-            CompositionLocalProvider(LocalSharedNoteScope provides SharedNoteScope(this@SharedTransitionLayout, this@AnimatedContent)) {
+            CompositionLocalProvider(
+                LocalSharedNoteScope provides SharedNoteScope(this@SharedTransitionLayout, this@AnimatedContent),
+                LocalImageStore provides viewModel.images,
+            ) {
                 if (id == null) {
                     MainScreen(
                         notes = notes,
@@ -390,8 +421,8 @@ fun NotlarApp(
                             selection = emptyList()
                             undoable("${ids.size} not çöp kutusuna taşındı") { viewModel.restore(ids) }
                         },
-                        onRememberSearch = viewModel::rememberSearch,
-                        onForgetSearch = viewModel::forgetSearch,
+                        onRememberSearch = viewModel.searches::remember,
+                        onForgetSearch = viewModel.searches::forget,
                         onSwipeArchive = { note ->
                             viewModel.setArchived(setOf(note.id), !note.archived)
                             val text = if (note.archived) "Not arşivden çıkarıldı" else "Not arşivlendi"
@@ -403,6 +434,7 @@ fun NotlarApp(
                         },
                         snackbarHostState = snackbar,
                         onManageLabels = { showLabels = true },
+                        onReorder = viewModel::reorder,
                     )
                 } else {
                     val stored = notes.firstOrNull { it.id == id }
@@ -418,8 +450,11 @@ fun NotlarApp(
                             settings = settings,
                             // Only the text size is changed here, so a stale copy cannot undo another setting.
                             onSettingsChange = { changed ->
-                                viewModel.updateSettings { it.copy(textSize = changed.textSize, textSizeOnCards = changed.textSizeOnCards) }
+                                viewModel.updateSettings {
+                                    it.copy(textSize = changed.textSize, textSizeOnCards = changed.textSizeOnCards, readingView = changed.readingView)
+                                }
                             },
+                            onExternal = lockViewModel::stayOpenThroughNextTrip,
                             onCreateLabel = viewModel.labels::add,
                             modifier = Modifier.sharedNoteBounds(id),
                             snackbarHostState = snackbar,
@@ -475,3 +510,7 @@ private fun Context.shareNote(note: Note, text: String) {
         .putExtra(Intent.EXTRA_TEXT, text)
     startActivity(Intent.createChooser(send, "Notu paylaş"))
 }
+
+/** The folder of the automatic backup as the user would name it: the last part of its path. */
+private fun backupFolderName(folder: String): String =
+    Uri.parse(folder).lastPathSegment?.substringAfterLast(':')?.substringAfterLast('/')?.ifEmpty { null } ?: "Seçildi"
