@@ -15,8 +15,8 @@ android {
         applicationId = "com.vardiya.notlar"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.9.0"
+        versionCode = 13
+        versionName = "1.10.0"
     }
 
     buildTypes {

@@ -24,7 +24,7 @@ object NoteRules {
         label: String? = null,
         manualOrder: List<Long> = emptyList(),
     ): List<Note> {
-        val needle = query.trim().lowercase(Turkish)
+        val needle = fold(query.trim().lowercase(Turkish))
         return notes
             .filter { note ->
                 when (section) {
@@ -113,6 +113,16 @@ object NoteRules {
         NoteFilter.CHECKLIST -> note.isChecklist
     }
 
+    /** What a search looks in: nothing for a locked note, and letters without their Turkish marks (ç ğ ö ş ü). */
     private fun searchText(note: Note): String =
-        (listOf(note.title, note.body) + note.items.map { it.text } + note.labels).joinToString("\n").lowercase(Turkish)
+        if (note.locked) {
+            ""
+        } else {
+            fold((listOf(note.title, note.body) + note.items.map { it.text } + note.labels).joinToString("\n").lowercase(Turkish))
+        }
+
+    /** Lower-case Turkish text with ç, ğ, ö, ş and ü as c, g, o, s and u, so "sut" finds "süt"; ı stays apart from i, and the length stays. */
+    fun fold(lowercased: String): String = lowercased.map { FOLDS[it] ?: it }.joinToString("")
+
+    private val FOLDS = mapOf('ç' to 'c', 'ğ' to 'g', 'ö' to 'o', 'ş' to 's', 'ü' to 'u')
 }

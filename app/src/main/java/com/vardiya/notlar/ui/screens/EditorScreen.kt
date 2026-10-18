@@ -11,6 +11,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -171,6 +173,7 @@ fun EditorScreen(
     onSettingsChange: (Settings) -> Unit = {},
     onCreateLabel: (String) -> Unit = {},
     onExternal: () -> Unit = {},
+    onLockUnavailable: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     today: LocalDate = LocalDate.now(),
 ) {
@@ -346,6 +349,15 @@ fun EditorScreen(
                         readingView = settings.readingView,
                         onReadingView = { onSettingsChange(settings.copy(readingView = it)) },
                         onAddImage = { sheet = EditorSheet.IMAGE },
+                        onToggleLock = {
+                            if (!settings.lockEnabled && !draft.locked) {
+                                haptics.reject()
+                                onLockUnavailable()
+                            } else {
+                                haptics.toggle(!draft.locked)
+                                draft = draft.copy(locked = !draft.locked)
+                            }
+                        },
                         onExportText = {
                             onExternal()
                             exportText.launch("$exportName.txt")
@@ -558,6 +570,7 @@ private fun MoreMenu(
     readingView: Boolean,
     onReadingView: (Boolean) -> Unit,
     onAddImage: () -> Unit,
+    onToggleLock: () -> Unit,
     onExportText: () -> Unit,
     onExportMarkdown: () -> Unit,
     haptics: Haptics,
@@ -574,6 +587,14 @@ private fun MoreMenu(
             Icon(Icons.Filled.MoreVert, contentDescription = "Diğer seçenekler")
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(if (note.locked) "Kilidi kaldır" else "Notu kilitle") },
+                leadingIcon = { Icon(if (note.locked) Icons.Outlined.LockOpen else Icons.Outlined.Lock, contentDescription = null) },
+                onClick = {
+                    open = false
+                    onToggleLock()
+                },
+            )
             DropdownMenuItem(
                 text = { Text("Resim ekle") },
                 leadingIcon = { Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null) },

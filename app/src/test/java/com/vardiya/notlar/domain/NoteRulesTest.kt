@@ -194,4 +194,14 @@ class NoteRulesTest {
         assertFalse(Note(1, images = listOf("a.jpg")).isBlank)
         assertEquals("Başlık\n\nSelam **dünya**".replace("**", ""), NoteRules.shareText(Note(1, title = "Başlık", body = "Selam **dünya**")))
     }
+
+    @Test
+    fun searchIgnoresTurkishMarksAndSkipsLockedNotes() {
+        assertEquals(listOf(1L), NoteRules.visible(notes, Section.NOTES, query = "sut").map { it.id })
+        assertEquals(listOf(2L), NoteRules.visible(notes, Section.NOTES, query = "PLANI").map { it.id })
+        val withLocked = notes + Note(9, title = "Gizli parola", locked = true, updatedAt = 50)
+        assertTrue(NoteRules.visible(withLocked, Section.NOTES, query = "gizli").isEmpty())
+        assertEquals(listOf(9L, 2L, 3L, 1L).size, NoteRules.visible(withLocked, Section.NOTES).size)
+        assertEquals(listOf(0..2), NoteEdits.matchRanges("Süt iç", "SUT"))
+    }
 }

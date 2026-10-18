@@ -38,6 +38,10 @@ data class Note(
     val labels: List<String> = emptyList(),
     /** File names of the pictures in the note, in the order they were added; see `ImageStore`. */
     val images: List<String> = emptyList(),
+    /** Needs the app PIN to open; cards hide its content and search skips it. Dormant while the app lock is off. */
+    val locked: Boolean = false,
+    /** Pictures as base64 by file name; only present inside a backup file, never in the stored notes. */
+    val embeddedImages: Map<String, String> = emptyMap(),
 ) {
     val isTrashed: Boolean get() = trashedAt != null
 

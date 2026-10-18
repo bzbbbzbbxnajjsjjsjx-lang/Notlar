@@ -9,6 +9,7 @@ import android.net.Uri
 import android.util.LruCache
 import androidx.core.content.FileProvider
 import java.io.File
+import java.util.Base64
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -69,6 +70,19 @@ class ImageStore(context: Context) {
     fun newCameraTarget(): Uri {
         val file = File(cameraDir, "foto-${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(appContext, "${appContext.packageName}.files", file)
+    }
+
+    /** A picture as base64 for a backup file; null if the file is gone. */
+    suspend fun encode(name: String): String? = withContext(Dispatchers.IO) {
+        File(dir, name).takeIf { it.isFile }?.let { Base64.getEncoder().encodeToString(it.readBytes()) }
+    }
+
+    /** Writes a picture from a backup back into the store, under the name the notes use. */
+    suspend fun restore(name: String, base64: String) = withContext(Dispatchers.IO) {
+        // Names come from a file the user opened; only plain file names are written, never paths.
+        if (name == File(name).name && name.endsWith(".jpg")) {
+            runCatching { File(dir, name).writeBytes(Base64.getDecoder().decode(base64)) }
+        }
     }
 
     /** Removes the camera's temporary files once the pictures are copied. */

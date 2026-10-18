@@ -113,6 +113,12 @@ fun NotlarApp(
         openId = note.id
     }
 
+    // A locked note asks for the PIN before it opens (once the app lock is on; until then it just opens).
+    var noteToUnlock by remember { mutableStateOf<Note?>(null) }
+    fun openAskingPin(note: Note) {
+        if (note.locked && settings.lockEnabled) noteToUnlock = note else open(note)
+    }
+
     val currentOnConsume by rememberUpdatedState(onLaunchActionConsume)
     LaunchedEffect(launchAction) {
         val action = launchAction ?: return@LaunchedEffect
@@ -122,7 +128,7 @@ fun NotlarApp(
             is LaunchAction.Shared -> open(viewModel.createFromShare(action.text, action.subject))
             // Opened as pending, so the editor never starts blank while the list is still loading.
             // A note deleted since the reminder or widget was set opens nothing.
-            is LaunchAction.Open -> viewModel.find(action.noteId)?.let(::open)
+            is LaunchAction.Open -> viewModel.find(action.noteId)?.let(::openAskingPin)
         }
         currentOnConsume()
     }
@@ -173,8 +179,8 @@ fun NotlarApp(
             message("Parola kayboldu; şifreli yedek için tekrar dışa aktar")
             return@rememberLauncherForActivityResult
         }
-        val backup = viewModel.exportBackup()
         scope.launch {
+            val backup = viewModel.exportBackup()
             val written = runCatching {
                 // Sealing runs PBKDF2, which is slow on purpose; keep it off the main thread.
                 val content = withContext(Dispatchers.Default) { password?.let { Security.sealBackup(backup, it) } ?: backup }
@@ -306,7 +312,25 @@ fun NotlarApp(
     // Full-screen steps that replace the lists: asking the current PIN, choosing a new one, and
     // notes that cannot be read on this device.
     val check = pinCheck
-    if (check != null || pinSetup || notesUnreadable) {
+    val unlocking = noteToUnlock
+    val otherStep = check != null || pinSetup || notesUnreadable
+    if (unlocking != null && !otherStep) {
+        BackHandler { noteToUnlock = null }
+        LockScreen(
+            title = "Kilitli notu aç",
+            onPin = { pin ->
+                lockViewModel.tryPin(pin).also { result ->
+                    if (result == UnlockResult.Opened) {
+                        noteToUnlock = null
+                        open(unlocking)
+                    }
+                }
+            },
+            onCancel = { noteToUnlock = null },
+        )
+        return
+    }
+    if (otherStep) {
         when {
             check != null -> {
                 BackHandler { pinCheck = null }
@@ -378,7 +402,7 @@ fun NotlarApp(
                             selection = emptyList()
                             section = it
                         },
-                        onOpen = { openId = it.id },
+                        onOpen = ::openAskingPin,
                         onNewNote = { open(viewModel.newNote()) },
                         onNewChecklist = { open(viewModel.newChecklist()) },
                         onPasteNote = {
@@ -455,6 +479,7 @@ fun NotlarApp(
                                 }
                             },
                             onExternal = lockViewModel::stayOpenThroughNextTrip,
+                            onLockUnavailable = { message("Önce Ayarlar > Gizlilik'ten uygulama kilidini aç") },
                             onCreateLabel = viewModel.labels::add,
                             modifier = Modifier.sharedNoteBounds(id),
                             snackbarHostState = snackbar,

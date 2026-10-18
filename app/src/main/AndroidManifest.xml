@@ -35,6 +35,18 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- Quick Settings tile that starts a new note; the system binds to it, nothing else may. -->
+        <service
+            android:name=".tile.NewNoteTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_shortcut_note"
+            android:label="@string/tile_new_note"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <!-- Hands the camera app a file to write a picture to; only the cache folder for it is shared. -->
         <provider
             android:name="androidx.core.content.FileProvider"

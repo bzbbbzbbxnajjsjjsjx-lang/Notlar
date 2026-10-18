@@ -163,6 +163,11 @@ class ScreenshotTest {
         Editor(note, Settings(readingView = true))
     }
 
+    @Test fun notesWithLockedNote() = capture("notes_locked") {
+        val locked = Note(9, title = "Banka şifreleri", body = "gizli", locked = true, color = NoteColor.SAND, updatedAt = now - 500)
+        Main(Section.NOTES, list = notes + locked)
+    }
+
     @Test fun notesManualOrder() = capture("notes_manual") {
         Main(Section.NOTES, settings = Settings(sort = NoteSort.MANUAL, manualOrder = listOf(3, 5, 4)))
     }

@@ -186,12 +186,17 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         it.copy(manualOrder = NoteRules.reorder(it.manualOrder, shownIds, from, to))
     }
 
-    fun exportBackup(): String = repository.encodeBackup(notes.value)
+    /** All notes as a backup file's text, with their pictures inside it. */
+    suspend fun exportBackup(): String = repository.encodeBackup(
+        notes.value.map { note -> note.copy(embeddedImages = note.images.mapNotNull { name -> images.encode(name)?.let { name to it } }.toMap()) },
+    )
 
     /** Adds the notes of a backup file; returns how many it held, or null if it is not a backup. */
     suspend fun importBackup(raw: String): Int? {
         val imported = repository.decodeBackup(raw) ?: return null
-        repository.edit { NoteEdits.merge(it, imported) }
+        // Pictures go back into the store; the notes keep only their file names.
+        imported.forEach { note -> note.embeddedImages.forEach { (name, data) -> images.restore(name, data) } }
+        repository.edit { NoteEdits.merge(it, imported.map { note -> note.copy(embeddedImages = emptyMap()) }) }
         return imported.size
     }
 

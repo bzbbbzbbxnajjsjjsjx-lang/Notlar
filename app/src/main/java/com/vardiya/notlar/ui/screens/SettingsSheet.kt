@@ -239,7 +239,12 @@ internal fun SettingsContent(
                         )
                     }
                 }
-                add { InfoRow(Icons.Outlined.Shield, "Otomatik yedek şifresiz yazılır; klasörü güvenli bir yerde tut. Resimler yedeğe girmez.") }
+                add {
+                    InfoRow(
+                        Icons.Outlined.Shield,
+                        "Otomatik yedek şifresiz yazılır; klasörü güvenli bir yerde tut. Resimler yedeğe girer, dosya büyür.",
+                    )
+                }
             },
         )
         SettingsGroup(

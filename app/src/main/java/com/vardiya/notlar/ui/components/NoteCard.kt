@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
@@ -84,6 +85,12 @@ fun NoteCard(
     textScale: Float = 1f,
     nowMillis: Long = System.currentTimeMillis(),
 ) {
+    // A locked note shows nothing of itself but a lock; its colour, pin and reminder time stay.
+    val note = if (note.locked) {
+        note.copy(title = "", body = "", isChecklist = false, items = emptyList(), images = emptyList(), labels = emptyList())
+    } else {
+        note
+    }
     val palette = notePalette
     val interactions = remember { MutableInteractionSource() }
     // Expressive shape motion: corners round out while pressed and more when selected.
@@ -162,6 +169,7 @@ fun NoteCard(
                     }
                 }
             }
+            if (note.locked) LockedPreview()
             when {
                 note.isChecklist -> ChecklistPreview(note, highlight, textScale)
                 note.body.isNotBlank() -> Text(
@@ -173,6 +181,15 @@ fun NoteCard(
             }
             NoteChips(note, nowMillis = nowMillis)
         }
+    }
+}
+
+/** What a locked note shows in place of its text. */
+@Composable
+private fun LockedPreview() {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(20.dp))
+        Text("Kilitli not", style = MaterialTheme.typography.titleMedium)
     }
 }
 

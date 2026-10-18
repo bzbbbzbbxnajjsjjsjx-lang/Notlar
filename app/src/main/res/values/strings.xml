@@ -3,6 +3,8 @@
     <!-- Launcher shortcuts are resources because the system reads them from XML. -->
     <string name="shortcut_new_note">Yeni not</string>
     <string name="shortcut_new_checklist">Yeni liste</string>
+    <!-- The Quick Settings tile's name comes from the manifest. -->
+    <string name="tile_new_note">Yeni not</string>
     <!-- The widget picker reads these from the manifest. -->
     <string name="widget_checklist">Yapılacak listesi</string>
     <string name="widget_checklist_description">Bir yapılacak listesini ana ekranda gösterir; maddeler buradan işaretlenir.</string>

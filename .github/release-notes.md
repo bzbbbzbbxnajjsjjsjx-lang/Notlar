@@ -4,6 +4,12 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.10.0)
+- **Not başına kilit:** Yazma ekranında ⋮ > *Notu kilitle*. Kilitli notun kartında içerik görünmez, yalnızca "Kilitli not" yazar; açmak için uygulama PIN'i sorulur, arama kilitli notların içine bakmaz. Uygulama kilidi kapalıyken not kilidi bekler (önce Ayarlar > Gizlilik'ten uygulama kilidini aç).
+- **Hızlı ekleme:** Bildirim çubuğunu aşağı çekip düzenle'den *Yeni not* kutucuğunu ekle; tek dokunuşla boş bir not açılır.
+- **Resimler yedekte:** Dışa aktarılan ve otomatik yedek dosyalarına artık resimler de girer; içe aktarınca geri gelir. Dosya resim sayısı kadar büyür.
+- **Aramada Türkçe harfler:** "sut" yazınca "Süt", "kasik" yazınca "Kaşık" bulunur (ç, ğ, ö, ş, ü). *ı* ile *i* ayrı kalır.
+
 ### Yenilikler (1.9.0)
 - **Resim ekleme:** Yazma ekranında biçim satırındaki resim düğmesiyle (ya da ⋮ > Resim ekle) galeriden ya da kameradan resim ekle. Resimler notun altında küçük görünür, dokununca büyür, çarpıyla kaldırılır; kartta ilk resmin önizlemesi çıkar. Resimler telefonun özel alanında saklanır, yedek dosyasına girmez.
 - **Sürükleyerek sıralama:** Ayarlar > Sıralama > *Elle* seçince bir kartı basılı tutup sürükleyerek yerini değiştir. Sabitlenenler kendi aralarında sıralanır. Sürüklemeden basılı tutmak kartı eskisi gibi seçer.

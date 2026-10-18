@@ -30,9 +30,11 @@ before calling a change done.
   repeats), `Labels.kt` (label names, rename/merge/delete).
 - `data/NoteRepository.kt` — all notes as one JSON list in Preferences DataStore. `ImageStore.kt`
   keeps note pictures as JPEGs in `filesDir/images` (notes hold file names; unused files are deleted
-  at start; they are not in backups). `AutoBackup.kt` writes the daily JSON backup into a SAF folder.
+  at start; backups carry them base64 in `Note.embeddedImages`, never in stored notes). `AutoBackup.kt` writes the daily JSON backup into a SAF folder.
 - `ui/NotesViewModel.kt` — single `AndroidViewModel`; saving a blank note removes it. It keeps
   reminder alarms in step with the stored notes and refreshes the widgets.
+- `tile/NewNoteTileService.kt` — Quick Settings tile that opens a new note. A note's `locked` flag asks for
+  the app PIN in `NotlarApp.openAskingPin`; cards hide its content and search skips it.
 - `reminders/` — `ReminderScheduler` (one AlarmManager alarm per note), `ReminderReceiver` (rings,
   re-sets alarms after boot/update/clock change), `ReminderNotifier` (hides content while locked).
 - `widget/` — Jetpack Glance widgets: `ChecklistWidget` (a chosen to-do list, checkable; hidden

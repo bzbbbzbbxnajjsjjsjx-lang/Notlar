@@ -59,12 +59,12 @@ object NoteEdits {
     }
 
     /**
-     * Where [query] occurs in [text], ignoring case the Turkish way (I/ı and İ/i are different
-     * letters), as the search itself does; empty for a blank query.
+     * Where [query] occurs in [text], ignoring case the Turkish way and the Turkish marks on letters
+     * ("sut" finds "Süt", "ISIK" finds "ışık"), as the search itself does; empty for a blank query.
      */
     fun matchRanges(text: String, query: String): List<IntRange> {
-        val needle = query.trim().lowercase(turkish)
-        val haystack = text.lowercase(turkish)
+        val needle = NoteRules.fold(query.trim().lowercase(turkish))
+        val haystack = NoteRules.fold(text.lowercase(turkish))
         // Lowercasing that changes the length would shift every index; such text is not highlighted.
         if (needle.isEmpty() || haystack.length != text.length) return emptyList()
         val ranges = mutableListOf<IntRange>()
