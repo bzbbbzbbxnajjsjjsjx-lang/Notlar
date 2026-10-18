@@ -1,0 +1,1 @@
+Not ve yapılacaklar listesi; hatırlatıcı, etiket ve ana ekran widget'ları.

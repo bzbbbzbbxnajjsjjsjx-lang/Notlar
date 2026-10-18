@@ -35,6 +35,11 @@ android {
     buildFeatures {
         compose = true
     }
+    // F-Droid rejects the signed dependency block AGP adds to the APK by default.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
     testOptions {
         // Robolectric screenshot tests need the app's resources and theme.
         unitTests.isIncludeAndroidResources = true

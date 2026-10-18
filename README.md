@@ -20,6 +20,11 @@ Kaynak dosya `docs/m3e-canvas.json`; M3E Canvas'ta *Open project* ile açılır.
 
 Yazı tipi Google Sans Flex, SIL Open Font License ile dağıtılır (`docs/google-sans-flex-OFL.txt`); APK'da yalnızca Latin harfleri ve uygulamanın kullandığı eksenler vardır.
 
+## Kurulum
+
+- **GitHub Releases:** son sürümün `Notlar-v*.apk` dosyasını indir.
+- **F-Droid:** `fastlane/metadata/android/tr-TR/` F-Droid'in okuduğu mağaza bilgisini (ad, açıklama, ekran görüntüleri, sürüm notu) içerir. Her sürümde `versionCode` ile aynı adlı `changelogs/<versionCode>.txt` eklenir.
+
 ## Derleme
 
 ```bash

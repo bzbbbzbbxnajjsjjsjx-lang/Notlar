@@ -67,7 +67,8 @@ them when the layout is not obvious.
 ## Releasing
 
 Bump `versionCode` and `versionName` in `app/build.gradle.kts` and add a "Yenilikler (x.y.z)"
-section at the top of `.github/release-notes.md`. Pushing a `v*` tag, or running the workflow
+section at the top of `.github/release-notes.md`; also add `fastlane/metadata/android/tr-TR/changelogs/<versionCode>.txt`
+(F-Droid, max 500 bytes). Pushing a `v*` tag, or running the workflow
 with `release_tag`, publishes the release APK as a GitHub release.
 
 ## Agents

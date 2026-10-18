@@ -1,0 +1,11 @@
+Notlar, Material 3 Expressive tasarımıyla yazılmış sade bir not ve yapılacaklar uygulamasıdır. Reklam, hesap ve internet bağlantısı yoktur; notların yalnızca telefonunda durur.
+
+<ul>
+<li>Notlar iki sütunlu kartlarda görünür, sabitlenenler üstte kalır. Arama ve Tümü / Notlar / Yapılacaklar süzgeçleri vardır.</li>
+<li>Yazma ekranında otomatik kayıt, yapılacak listesine çevirme, renk, arşivleme, paylaşma ve silme bulunur.</li>
+<li>Silinen notlar 30 gün çöp kutusunda bekler.</li>
+<li>Notlara tarih ve saat koyup günlük, haftalık ya da aylık tekrarlanan hatırlatıcılar kurabilirsin.</li>
+<li>Etiketlerle notlarını düzenler, ana ekranda etikete göre süzersin.</li>
+<li>Ana ekran widget'larıyla bir listeyi işaretler, tek dokunuşla yeni not açarsın.</li>
+<li>Uygulama kilidi, açık / koyu / sistem teması, duvar kağıdından dinamik renkler ve JSON yedeği.</li>
+</ul>

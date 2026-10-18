@@ -1,0 +1,1 @@
+- Açılış hatası düzeltildi: uygulama açılmadan kapanıyordu (1.7.0 ve 1.7.1).
