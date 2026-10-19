@@ -35,6 +35,7 @@ import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.GenreShare
 import com.vardiya.sludge.domain.chartLabel
 import java.time.format.TextStyle
+import kotlin.math.roundToInt
 import java.util.Locale
 
 private val TR = Locale.forLanguageTag("tr-TR")
@@ -109,7 +110,7 @@ private const val GAP_DEG = 4f
 /** One legend row of the ring: the genre's colour, name, count and share. */
 @Composable
 fun GenreLegendRow(share: GenreShare, modifier: Modifier = Modifier) {
-    val percent = (share.fraction * PERCENT).toInt()
+    val percent = (share.fraction * PERCENT).roundToInt()
     Row(
         modifier.fillMaxWidth().semantics(mergeDescendants = true) {
             contentDescription = "${share.genre.chartLabel}: ${share.count} şarkı, yüzde $percent"

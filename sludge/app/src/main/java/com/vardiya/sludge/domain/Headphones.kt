@@ -11,6 +11,8 @@ data class HeadphoneProfile(
     val source: String,
     val preampDb: Float,
     val correction: List<Float>,
+    /** Other names the Bluetooth device may announce itself with. */
+    val aliases: List<String> = emptyList(),
 ) {
     init {
         require(correction.size == BAND_COUNT) { "expected $BAND_COUNT bands, got ${correction.size}" }
@@ -32,6 +34,7 @@ object Headphones {
         source = "AutoEq, Rtings ölçümü, Harman over-ear 2018 hedefi",
         preampDb = -6.1f,
         correction = listOf(6.6f, -2.9f, -0.3f, -0.4f, 0.6f, -1.5f, 2.1f, -1.9f, 2.8f, 5.2f),
+        aliases = listOf("JBL T520BT", "JBL 520BT", "520BT"),
     )
 
     val all: List<HeadphoneProfile> = listOf(JBL_TUNE_520BT)
@@ -40,7 +43,11 @@ object Headphones {
     const val DEFAULT_ID = "jbl_tune_520bt"
 
     fun byId(id: String?): HeadphoneProfile? = all.firstOrNull { it.id == id }
-}
 
-/** What the equalizer is actually set to: the chosen curve through the headphone correction, if one is selected. */
-fun EqSettings.effectiveBands(): List<Float> = Headphones.byId(headphoneId)?.applyTo(bands) ?: bands
+    /** What was stored: nothing yet means the default, an empty string means the person chose none. */
+    fun fromStored(stored: String?): String? = when (stored) {
+        null -> DEFAULT_ID
+        "" -> null
+        else -> stored
+    }
+}

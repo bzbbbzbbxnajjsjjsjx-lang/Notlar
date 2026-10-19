@@ -36,13 +36,14 @@ imports nothing from Android and holds every rule, so every rule has a unit test
   - `NowPlaying.kt` — which media session to follow (`pickCurrent`). `Status.kt` — the line the home screen leads with.
   - `ListenStats.kt` — the listening log and the charts' numbers.
   - `Headphones.kt` — headphone correction profiles (ten band gains and a preamp) and `effectiveBands()`, the curve the
-    equalizer is really set to. `LastFm.kt` — Last.fm requests, answers and tag filtering, the `TagSource` port, `withTags`.
+    equalizer is really set to. `OutputRoute.kt` — where the sound goes (speaker, wired, Bluetooth with names) and whether a
+    profile applies to it. `LastFm.kt` — Last.fm requests, answers and tag filtering, the `TagSource` port, `withTags`.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; the API key goes through `KeyCipher`,
   an Android Keystore AES-GCM key), `AiClient.kt` (`Transport`, `AiTuner` implements `ProfileSource`),
   `RepoTuneStore` implements `TuneStore`, `LastFmClient` and `LastFmTagSource` (tags cached on disk, nothing asked without a key).
 - `audio/` — Android adapters: `EffectEngine` (Equalizer, BassBoost, Virtualizer, LoudnessEnhancer per audio session),
   `SludgeListenerService` (notification access, only used to read media sessions), `AudioSessionReceiver` (players
-  announce their audio session through the audio-effect broadcast).
+  announce their audio session through the audio-effect broadcast), `OutputMonitor` (which output devices are connected).
 - `app/` — `SludgeRuntime` is the composition root and the one object the UI and the Android entry points talk to.
   `EqController` keeps the effects in step with the settings and runs audio sessions through one queue (a close can
   never overtake its open). `TuneCoordinator` follows the player through one pipeline (a newer request replaces an
@@ -63,10 +64,14 @@ while it was being worked out; the AI button always asks the AI again, even for 
 - The home screen leads with the real state (`statusOf`): Kapalı, Kurulum gerekli, Çalar bekleniyor, Ses işleniyor.
   Effects only exist on audio sessions a player has announced; without one the equalizer cannot change the sound, and
   the screen says so.
-- Genre evidence, best first: Last.fm tags (added to the track by `TuneCoordinator`, most popular first; the first tag that
-  names a genre decides), the player's own tag, the artist list, words in the title and album.
+- Genre evidence, best first: the tags (the player's own, then Last.fm's, most popular first; the first tag that names a
+  genre decides; a tag that also names another scene such as pop or house is skipped; a bare "noise" or "ambient" tag counts
+  only as a whole tag), then the artist list, then words in the album and title. Last.fm tags are short plain names only
+  (no sentences or markup), fetched with a timeout, and never hold the tuning back.
 - Headphone correction: the curve the person or the AI chose is kept; the profile's correction and preamp are added on top
-  when the equalizer is applied (`effectiveBands`). The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
+  when the equalizer is applied (`effectiveBands(route)`), but only while that headphone is the output (matched by its
+  Bluetooth name, spelling-insensitive; a Bluetooth name that cannot be read counts as a match; speaker, wired and other
+  Bluetooth devices never get it). "Her çıkışta uygula" forces it. The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
   target, Rtings B&K 5128 measurement); another headphone needs its own measured profile, never a guessed one.
 - Tuning: AI when a key is set and the request works, the offline genre guess otherwise. Harsh noise keeps the treble
   down and the loudness gain off; AI answers are clamped to the same limits.

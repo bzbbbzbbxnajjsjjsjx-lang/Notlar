@@ -3,6 +3,7 @@ package com.vardiya.sludge.app
 import android.content.Context
 import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
+import com.vardiya.sludge.audio.OutputMonitor
 import com.vardiya.sludge.data.AiTuner
 import com.vardiya.sludge.data.LastFmClient
 import com.vardiya.sludge.data.LastFmTagSource
@@ -19,6 +20,7 @@ import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.NowPlaying
+import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.TrackInfo
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -47,9 +49,11 @@ class SludgeRuntime private constructor(context: Context) {
     private val aiTuner = AiTuner()
     private val lastFm = LastFmClient()
     private val models = ModelCatalog()
+    private val output = OutputMonitor(context)
 
     private val engine = EffectEngine()
     val engineState: StateFlow<EngineState> = engine.state
+    val route: StateFlow<OutputRoute> = output.route
     val settings: StateFlow<EqSettings> = repo.settings.stateIn(scope, SharingStarted.Eagerly, EqSettings())
     val ai: StateFlow<AiConfig> = repo.ai.stateIn(scope, SharingStarted.Eagerly, AiConfig())
     val history: StateFlow<List<ListenEntry>> = repo.history.stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -57,7 +61,7 @@ class SludgeRuntime private constructor(context: Context) {
     private val _nowPlaying = MutableStateFlow(NowPlaying())
     val nowPlaying: StateFlow<NowPlaying> = _nowPlaying.asStateFlow()
 
-    private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, repo)
+    private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, repo, output.route)
     private val tuning = TuneCoordinator(
         scope, nowPlaying, RepoTuneEnvironment(repo), AutoTuner(RepoTuneStore(repo), aiTuner), LastFmTagSource(lastFm, repo),
     )

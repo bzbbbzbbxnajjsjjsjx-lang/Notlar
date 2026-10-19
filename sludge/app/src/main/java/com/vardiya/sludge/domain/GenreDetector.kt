@@ -40,36 +40,51 @@ object GenreDetector {
         ),
     )
 
+    // Phrases that name a genre. Bare "noise" and "ambient" are too loose to match inside a longer tag, see [exactTags].
     private val keywords: Map<Genre, List<String>> = mapOf(
-        Genre.STONER to listOf("stoner", "desert rock", "fuzz"),
-        Genre.DOOM to listOf("doom", "sludge", "funeral"),
+        Genre.STONER to listOf("stoner", "desert rock"),
+        Genre.DOOM to listOf("doom", "sludge", "funeral doom"),
         Genre.PSYCH to listOf("psychedelic", "psychedelia", "psych", "krautrock", "space rock", "acid rock"),
-        Genre.NOISE_ROCK to listOf("noise rock", "math rock", "no wave", "post-hardcore"),
-        Genre.HARSH_NOISE to listOf("harsh noise", "power electronics", "noise", "japanoise"),
-        Genre.DRONE to listOf("drone", "ambient", "dark ambient", "ritual"),
-        Genre.SHOEGAZE to listOf("shoegaze", "dream pop", "blackgaze", "post-rock"),
+        Genre.NOISE_ROCK to listOf("noise rock", "no wave"),
+        Genre.HARSH_NOISE to listOf("harsh noise", "power electronics", "japanoise", "noise wall", "wall noise"),
+        Genre.DRONE to listOf("drone", "dark ambient"),
+        Genre.SHOEGAZE to listOf("shoegaze", "blackgaze", "post-rock"),
     )
 
-    // Specific wins over generic: "harsh noise" before "noise", "noise rock" before both.
+    // A whole tag that means one genre, though the same word inside a longer tag ("noise pop") does not.
+    private val exactTags: Map<String, Genre> = mapOf("noise" to Genre.HARSH_NOISE, "ambient" to Genre.DRONE)
+
+    // A tag that also names one of these is another scene's music ("psychedelic pop", "ambient house").
+    private val otherScenes = listOf("pop", "house", "techno", "hip hop", "rap", "disco", "dance", "country", "jazz")
+
+    // Specific wins over generic: "noise rock" before "harsh noise", both before the rest.
     private val order = listOf(
         Genre.NOISE_ROCK, Genre.HARSH_NOISE, Genre.DOOM, Genre.STONER, Genre.DRONE, Genre.PSYCH, Genre.SHOEGAZE,
     )
 
+    /**
+     * The evidence, best first: the tags (Last.fm's most popular first, so the first tag that names a genre decides),
+     * then the artist list, then words in the album and title.
+     */
     fun detect(track: TrackInfo): Guess {
+        for (tag in track.genreTag.split(tagSeparators).map(::normalize).filter { it.isNotEmpty() }) {
+            genreOfTag(tag)?.let { return Guess(it, confident = true) }
+        }
         val names = artistNames(track.artist)
         for (genre in artists.keys) {
             if (artists.getValue(genre).any { it in names }) return Guess(genre, confident = true)
         }
-        val haystack = normalize("${track.genreTag} ${track.album} ${track.title}")
-        // Tags come most popular first (Last.fm's order), so the first tag that names a genre decides.
-        for (tag in track.genreTag.split(tagSeparators).map(::normalize).filter { it.isNotEmpty() }) {
-            order.firstOrNull { genre -> keywords.getValue(genre).any { matchesWord(tag, it) } }
-                ?.let { return Guess(it, confident = true) }
-        }
+        val words = normalize("${track.album} ${track.title}")
         for (genre in order) {
-            if (keywords.getValue(genre).any { matchesWord(haystack, it) }) return Guess(genre, confident = false)
+            if (keywords.getValue(genre).any { matchesWord(words, it) }) return Guess(genre, confident = false)
         }
         return Guess(Genre.FLAT, confident = false)
+    }
+
+    private fun genreOfTag(tag: String): Genre? {
+        exactTags[tag]?.let { return it }
+        if (otherScenes.any { matchesWord(tag, it) }) return null
+        return order.firstOrNull { genre -> keywords.getValue(genre).any { matchesWord(tag, it) } }
     }
 
     /** Lower case with Turkish rules, dotless ı folded to i so "KYUSS" and "Kyuss" compare equal. */

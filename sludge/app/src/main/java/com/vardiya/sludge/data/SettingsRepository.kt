@@ -95,11 +95,8 @@ class SettingsRepository(context: Context) {
             explanation = this[EXPLANATION].orEmpty(),
             source = runCatching { TuneSource.valueOf(this[SOURCE].orEmpty()) }.getOrDefault(TuneSource.MANUAL),
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.
-            headphoneId = when (val stored = this[HEADPHONE]) {
-                null -> Headphones.DEFAULT_ID
-                "" -> null
-                else -> stored
-            },
+            headphoneId = Headphones.fromStored(this[HEADPHONE]),
+            headphoneAlways = this[HEADPHONE_ALWAYS] ?: false,
         )
     }
 
@@ -129,6 +126,7 @@ class SettingsRepository(context: Context) {
         this[EXPLANATION] = s.explanation
         this[SOURCE] = s.source.name
         this[HEADPHONE] = s.headphoneId.orEmpty()
+        this[HEADPHONE_ALWAYS] = s.headphoneAlways
     }
 
     private companion object {
@@ -142,6 +140,7 @@ class SettingsRepository(context: Context) {
         val EXPLANATION = stringPreferencesKey("explanation")
         val SOURCE = stringPreferencesKey("source")
         val HEADPHONE = stringPreferencesKey("headphone")
+        val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
         val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_MODEL = stringPreferencesKey("ai_model")
         val AI_URL = stringPreferencesKey("ai_url")

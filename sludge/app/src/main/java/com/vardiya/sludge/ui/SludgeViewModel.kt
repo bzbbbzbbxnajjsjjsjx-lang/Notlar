@@ -33,7 +33,9 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.ai) { settings, playing, status, ai ->
         UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, ai = ai)
-    }.combine(combine(runtime.lastFmConfig, runtime.tags, ::Pair)) { ui, (lastFm, tags) -> ui.copy(lastFm = lastFm, tags = tags) }
+    }.combine(combine(runtime.lastFmConfig, runtime.tags, runtime.route, ::Triple)) { ui, (lastFm, tags, route) ->
+        ui.copy(lastFm = lastFm, tags = tags, route = route)
+    }
 
     val state: StateFlow<UiState> = combine(core, runtime.engineState, access, runtime.history) { ui, engine, granted, history ->
         ui.copy(
@@ -68,6 +70,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     override fun setAutoTune(enabled: Boolean) = runtime.update { it.copy(autoTune = enabled) }
 
     override fun setHeadphone(id: String?) = runtime.update { it.copy(headphoneId = id) }
+
+    override fun setHeadphoneAlways(always: Boolean) = runtime.update { it.copy(headphoneAlways = always) }
 
     override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toProfile(), TuneSource.PRESET) }
 

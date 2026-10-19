@@ -9,6 +9,7 @@ import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ModelOption
+import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 
@@ -31,6 +32,8 @@ data class UiState(
     val lastFm: LastFmConfig = LastFmConfig(),
     /** Genre tags Last.fm gave the current track. */
     val tags: List<String> = emptyList(),
+    /** Where the sound is going: the headphone correction is only used on the headphone it was measured for. */
+    val route: OutputRoute = OutputRoute.UNKNOWN,
     val sessions: List<AttachedSession> = emptyList(),
     val globalMixWorks: Boolean? = null,
     val accessGranted: Boolean = false,
@@ -47,6 +50,7 @@ interface SludgeActions {
     fun setLoudness(valueMb: Int) = Unit
     fun setAutoTune(enabled: Boolean) = Unit
     fun setHeadphone(id: String?) = Unit
+    fun setHeadphoneAlways(always: Boolean) = Unit
     fun applyPreset(genre: Genre) = Unit
     fun tuneNow() = Unit
     fun saveAi(config: AiConfig) = Unit

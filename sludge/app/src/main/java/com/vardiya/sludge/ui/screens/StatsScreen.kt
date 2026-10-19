@@ -39,6 +39,7 @@ import com.vardiya.sludge.ui.components.GenreLegendRow
 import com.vardiya.sludge.ui.components.GenreRing
 import com.vardiya.sludge.ui.components.SectionTitle
 import androidx.compose.ui.semantics.semantics
+import kotlin.math.roundToInt
 
 @Composable
 fun StatsScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, modifier: Modifier = Modifier) {
@@ -164,6 +165,6 @@ fun StatsScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
     }
 }
 
-private fun percent(share: GenreShare) = (share.fraction * PERCENT).toInt()
+private fun percent(share: GenreShare) = (share.fraction * PERCENT).roundToInt()
 
 private const val PERCENT = 100

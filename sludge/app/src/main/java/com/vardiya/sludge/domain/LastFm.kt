@@ -41,6 +41,7 @@ object LastFmProtocol {
     private const val BASE = "https://ws.audioscrobbler.com/2.0/"
     private const val MIN_COUNT = 15
     private const val MAX_TAGS = 6
+    private const val MAX_TAG_LENGTH = 32
     private const val NOT_FOUND_CODE = 6
     private const val ERROR_TEXT = 120
 
@@ -52,6 +53,9 @@ object LastFmProtocol {
         "german", "finnish", "japanese", "canadian", "australian", "english",
     )
     private val yearOrDecade = Regex("""\d{2,4}s?""")
+
+    // A tag is a short name, not a sentence: letters, digits and a few joiners only, so it cannot carry instructions.
+    private val plainTag = Regex("""[\p{L}\p{N} &'+./-]{1,$MAX_TAG_LENGTH}""")
 
     fun trackTagsRequest(apiKey: String, track: TrackInfo): HttpRequestSpec =
         request("track.gettoptags", apiKey, "artist" to track.artist, "track" to track.title)
@@ -86,7 +90,7 @@ object LastFmProtocol {
                 entries.mapNotNull { it as? JsonObject }
                     .filter { (it["count"]?.jsonPrimitive?.intOrNull ?: MIN_COUNT) >= MIN_COUNT }
                     .mapNotNull { it["name"]?.jsonPrimitive?.contentOrNull?.trim()?.lowercase() }
-                    .filter { it.isNotEmpty() && !isNoise(it, artist) }
+                    .filter { plainTag.matches(it) && !isNoise(it, artist) }
                     .distinct()
                     .take(MAX_TAGS),
             )

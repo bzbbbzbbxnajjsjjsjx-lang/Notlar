@@ -3,10 +3,13 @@ package com.vardiya.sludge.app
 import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
 import com.vardiya.sludge.data.SettingsRepository
+import com.vardiya.sludge.domain.OutputRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -21,6 +24,7 @@ class EqController(
     audio: CoroutineDispatcher,
     private val engine: EffectEngine,
     private val repo: SettingsRepository,
+    route: Flow<OutputRoute>,
 ) {
     private class Command(val session: Int, val packageName: String?, val done: () -> Unit)
 
@@ -30,7 +34,11 @@ class EqController(
         scope.launch(audio) {
             // Wait for the stored settings before touching the audio, so a restart never flashes the defaults.
             guarded("global mix") { engine.tryGlobalMix(repo.settings.first()) }
-            launch { guarded("settings") { repo.settings.distinctUntilChanged().collect { engine.apply(it) } } }
+            launch {
+                guarded("settings") {
+                    combine(repo.settings, route, ::Pair).distinctUntilChanged().collect { (settings, out) -> engine.apply(settings, out) }
+                }
+            }
             for (command in commands) {
                 try {
                     guarded("audio session ${command.session}") {

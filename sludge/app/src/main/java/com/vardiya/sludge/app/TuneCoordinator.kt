@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Follows the player. A new track that has been playing for a moment is tuned (when auto-tune is on) and counted in
@@ -98,7 +99,17 @@ class TuneCoordinator(
 
     /** The track with its Last.fm tags added; the tags it already had from the player stay first. */
     private suspend fun enrich(track: TrackInfo): TrackInfo {
-        val extra = tagSource.tagsFor(track)
+        // The previous track's tags must not stay on screen while this one's are fetched.
+        _tags.value = emptyList()
+        // Tags are a bonus: a slow or failing source must never hold back the tuning.
+        val extra = try {
+            withTimeoutOrNull(TAG_TIMEOUT_MS) { tagSource.tagsFor(track) }.orEmpty()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            Log.w(TAG, "tags failed: ${e.javaClass.simpleName}")
+            emptyList()
+        }
         _tags.value = extra
         return track.withTags(extra)
     }
@@ -130,5 +141,6 @@ class TuneCoordinator(
     private companion object {
         const val TAG = "Sludge"
         const val TRACK_SETTLE_MS = 1_500L
+        const val TAG_TIMEOUT_MS = 6_000L
     }
 }

@@ -282,4 +282,50 @@ class TuneCoordinatorTest {
         assertEquals(a, ai.lastTrack)
         assertTrue(c.tags.value.isEmpty())
     }
+
+    @Test fun `a hanging tag source does not hold back the tuning`() = runTest {
+        val env = Env()
+        val ai = SlowAi(10, Result.success(profile))
+        val now = MutableStateFlow(NowPlaying())
+        val c = TuneCoordinator(
+            backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { delay(600_000); listOf("late") }, settle,
+        )
+        now.value = playing(a)
+        pass(10_000)
+        assertEquals(1, ai.calls)
+        assertEquals(a, ai.lastTrack)
+        assertTrue(c.tags.value.isEmpty())
+        assertEquals(1, env.listens.size)
+    }
+
+    @Test fun `a failing tag source does not stop the tuning`() = runTest {
+        val env = Env()
+        val ai = SlowAi(10, Result.success(profile))
+        val now = MutableStateFlow(NowPlaying())
+        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { throw IOException("disk") }, settle)
+        now.value = playing(a)
+        pass(PASS_MS)
+        assertEquals(1, ai.calls)
+        assertEquals(1, env.applied.size)
+    }
+
+    @Test fun `the previous track's tags are cleared while the next track's are fetched`() = runTest {
+        val env = Env()
+        val now = MutableStateFlow(NowPlaying())
+        var slow = false
+        val c = TuneCoordinator(
+            backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))),
+            TagSource { if (slow) { delay(3_000); listOf("second") } else listOf("first") }, settle,
+        )
+        now.value = playing(a)
+        pass(PASS_MS)
+        assertEquals(listOf("first"), c.tags.value)
+        slow = true
+        now.value = playing(b)
+        advanceTimeBy(settle + 50)
+        runCurrent()
+        assertTrue(c.tags.value.isEmpty())
+        pass(PASS_MS)
+        assertEquals(listOf("second"), c.tags.value)
+    }
 }

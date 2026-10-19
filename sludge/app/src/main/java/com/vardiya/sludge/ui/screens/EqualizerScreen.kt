@@ -59,6 +59,7 @@ import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
 import com.vardiya.sludge.domain.Health
 import com.vardiya.sludge.domain.MAX_EFFECT
@@ -66,7 +67,10 @@ import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Status
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.chartLabel
+import com.vardiya.sludge.domain.OutputRoute
+import com.vardiya.sludge.domain.correctionActive
 import com.vardiya.sludge.domain.effectiveBands
+import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
@@ -132,7 +136,7 @@ fun EqualizerScreen(
             }
         }
 
-        HeadphoneCard(s.headphoneId, actions)
+        HeadphoneCard(s, state.route, actions)
 
         PresetRow(state, actions)
 
@@ -144,7 +148,7 @@ fun EqualizerScreen(
                 CurvePreview(
                     s.bands,
                     Modifier.fillMaxWidth().height(72.dp).padding(vertical = 8.dp),
-                    overlay = if (s.headphoneId != null) s.effectiveBands() else null,
+                    overlay = if (s.correctionActive(state.route)) s.effectiveBands(state.route) else null,
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
                     // The scale sits beside the columns; the empty text above keeps it level with the bars.
@@ -288,8 +292,9 @@ private fun StatCard(
 
 /** Picks the headphone whose measured response is corrected toward the Harman target, or none. */
 @Composable
-private fun HeadphoneCard(selectedId: String?, actions: SludgeActions) {
+private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: SludgeActions) {
     val scheme = MaterialTheme.colorScheme
+    val selectedId = settings.headphoneId
     val profile = Headphones.byId(selectedId)
     Card(colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -312,6 +317,19 @@ private fun HeadphoneCard(selectedId: String?, actions: SludgeActions) {
                 }
             }
             if (profile != null) {
+                val active = settings.correctionActive(route)
+                Text(
+                    if (active) {
+                        "Düzeltme şu an açık (çıkış: ${route.label()})."
+                    } else {
+                        "Düzeltme beklemede: çıkış ${route.label()}; ${profile.name} bağlanınca kendiliğinden açılır."
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (active) scheme.tertiary else scheme.onSurfaceVariant,
+                )
+                SwitchRow(settings.headphoneAlways, actions::setHeadphoneAlways) {
+                    Text("Her çıkışta uygula", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                }
                 Text(
                     "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır; ön kazanç " +
                         "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", profile.preampDb)} dB uygulanır, " +

@@ -15,6 +15,8 @@ import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.GenreShare
 import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ModelOption
+import com.vardiya.sludge.domain.OutputKind
+import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
@@ -62,6 +64,7 @@ class ScreenshotTest {
         ai = AiConfig(apiKey = "sk-ant-demo-key"),
         lastFm = LastFmConfig("0123456789abcdef0123456789abcdef"),
         tags = listOf("stoner rock", "doom metal", "sludge"),
+        route = OutputRoute(OutputKind.BLUETOOTH, listOf("JBL Tune 520BT")),
     )
 
     private val tuned = playing.copy(settings = playing.settings.copy(bassBoost = 700, virtualizer = 400, loudnessMb = 600))
@@ -96,6 +99,9 @@ class ScreenshotTest {
 
     @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
     fun equalizerTallDark() = capture("equalizer_tall_dark") { Screen(tuned, Tab.EQUALIZER) }
+
+    @Test @Config(qualifiers = "+night")
+    fun equalizerSpeaker() = capture("equalizer_speaker_dark") { Screen(playing.copy(route = OutputRoute(OutputKind.SPEAKER)), Tab.EQUALIZER) }
 
     @Test fun equalizerIdle() = capture("equalizer_idle") { Screen(fresh, Tab.EQUALIZER) }
 
