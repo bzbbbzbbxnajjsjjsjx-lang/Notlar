@@ -7,8 +7,10 @@ import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.NowPlaying
+import com.vardiya.sludge.domain.TagSource
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneCache
+import com.vardiya.sludge.domain.withTags
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,6 +43,7 @@ class TuneCoordinator(
     nowPlaying: Flow<NowPlaying>,
     private val env: TuneEnvironment,
     private val tuner: AutoTuner,
+    private val tagSource: TagSource = TagSource { emptyList() },
     settleMillis: Long = TRACK_SETTLE_MS,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
@@ -48,6 +51,11 @@ class TuneCoordinator(
 
     private val _status = MutableStateFlow<TuneStatus>(TuneStatus.Idle)
     val status: StateFlow<TuneStatus> = _status.asStateFlow()
+
+    private val _tags = MutableStateFlow<List<String>>(emptyList())
+
+    /** The genre tags found for the track being tuned, for the screen to show. */
+    val tags: StateFlow<List<String>> = _tags.asStateFlow()
 
     // Buffered, so a press that comes before the pipeline is listening is not lost; only the newest press is kept.
     private val manualRequests = Channel<TrackInfo>(Channel.CONFLATED)
@@ -69,8 +77,10 @@ class TuneCoordinator(
 
     private suspend fun handle(request: Request) {
         var genre = ""
+        var track = request.track
         try {
-            if (request.manual || env.settings().autoTune) genre = tuneAndApply(request).genre
+            track = enrich(request.track)
+            if (request.manual || env.settings().autoTune) genre = tuneAndApply(request, track).genre
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
@@ -80,16 +90,23 @@ class TuneCoordinator(
         } finally {
             withContext(NonCancellable) {
                 // The listen is counted even when a newer track cancelled the tuning or the tuning failed.
-                if (!request.manual) record(request.track, genre)
+                if (!request.manual) record(track, genre)
                 if (_status.value == TuneStatus.Working) _status.value = TuneStatus.Idle
             }
         }
     }
 
-    private suspend fun tuneAndApply(request: Request): AiProfile {
+    /** The track with its Last.fm tags added; the tags it already had from the player stay first. */
+    private suspend fun enrich(track: TrackInfo): TrackInfo {
+        val extra = tagSource.tagsFor(track)
+        _tags.value = extra
+        return track.withTags(extra)
+    }
+
+    private suspend fun tuneAndApply(request: Request, track: TrackInfo): AiProfile {
         val before = env.settings()
         _status.value = TuneStatus.Working
-        val outcome = tuner.tune(request.track, env.aiConfig(), refresh = request.manual)
+        val outcome = tuner.tune(track, env.aiConfig(), refresh = request.manual)
         // If a slider moved while the AI was thinking, an automatic result must not undo it.
         if (request.manual || !soundChanged(before, env.settings())) env.apply(outcome.profile, outcome.source)
         _status.value = if (request.manual && outcome.failure != null) TuneStatus.Failed(outcome.failure) else TuneStatus.Idle

@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -123,36 +124,49 @@ fun CurvePreview(
     lineColor: Color = MaterialTheme.colorScheme.primary,
     guideColor: Color = MaterialTheme.colorScheme.outlineVariant,
     lineWidth: Float = 3f,
+    /** A second curve drawn dashed on the same scale, e.g. the sound after the headphone correction. */
+    overlay: List<Float>? = null,
+    overlayColor: Color = MaterialTheme.colorScheme.tertiary,
 ) {
     Canvas(modifier) {
         val pad = lineWidth * 2
         val mid = size.height / 2f
         val half = mid - pad
-        fun point(i: Int) = Offset(
-            x = pad + (size.width - 2 * pad) * i / (bands.size - 1).coerceAtLeast(1),
-            y = mid - bands[i].coerceIn(-MAX_GAIN_DB, MAX_GAIN_DB) / MAX_GAIN_DB * half,
-        )
+        fun path(values: List<Float>): Path {
+            val points = values.indices.map { i ->
+                Offset(
+                    x = pad + (size.width - 2 * pad) * i / (values.size - 1).coerceAtLeast(1),
+                    y = mid - values[i].coerceIn(-MAX_GAIN_DB, MAX_GAIN_DB) / MAX_GAIN_DB * half,
+                )
+            }
+            return Path().apply {
+                moveTo(points[0].x, points[0].y)
+                // Catmull-Rom through the points, written as cubic segments.
+                for (i in 0 until points.lastIndex) {
+                    val p0 = points[(i - 1).coerceAtLeast(0)]
+                    val p1 = points[i]
+                    val p2 = points[i + 1]
+                    val p3 = points[(i + 2).coerceAtMost(points.lastIndex)]
+                    cubicTo(
+                        p1.x + (p2.x - p0.x) / 6f, p1.y + (p2.y - p0.y) / 6f,
+                        p2.x - (p3.x - p1.x) / 6f, p2.y - (p3.y - p1.y) / 6f,
+                        p2.x, p2.y,
+                    )
+                }
+            }
+        }
         drawLine(
             guideColor, Offset(0f, mid), Offset(size.width, mid), strokeWidth = 2f,
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f)),
         )
         if (bands.size < 2) return@Canvas
-        val points = bands.indices.map(::point)
-        val path = Path().apply {
-            moveTo(points[0].x, points[0].y)
-            // Catmull-Rom through the points, written as cubic segments.
-            for (i in 0 until points.lastIndex) {
-                val p0 = points[(i - 1).coerceAtLeast(0)]
-                val p1 = points[i]
-                val p2 = points[i + 1]
-                val p3 = points[(i + 2).coerceAtMost(points.lastIndex)]
-                cubicTo(
-                    p1.x + (p2.x - p0.x) / 6f, p1.y + (p2.y - p0.y) / 6f,
-                    p2.x - (p3.x - p1.x) / 6f, p2.y - (p3.y - p1.y) / 6f,
-                    p2.x, p2.y,
-                )
-            }
+        overlay?.takeIf { it.size >= 2 }?.let {
+            drawPath(
+                path(it),
+                overlayColor,
+                style = Stroke(width = lineWidth, cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))),
+            )
         }
-        drawPath(path, lineColor, style = Stroke(width = lineWidth, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+        drawPath(path(bands), lineColor, style = Stroke(width = lineWidth, cap = StrokeCap.Round))
     }
 }

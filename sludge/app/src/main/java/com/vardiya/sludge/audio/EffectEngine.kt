@@ -12,6 +12,7 @@ import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.effectiveBands
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -88,7 +89,7 @@ class EffectEngine {
             runCatching {
                 val range = eq.bandLevelRange
                 val centers = (0 until eq.numberOfBands).map { eq.getCenterFreq(it.toShort()) / MILLI_HZ }
-                val gains = CurveMath.mapToDevice(s.bands, centers)
+                val gains = CurveMath.mapToDevice(s.effectiveBands(), centers)
                 gains.forEachIndexed { band, db ->
                     eq.setBandLevel(band.toShort(), CurveMath.toMillibels(db, range[0].toInt(), range[1].toInt()).toShort())
                 }
@@ -109,7 +110,7 @@ class EffectEngine {
         }
         chain.loud?.let { loud ->
             runCatching {
-                val gain = CurveMath.safeLoudness(s.bands, s.loudnessMb)
+                val gain = CurveMath.safeLoudness(s.effectiveBands(), s.loudnessMb)
                 loud.setTargetGain(gain)
                 loud.enabled = on && gain > 0
             }

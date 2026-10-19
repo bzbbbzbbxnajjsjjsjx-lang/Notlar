@@ -59,12 +59,14 @@ import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.Headphones
 import com.vardiya.sludge.domain.Health
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Status
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.chartLabel
+import com.vardiya.sludge.domain.effectiveBands
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
@@ -115,6 +117,7 @@ fun EqualizerScreen(
             icon = Icons.Filled.Tune,
             label = "Ayar (${s.source.label})",
             value = if (s.genre.isBlank()) "Henüz seçilmedi" else s.genre,
+            detail = state.tags.takeIf { it.isNotEmpty() }?.let { "Last.fm: ${it.joinToString(", ")}" },
             pill = if (s.genre.isBlank()) null else "${s.bassBoost / PERCENT_STEP}% bas",
             pillContainer = MaterialTheme.colorScheme.tertiary,
             pillContent = MaterialTheme.colorScheme.onTertiary,
@@ -129,6 +132,8 @@ fun EqualizerScreen(
             }
         }
 
+        HeadphoneCard(s.headphoneId, actions)
+
         PresetRow(state, actions)
 
         ActionRow(state, actions)
@@ -136,7 +141,11 @@ fun EqualizerScreen(
         ElevatedCard {
             Column(Modifier.padding(16.dp)) {
                 SectionTitle("Bantlar (Hz)")
-                CurvePreview(s.bands, Modifier.fillMaxWidth().height(64.dp).padding(vertical = 8.dp))
+                CurvePreview(
+                    s.bands,
+                    Modifier.fillMaxWidth().height(72.dp).padding(vertical = 8.dp),
+                    overlay = if (s.headphoneId != null) s.effectiveBands() else null,
+                )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
                     // The scale sits beside the columns; the empty text above keeps it level with the bars.
                     Column {
@@ -246,6 +255,7 @@ private fun StatCard(
     pill: String?,
     pillContainer: Color,
     pillContent: Color,
+    detail: String? = null,
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(
@@ -257,6 +267,9 @@ private fun StatCard(
             Column(Modifier.weight(1f)) {
                 Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(value, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                detail?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+                }
             }
             if (pill != null) {
                 Surface(shape = CircleShape, color = pillContainer, contentColor = pillContent) {
@@ -268,6 +281,44 @@ private fun StatCard(
                         maxLines = 1,
                     )
                 }
+            }
+        }
+    }
+}
+
+/** Picks the headphone whose measured response is corrected toward the Harman target, or none. */
+@Composable
+private fun HeadphoneCard(selectedId: String?, actions: SludgeActions) {
+    val scheme = MaterialTheme.colorScheme
+    val profile = Headphones.byId(selectedId)
+    Card(colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)) {
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Icon(Icons.Filled.Headphones, contentDescription = null, tint = scheme.onSurfaceVariant)
+                Column(Modifier.weight(1f)) {
+                    Text("Kulaklık düzeltmesi", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+                    Text(profile?.let { "${it.name} · Harman hedefi" } ?: "Kapalı", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(selected = profile == null, onClick = { actions.setHeadphone(null) }, label = { Text("Yok") }, shape = CircleShape)
+                Headphones.all.forEach { headphone ->
+                    FilterChip(
+                        selected = headphone.id == selectedId,
+                        onClick = { actions.setHeadphone(headphone.id) },
+                        label = { Text(headphone.name) },
+                        shape = CircleShape,
+                    )
+                }
+            }
+            if (profile != null) {
+                Text(
+                    "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır; ön kazanç " +
+                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", profile.preampDb)} dB uygulanır, " +
+                        "ses biraz kısılır. Kaynak: ${profile.source}.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                )
             }
         }
     }

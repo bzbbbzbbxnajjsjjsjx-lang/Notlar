@@ -3,7 +3,10 @@
 - İlk sürüm: stoner rock, doom/sludge, psychedelic, noise rock, harsh noise ve drone için ekolayzır.
 - 10 ince bant sütunu (31 Hz–16 kHz, ±12 dB, dB ölçeğiyle, şekilli tutamaç), bas güçlendirici, sanallaştırıcı ve ses yükseltici.
 - Yapay zekâ ayarı: Claude ya da OpenAI uyumlu API anahtarınla, çalan şarkıya göre eğriyi seçer ve nedenini yazar.
-- Dinleme sekmesi: hangi türleri dinlediğini son 30 gün için grafikte gösterir; kayıt yalnızca telefonunda kalır.
+- Dinleme sekmesi: hangi türleri dinlediğini son 30 gün için halka grafikte gösterir; kayıt yalnızca telefonunda kalır.
+- JBL Tune 520BT için Harman hedefli kulaklık düzeltmesi (AutoEq verisi).
+- Last.fm etiketleriyle şarkının türünü daha doğru tanır.
+- Yapay zekâ sağlayıcısı olarak OpenRouter.
 - 8 hazır tür ayarı, internetsiz çalışan yerel tür tanıma ve harsh noise için kulak koruması.
 - Kurulum sekmesi: bildirim erişimi ve "Kısıtlanmış ayarlara izin ver" adımları.
 

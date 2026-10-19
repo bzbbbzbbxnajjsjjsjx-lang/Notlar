@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
 import com.vardiya.sludge.data.AiTuner
+import com.vardiya.sludge.data.LastFmClient
+import com.vardiya.sludge.data.LastFmTagSource
+import com.vardiya.sludge.data.test
 import com.vardiya.sludge.data.RepoTuneStore
 import com.vardiya.sludge.data.SettingsRepository
 import com.vardiya.sludge.domain.AiConfig
@@ -11,6 +14,7 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.AutoTuner
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.NowPlaying
 import com.vardiya.sludge.domain.TrackInfo
@@ -39,6 +43,7 @@ class SludgeRuntime private constructor(context: Context) {
     )
     private val repo = SettingsRepository(context)
     private val aiTuner = AiTuner()
+    private val lastFm = LastFmClient()
 
     private val engine = EffectEngine()
     val engineState: StateFlow<EngineState> = engine.state
@@ -50,8 +55,12 @@ class SludgeRuntime private constructor(context: Context) {
     val nowPlaying: StateFlow<NowPlaying> = _nowPlaying.asStateFlow()
 
     private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, repo)
-    private val tuning = TuneCoordinator(scope, nowPlaying, RepoTuneEnvironment(repo), AutoTuner(RepoTuneStore(repo), aiTuner))
+    private val tuning = TuneCoordinator(
+        scope, nowPlaying, RepoTuneEnvironment(repo), AutoTuner(RepoTuneStore(repo), aiTuner), LastFmTagSource(lastFm, repo),
+    )
     val status: StateFlow<TuneStatus> = tuning.status
+    val tags: StateFlow<List<String>> = tuning.tags
+    val lastFmConfig: StateFlow<LastFmConfig> = repo.lastFm.stateIn(scope, SharingStarted.Eagerly, LastFmConfig())
 
     fun publish(nowPlaying: NowPlaying) {
         _nowPlaying.value = nowPlaying
@@ -68,6 +77,13 @@ class SludgeRuntime private constructor(context: Context) {
     fun saveAi(config: AiConfig) {
         scope.launch { repo.saveAi(config) }
     }
+
+    fun saveLastFm(config: LastFmConfig) {
+        scope.launch { repo.saveLastFm(config) }
+    }
+
+    /** The Last.fm try-it button: looks up a known stoner track with the key as typed, without saving it. */
+    suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = lastFm.test(config, SAMPLE_TRACK)
 
     fun clearHistory() {
         scope.launch { repo.clearHistory() }

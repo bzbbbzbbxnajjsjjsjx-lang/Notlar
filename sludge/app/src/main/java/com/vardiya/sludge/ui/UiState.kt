@@ -7,6 +7,7 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 
@@ -26,6 +27,9 @@ data class UiState(
     val playing: Boolean = false,
     val status: TuneStatus = TuneStatus.Idle,
     val ai: AiConfig = AiConfig(),
+    val lastFm: LastFmConfig = LastFmConfig(),
+    /** Genre tags Last.fm gave the current track. */
+    val tags: List<String> = emptyList(),
     val sessions: List<AttachedSession> = emptyList(),
     val globalMixWorks: Boolean? = null,
     val accessGranted: Boolean = false,
@@ -41,9 +45,12 @@ interface SludgeActions {
     fun setVirtualizer(value: Int) = Unit
     fun setLoudness(valueMb: Int) = Unit
     fun setAutoTune(enabled: Boolean) = Unit
+    fun setHeadphone(id: String?) = Unit
     fun applyPreset(genre: Genre) = Unit
     fun tuneNow() = Unit
     fun saveAi(config: AiConfig) = Unit
+    fun saveLastFm(config: LastFmConfig) = Unit
+    suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = Result.failure(UnsupportedOperationException())
     suspend fun testAi(config: AiConfig): Result<AiProfile> = Result.failure(UnsupportedOperationException())
     fun clearHistory() = Unit
     fun openNotificationAccess() = Unit

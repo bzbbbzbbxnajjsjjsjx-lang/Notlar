@@ -334,3 +334,45 @@ class StatusAndProviderTest {
         assertNull(AiProtocol.buildRequest(openai, TrackInfo(title = "t")).headers["x-title"])
     }
 }
+
+class HeadphonesTest {
+    @Test fun `the 520BT profile carries AutoEq's ten fixed bands and preamp`() {
+        val p = Headphones.JBL_TUNE_520BT
+        assertEquals(BAND_COUNT, p.correction.size)
+        assertEquals(listOf(6.6f, -2.9f, -0.3f, -0.4f, 0.6f, -1.5f, 2.1f, -1.9f, 2.8f, 5.2f), p.correction)
+        assertEquals(-6.1f, p.preampDb, 0f)
+    }
+
+    @Test fun `a flat curve through the profile is the correction plus the preamp`() {
+        val out = Headphones.JBL_TUNE_520BT.applyTo(EqSettings.FLAT_BANDS)
+        assertEquals(6.6f - 6.1f, out[0], 0.001f)
+        assertEquals(-2.9f - 6.1f, out[1], 0.001f)
+        assertEquals(5.2f - 6.1f, out[9], 0.001f)
+    }
+
+    @Test fun `the person's curve is kept and the correction added on top`() {
+        val bands = Genre.STONER.bands
+        val out = Headphones.JBL_TUNE_520BT.applyTo(bands)
+        bands.indices.forEach { assertEquals(bands[it] + Headphones.JBL_TUNE_520BT.correction[it] - 6.1f, out[it], 0.001f) }
+    }
+
+    @Test fun `without a headphone the bands are used as they are`() {
+        val s = EqSettings(bands = Genre.DOOM.bands, headphoneId = null)
+        assertEquals(Genre.DOOM.bands, s.effectiveBands())
+        assertEquals(Genre.DOOM.bands.size, s.effectiveBands().size)
+    }
+
+    @Test fun `a fresh install starts with the default profile and an unknown id means none`() {
+        assertEquals(Headphones.DEFAULT_ID, EqSettings().headphoneId)
+        assertNotNull(Headphones.byId(Headphones.DEFAULT_ID))
+        assertNull(Headphones.byId("nope"))
+        assertEquals(EqSettings.FLAT_BANDS, EqSettings(headphoneId = "nope").effectiveBands())
+    }
+
+    @Test fun `a boosted curve through the profile still maps to the device bands`() {
+        val effective = EqSettings(bands = Genre.STONER.bands).effectiveBands()
+        val device = CurveMath.mapToDevice(effective, listOf(60f, 230f, 910f, 3_600f, 14_000f))
+        assertEquals(5, device.size)
+        assertTrue(device.all { it.isFinite() })
+    }
+}

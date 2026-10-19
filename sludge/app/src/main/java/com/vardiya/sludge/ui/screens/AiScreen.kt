@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProvider
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.UrlRules
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
@@ -151,6 +152,8 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
             }
         }
 
+        LastFmCard(state, actions)
+
         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SwitchRow(state.settings.autoTune, actions::setAutoTune) {
@@ -166,12 +169,79 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SectionTitle("Gizlilik")
                 Text(
-                    "Sağlayıcıya yalnızca şarkı adı, sanatçı, albüm, tür etiketi ve çalar uygulamanın adı gider. " +
+                    "Yapay zekâ sağlayıcısına yalnızca şarkı adı, sanatçı, albüm, tür etiketleri ve çalar uygulamanın adı gider; " +
+                        "Last.fm'e yalnızca şarkı adı ile sanatçı. " +
                         "Bildirim içerikleri okunmaz. Anahtar bu cihazda Android Keystore ile şifrelenir; yedeğe girmez. " +
                         "Aynı şarkı için sonuç saklanır, tekrar istek atılmaz.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
+        }
+    }
+}
+
+/** The Last.fm key: its genre tags are the best evidence of a track's sound, for the offline guess and the AI alike. */
+@Composable
+private fun LastFmCard(state: UiState, actions: SludgeActions) {
+    var key by remember(state.lastFm) { mutableStateOf(state.lastFm.apiKey) }
+    var showKey by remember { mutableStateOf(false) }
+    var testing by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val draft = LastFmConfig(key.trim())
+    ElevatedCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            SectionTitle("Last.fm şarkı etiketleri")
+            Text(
+                "Çalan şarkının türünü Last.fm dinleyicilerinin etiketlerinden (stoner rock, doom metal…) öğrenir; ekolayzır ve " +
+                    "yapay zekâ bunu kullanır. Ücretsiz anahtarı last.fm/api/account/create adresinden alırsın.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            OutlinedTextField(
+                value = key,
+                onValueChange = { key = it.trim() },
+                label = { Text("Last.fm API anahtarı") },
+                isError = key.isNotEmpty() && !draft.isValid,
+                supportingText = { Text(if (key.isEmpty() || draft.isValid) "32 karakter" else "Anahtar 32 karakterlik onaltılık bir değer") },
+                singleLine = true,
+                visualTransformation = if (showKey) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { showKey = !showKey }) {
+                        Icon(
+                            if (showKey) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (showKey) "Anahtarı gizle" else "Anahtarı göster",
+                        )
+                    }
+                },
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { actions.saveLastFm(draft) },
+                    shapes = ButtonDefaults.shapes(),
+                    enabled = key != state.lastFm.apiKey && (key.isEmpty() || draft.isValid),
+                    modifier = Modifier.weight(1f),
+                ) { Text("Kaydet") }
+                FilledTonalButton(
+                    shapes = ButtonDefaults.shapes(),
+                    onClick = {
+                        testing = true
+                        result = ""
+                        scope.launch {
+                            result = actions.testLastFm(draft).fold(
+                                onSuccess = { tags -> if (tags.isEmpty()) "Bağlandı, ama etiket gelmedi" else "Çalıştı: ${tags.joinToString(", ")}" },
+                                onFailure = { "Olmadı: ${it.message.orEmpty()}" },
+                            )
+                            testing = false
+                        }
+                    },
+                    enabled = draft.isValid && !testing,
+                    modifier = Modifier.weight(1f),
+                ) { Text(if (testing) "Deneniyor…" else "Dene") }
+            }
+            if (result.isNotEmpty()) Text(result, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

@@ -35,9 +35,11 @@ imports nothing from Android and holds every rule, so every rule has a unit test
     `TuneStore` and `ProfileSource`; tests use fakes.
   - `NowPlaying.kt` — which media session to follow (`pickCurrent`). `Status.kt` — the line the home screen leads with.
   - `ListenStats.kt` — the listening log and the charts' numbers.
+  - `Headphones.kt` — headphone correction profiles (ten band gains and a preamp) and `effectiveBands()`, the curve the
+    equalizer is really set to. `LastFm.kt` — Last.fm requests, answers and tag filtering, the `TagSource` port, `withTags`.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; the API key goes through `KeyCipher`,
   an Android Keystore AES-GCM key), `AiClient.kt` (`Transport`, `AiTuner` implements `ProfileSource`),
-  `RepoTuneStore` implements `TuneStore`.
+  `RepoTuneStore` implements `TuneStore`, `LastFmClient` and `LastFmTagSource` (tags cached on disk, nothing asked without a key).
 - `audio/` — Android adapters: `EffectEngine` (Equalizer, BassBoost, Virtualizer, LoudnessEnhancer per audio session),
   `SludgeListenerService` (notification access, only used to read media sessions), `AudioSessionReceiver` (players
   announce their audio session through the audio-effect broadcast).
@@ -61,6 +63,11 @@ while it was being worked out; the AI button always asks the AI again, even for 
 - The home screen leads with the real state (`statusOf`): Kapalı, Kurulum gerekli, Çalar bekleniyor, Ses işleniyor.
   Effects only exist on audio sessions a player has announced; without one the equalizer cannot change the sound, and
   the screen says so.
+- Genre evidence, best first: Last.fm tags (added to the track by `TuneCoordinator`, most popular first; the first tag that
+  names a genre decides), the player's own tag, the artist list, words in the title and album.
+- Headphone correction: the curve the person or the AI chose is kept; the profile's correction and preamp are added on top
+  when the equalizer is applied (`effectiveBands`). The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
+  target, Rtings B&K 5128 measurement); another headphone needs its own measured profile, never a guessed one.
 - Tuning: AI when a key is set and the request works, the offline genre guess otherwise. Harsh noise keeps the treble
   down and the loudness gain off; AI answers are clamped to the same limits.
 
@@ -69,8 +76,9 @@ while it was being worked out; the AI button always asks the AI again, even for 
 - Code, comments, commit messages: English. User-facing text (UI strings, `README.md`, `release-notes.md`): Turkish.
   UI strings are inline in Kotlin.
 - Dates and number formatting use the Turkish locale (`tr-TR`).
-- The API key is never logged, never part of a `toString`, never in a saved-state bundle, and only sent over HTTPS
-  (or to a private-network address).
+- The AI and Last.fm keys are never logged, never part of a `toString` (a Last.fm request carries its key in the address,
+  so `HttpRequestSpec` masks it), never in a saved-state bundle, and only sent over HTTPS (the AI key may also go to a
+  private-network address).
 - Detekt config is in `config/detekt/detekt.yml`; fix findings, there is no baseline.
 - Screenshot tests (`ui/ScreenshotTest.kt`, Roborazzi + Robolectric SDK 34) must be re-recorded and committed after a UI
   change; look at the PNGs first. Record and verify in separate Gradle runs.

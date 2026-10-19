@@ -25,13 +25,15 @@ class UrlConnectionTransport(private val io: CoroutineDispatcher = Dispatchers.I
     override suspend fun send(request: HttpRequestSpec): HttpResult = withContext(io) {
         val connection = URL(request.url).openConnection() as HttpURLConnection
         try {
-            connection.requestMethod = "POST"
+            connection.requestMethod = request.method
             connection.connectTimeout = CONNECT_MS
             connection.readTimeout = READ_MS
             connection.instanceFollowRedirects = false
-            connection.doOutput = true
             request.headers.forEach { (name, value) -> connection.setRequestProperty(name, value) }
-            connection.outputStream.use { it.write(request.body.toByteArray(Charsets.UTF_8)) }
+            if (request.method == "POST") {
+                connection.doOutput = true
+                connection.outputStream.use { it.write(request.body.toByteArray(Charsets.UTF_8)) }
+            }
             val code = connection.responseCode
             val stream = if (code in HTTP_OK_RANGE) connection.inputStream else connection.errorStream
             HttpResult(code, stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty())

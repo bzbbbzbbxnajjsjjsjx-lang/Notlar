@@ -9,6 +9,7 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
@@ -31,7 +32,7 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.ai) { settings, playing, status, ai ->
         UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, ai = ai)
-    }
+    }.combine(combine(runtime.lastFmConfig, runtime.tags, ::Pair)) { ui, (lastFm, tags) -> ui.copy(lastFm = lastFm, tags = tags) }
 
     val state: StateFlow<UiState> = combine(core, runtime.engineState, access, runtime.history) { ui, engine, granted, history ->
         ui.copy(
@@ -65,11 +66,17 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun setAutoTune(enabled: Boolean) = runtime.update { it.copy(autoTune = enabled) }
 
+    override fun setHeadphone(id: String?) = runtime.update { it.copy(headphoneId = id) }
+
     override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toProfile(), TuneSource.PRESET) }
 
     override fun tuneNow() = runtime.tuneNow()
 
     override fun saveAi(config: AiConfig) = runtime.saveAi(config)
+
+    override fun saveLastFm(config: LastFmConfig) = runtime.saveLastFm(config)
+
+    override suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = runtime.testLastFm(config)
 
     override suspend fun testAi(config: AiConfig): Result<AiProfile> = runtime.testConnection(config)
 

@@ -13,6 +13,8 @@ import com.vardiya.sludge.domain.AiProtocol
 import com.vardiya.sludge.domain.AiProvider
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.Headphones
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.TuneSource
@@ -32,6 +34,8 @@ class SettingsRepository(context: Context) {
     val ai: Flow<AiConfig> = store.data.map { it.toAiConfig() }
     val cache: Flow<Map<String, AiProfile>> = store.data.map { it.toCache() }
     val history: Flow<List<ListenEntry>> = store.data.map { it.toHistory() }
+    val lastFm: Flow<LastFmConfig> = store.data.map { LastFmConfig(KeyCipher.decrypt(it[LASTFM_KEY].orEmpty())) }
+    val tagCache: Flow<Map<String, List<String>>> = store.data.map { it.toTagCache() }
 
     suspend fun updateSettings(transform: (EqSettings) -> EqSettings) {
         store.edit { prefs -> prefs.write(transform(prefs.toSettings())) }
@@ -45,6 +49,18 @@ class SettingsRepository(context: Context) {
             prefs[AI_KEY] = KeyCipher.encrypt(config.apiKey.trim())
         }
     }
+
+    suspend fun saveLastFm(config: LastFmConfig) {
+        store.edit { it[LASTFM_KEY] = KeyCipher.encrypt(config.apiKey.trim()) }
+    }
+
+    suspend fun updateTagCache(transform: (Map<String, List<String>>) -> Map<String, List<String>>) {
+        store.edit { prefs -> prefs[TAG_CACHE] = AiProtocol.json.encodeToString(TAG_SERIALIZER, transform(prefs.toTagCache())) }
+    }
+
+    private fun Preferences.toTagCache(): Map<String, List<String>> = runCatching {
+        AiProtocol.json.decodeFromString(TAG_SERIALIZER, this[TAG_CACHE].orEmpty())
+    }.getOrDefault(emptyMap())
 
     suspend fun updateCache(transform: (Map<String, AiProfile>) -> Map<String, AiProfile>) {
         store.edit { prefs ->
@@ -78,6 +94,12 @@ class SettingsRepository(context: Context) {
             autoTune = this[AUTO_TUNE] ?: true,
             explanation = this[EXPLANATION].orEmpty(),
             source = runCatching { TuneSource.valueOf(this[SOURCE].orEmpty()) }.getOrDefault(TuneSource.MANUAL),
+            // Never chosen: the default profile. Chosen "none" is stored as an empty string.
+            headphoneId = when (val stored = this[HEADPHONE]) {
+                null -> Headphones.DEFAULT_ID
+                "" -> null
+                else -> stored
+            },
         )
     }
 
@@ -106,6 +128,7 @@ class SettingsRepository(context: Context) {
         this[AUTO_TUNE] = s.autoTune
         this[EXPLANATION] = s.explanation
         this[SOURCE] = s.source.name
+        this[HEADPHONE] = s.headphoneId.orEmpty()
     }
 
     private companion object {
@@ -118,12 +141,16 @@ class SettingsRepository(context: Context) {
         val AUTO_TUNE = booleanPreferencesKey("auto_tune")
         val EXPLANATION = stringPreferencesKey("explanation")
         val SOURCE = stringPreferencesKey("source")
+        val HEADPHONE = stringPreferencesKey("headphone")
         val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_MODEL = stringPreferencesKey("ai_model")
         val AI_URL = stringPreferencesKey("ai_url")
         val AI_KEY = stringPreferencesKey("ai_key")
         val CACHE = stringPreferencesKey("tune_cache")
         val HISTORY = stringPreferencesKey("history")
+        val LASTFM_KEY = stringPreferencesKey("lastfm_key")
+        val TAG_CACHE = stringPreferencesKey("tag_cache")
+        val TAG_SERIALIZER = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
         val HISTORY_SERIALIZER = ListSerializer(ListenEntry.serializer())
         val CACHE_SERIALIZER = MapSerializer(String.serializer(), AiProfile.serializer())
     }

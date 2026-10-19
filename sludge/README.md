@@ -7,9 +7,14 @@ Material 3 Expressive ekolayzır. Çalan şarkının meta verisini okur, yapay z
 
 - **Ekolayzır**: 10 ince sütun (31 Hz–16 kHz, ±12 dB), bas güçlendirici, sanallaştırıcı,
   ses yükseltici. Anahtarların hepsi tikli.
-- **Yapay Zekâ**: Claude ya da OpenAI uyumlu bir uç nokta; kendi API anahtarını girersin. Şarkı değişince model adı,
+- **Yapay Zekâ**: Claude, OpenAI ya da OpenRouter; kendi API anahtarını girersin. Şarkı değişince model adı,
   sanatçı ve albüme bakıp eğriyi seçer, nedenini Türkçe yazar. Sonuç saklanır, aynı şarkı için tekrar istek atılmaz.
-- **Ön Ayarlar**: Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock, Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz.
+- **Ön ayarlar** (ana sayfada): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock, Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz.
+- **Kulaklık düzeltmesi**: JBL Tune 520BT için Harman over-ear 2018 hedefine göre auto-EQ. Sayılar AutoEq'in Rtings ölçümünden
+  ürettiği 10 bantlık düzeltmedir (ön kazanç −6,1 dB); seçtiğin eğrinin üstüne eklenir. Aynı modelin başka bir çifti bir iki dB
+  farklı çıkabilir.
+- **Last.fm**: çalan şarkının tür etiketlerini (stoner rock, doom metal…) Last.fm'den alır. Ücretsiz anahtar:
+  last.fm/api/account/create. Etiketler hem yerel tür tanımayı hem yapay zekâyı besler.
 - **Kurulum**: bildirim erişimi, kısıtlanmış ayar yardımı, pil, yakalanan ses oturumları.
 
 Anahtar yoksa ya da ağ yoksa **yerel tür tanıma** (sanatçı listesi + tür etiketi) devreye girer. Harsh noise ayarı kulak ve
@@ -39,7 +44,8 @@ ekolayzır sessiz kalır; bunu Android engeller, uygulama aşamaz.
 
 ## Gizlilik
 
-Sağlayıcıya yalnızca şarkı adı, sanatçı, albüm, tür etiketi ve çalar uygulamanın adı gider. API anahtarı Android
+Yapay zekâ sağlayıcısına yalnızca şarkı adı, sanatçı, albüm, tür etiketleri ve çalar uygulamanın adı gider; Last.fm'e yalnızca
+şarkı adı ile sanatçı. API anahtarları Android
 Keystore (AES-GCM) ile şifrelenir, yedeğe girmez, yalnızca `https://` adresine (ya da yerel ağa) gönderilir.
 
 ## Derleme

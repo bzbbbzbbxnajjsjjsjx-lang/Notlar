@@ -76,6 +76,8 @@ data class EqSettings(
     val autoTune: Boolean = true,
     val explanation: String = "",
     val source: TuneSource = TuneSource.MANUAL,
+    /** The headphone whose measured response is corrected toward the Harman target; null = no correction. */
+    val headphoneId: String? = Headphones.DEFAULT_ID,
 ) {
     companion object {
         val FLAT_BANDS: List<Float> = List(BAND_COUNT) { 0f }

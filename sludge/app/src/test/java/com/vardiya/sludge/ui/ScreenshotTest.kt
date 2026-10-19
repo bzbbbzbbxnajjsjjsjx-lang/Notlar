@@ -12,6 +12,7 @@ import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.DayCount
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.GenreShare
+import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
@@ -55,6 +56,8 @@ class ScreenshotTest {
         sessions = listOf(AttachedSession(1042, "com.spotify.music", failed = false)),
         globalMixWorks = false,
         ai = AiConfig(apiKey = "sk-ant-demo-key"),
+        lastFm = LastFmConfig("0123456789abcdef0123456789abcdef"),
+        tags = listOf("stoner rock", "doom metal", "sludge"),
     )
 
     private val tuned = playing.copy(settings = playing.settings.copy(bassBoost = 700, virtualizer = 400, loudnessMb = 600))
@@ -110,6 +113,10 @@ class ScreenshotTest {
     @Test fun statsEmpty() = capture("stats_empty") { Screen(fresh, Tab.STATS) }
 
     @Test fun ai() = capture("ai") { Screen(playing, Tab.AI) }
+
+    // A tall screen, so the Last.fm card below the provider card is in the picture too.
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
+    fun aiTallDark() = capture("ai_tall_dark") { Screen(playing, Tab.AI) }
 
     @Test @Config(qualifiers = "+night")
     fun aiDark() = capture("ai_dark") { Screen(playing, Tab.AI) }

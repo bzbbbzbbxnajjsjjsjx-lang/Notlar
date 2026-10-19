@@ -43,7 +43,7 @@ object GenreDetector {
     private val keywords: Map<Genre, List<String>> = mapOf(
         Genre.STONER to listOf("stoner", "desert rock", "fuzz"),
         Genre.DOOM to listOf("doom", "sludge", "funeral"),
-        Genre.PSYCH to listOf("psychedelic", "psych", "krautrock", "space rock", "acid rock"),
+        Genre.PSYCH to listOf("psychedelic", "psychedelia", "psych", "krautrock", "space rock", "acid rock"),
         Genre.NOISE_ROCK to listOf("noise rock", "math rock", "no wave", "post-hardcore"),
         Genre.HARSH_NOISE to listOf("harsh noise", "power electronics", "noise", "japanoise"),
         Genre.DRONE to listOf("drone", "ambient", "dark ambient", "ritual"),
@@ -61,10 +61,10 @@ object GenreDetector {
             if (artists.getValue(genre).any { it in names }) return Guess(genre, confident = true)
         }
         val haystack = normalize("${track.genreTag} ${track.album} ${track.title}")
-        val tag = normalize(track.genreTag)
-        for (genre in order) {
-            val words = keywords.getValue(genre)
-            if (words.any { matchesWord(tag, it) }) return Guess(genre, confident = true)
+        // Tags come most popular first (Last.fm's order), so the first tag that names a genre decides.
+        for (tag in track.genreTag.split(tagSeparators).map(::normalize).filter { it.isNotEmpty() }) {
+            order.firstOrNull { genre -> keywords.getValue(genre).any { matchesWord(tag, it) } }
+                ?.let { return Guess(it, confident = true) }
         }
         for (genre in order) {
             if (keywords.getValue(genre).any { matchesWord(haystack, it) }) return Guess(genre, confident = false)
@@ -76,6 +76,7 @@ object GenreDetector {
     internal fun normalize(text: String): String = text.lowercase(TR).replace('ı', 'i').trim()
 
     // Exact names only: "Earth Crisis" must not count as Earth, so a credit is split into its artists first.
+    private val tagSeparators = Regex("[,;/]")
     private val separators = Regex("""\s*(?:,|&|/|;|\bfeat\.?|\bft\.?|\bwith\b|\bx\b)\s*""")
 
     internal fun artistNames(credit: String): Set<String> {
