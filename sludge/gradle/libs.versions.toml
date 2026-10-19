@@ -1,0 +1,47 @@
+[versions]
+agp = "9.4.1"
+kotlin = "2.2.20"
+composeBom = "2026.09.00"
+# M3 Expressive components are stable from 1.5.0; the BOM still maps material3 to 1.4.0.
+material3 = "1.5.0-beta01"
+activityCompose = "1.10.1"
+coreKtx = "1.16.0"
+lifecycle = "2.9.1"
+datastore = "1.1.7"
+serializationJson = "1.9.0"
+junit = "4.13.2"
+robolectric = "4.17"
+roborazzi = "1.76.0"
+# detekt 2 is still alpha, but it is the line built for Kotlin 2.2 and the one compose-rules targets.
+detekt = "2.0.0-alpha.6"
+composeRules = "0.6.8"
+# Frozen at 1.7.8 and no longer in the BOM; R8 strips the icons the app does not use.
+iconsExtended = "1.7.8"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "iconsExtended" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-rules-detekt = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "composeRules" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }

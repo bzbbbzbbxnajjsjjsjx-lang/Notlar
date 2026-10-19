@@ -1,0 +1,54 @@
+name: Sludge EQ
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["sludge/**", ".github/workflows/sludge.yml"]
+  pull_request:
+    paths: ["sludge/**", ".github/workflows/sludge.yml"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: sludge
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: sludge
+
+      - name: Detekt
+        run: ./gradlew detekt --stacktrace
+
+      - name: Android lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Unit and screenshot tests
+        run: ./gradlew verifyRoborazziDebug --stacktrace
+
+      - name: Upload screenshot diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sludge-screenshot-diffs
+          path: sludge/app/build/outputs/roborazzi/
+
+      - name: Build APK
+        run: ./gradlew assembleDebug assembleRelease --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sludge-eq-apk
+          path: |
+            sludge/app/build/outputs/apk/debug/app-debug.apk
+            sludge/app/build/outputs/apk/release/app-release.apk

@@ -1,0 +1,1292 @@
+{
+ "title": "Sludge EQ",
+ "brief": "Stoner, doom, noise ve psychedelic rock için ekolayzır; çalan parçanın künyesinden yapay zekâyla otomatik ayar.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": true,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": false,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "eq",
+   "name": "Ekolayzır",
+   "x": 0,
+   "y": 0,
+   "note": "Beş bantlı ekolayzır, efektler ve yapay zekâ ile otomatik ayar."
+  },
+  {
+   "id": "ai",
+   "name": "Yapay Zekâ",
+   "x": 492,
+   "y": 0,
+   "note": "Sağlayıcı ve otomatik ayar ayarları."
+  },
+  {
+   "id": "presets",
+   "name": "Ön Ayarlar",
+   "x": 984,
+   "y": 0,
+   "note": "Türe göre hazır eğriler."
+  },
+  {
+   "id": "setup",
+   "name": "Kurulum",
+   "x": 1476,
+   "y": 0,
+   "note": "İzinler ve durum adımları."
+  }
+ ],
+ "groups": [
+  {
+   "id": "g1",
+   "x": 0,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Sludge EQ",
+     "variant": "filled",
+     "icon": null,
+     "id": "p1"
+    }
+   ]
+  },
+  {
+   "id": "g2",
+   "x": 340,
+   "y": 20,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "",
+     "checked": true,
+     "note": "Ekolayzırı açar/kapatır; işaretli (onay simgeli) thumb. Kapalıyken ses işlenmez.",
+     "variant": "filled",
+     "icon": null,
+     "id": "p2"
+    }
+   ]
+  },
+  {
+   "id": "g3",
+   "x": 16,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 380,
+     "size2": 132,
+     "fill": "surfaceContainer",
+     "radiusTop": 16,
+     "radiusBottom": 16,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p3"
+    }
+   ]
+  },
+  {
+   "id": "g4",
+   "x": 28,
+   "y": 108,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "image",
+     "size": 80,
+     "note": "Albüm kapağı yer tutucusu.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p4"
+    }
+   ]
+  },
+  {
+   "id": "g5",
+   "x": 120,
+   "y": 108,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "Electric Wizard - Dopethrone",
+     "size": 16,
+     "bold": true,
+     "variant": "filled",
+     "icon": null,
+     "id": "p5"
+    }
+   ]
+  },
+  {
+   "id": "g6",
+   "x": 120,
+   "y": 132,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "Electric Wizard",
+     "size": 14,
+     "variant": "filled",
+     "icon": null,
+     "id": "p6"
+    }
+   ]
+  },
+  {
+   "id": "g7",
+   "x": 120,
+   "y": 164,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Stoner Rock",
+     "icon": "graphic_eq",
+     "note": "Algılanan tür; yapay zekâ bunu çalan parça bilgisinden çıkarır.",
+     "variant": "filled",
+     "id": "p7"
+    }
+   ]
+  },
+  {
+   "id": "g8",
+   "x": 240,
+   "y": 164,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Spotify",
+     "icon": "music_note",
+     "note": "Şarkıyı çalan uygulama.",
+     "variant": "filled",
+     "id": "p8"
+    }
+   ]
+  },
+  {
+   "id": "g9",
+   "x": 30,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "+6 dB",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p9"
+    }
+   ]
+  },
+  {
+   "id": "g10",
+   "x": 16,
+   "y": 262,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 150,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "note": "Dikdörtgen dikey çubuk kaydırıcı, -12 ile +12 dB; sürükleyerek ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p10"
+    }
+   ]
+  },
+  {
+   "id": "g11",
+   "x": 16,
+   "y": 292,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 120,
+     "fill": "primary",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p11"
+    }
+   ]
+  },
+  {
+   "id": "g12",
+   "x": 24,
+   "y": 416,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "60 Hz",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p12"
+    }
+   ]
+  },
+  {
+   "id": "g13",
+   "x": 108,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "+3 dB",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p13"
+    }
+   ]
+  },
+  {
+   "id": "g14",
+   "x": 94,
+   "y": 262,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 150,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "note": "Dikdörtgen dikey çubuk kaydırıcı, -12 ile +12 dB; sürükleyerek ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p14"
+    }
+   ]
+  },
+  {
+   "id": "g15",
+   "x": 94,
+   "y": 312,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 100,
+     "fill": "primary",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p15"
+    }
+   ]
+  },
+  {
+   "id": "g16",
+   "x": 102,
+   "y": 416,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "230 Hz",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p16"
+    }
+   ]
+  },
+  {
+   "id": "g17",
+   "x": 186,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "-2 dB",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p17"
+    }
+   ]
+  },
+  {
+   "id": "g18",
+   "x": 172,
+   "y": 262,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 150,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "note": "Dikdörtgen dikey çubuk kaydırıcı, -12 ile +12 dB; sürükleyerek ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p18"
+    }
+   ]
+  },
+  {
+   "id": "g19",
+   "x": 172,
+   "y": 352,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 60,
+     "fill": "primary",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p19"
+    }
+   ]
+  },
+  {
+   "id": "g20",
+   "x": 180,
+   "y": 416,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "910 Hz",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p20"
+    }
+   ]
+  },
+  {
+   "id": "g21",
+   "x": 264,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "+1 dB",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p21"
+    }
+   ]
+  },
+  {
+   "id": "g22",
+   "x": 250,
+   "y": 262,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 150,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "note": "Dikdörtgen dikey çubuk kaydırıcı, -12 ile +12 dB; sürükleyerek ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p22"
+    }
+   ]
+  },
+  {
+   "id": "g23",
+   "x": 250,
+   "y": 332,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 80,
+     "fill": "primary",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p23"
+    }
+   ]
+  },
+  {
+   "id": "g24",
+   "x": 258,
+   "y": 416,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "3,6 kHz",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p24"
+    }
+   ]
+  },
+  {
+   "id": "g25",
+   "x": 342,
+   "y": 240,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "-4 dB",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p25"
+    }
+   ]
+  },
+  {
+   "id": "g26",
+   "x": 328,
+   "y": 262,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 150,
+     "fill": "surfaceContainerHighest",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "note": "Dikdörtgen dikey çubuk kaydırıcı, -12 ile +12 dB; sürükleyerek ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p26"
+    }
+   ]
+  },
+  {
+   "id": "g27",
+   "x": 328,
+   "y": 367,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "box",
+     "size": 64,
+     "size2": 45,
+     "fill": "primary",
+     "radiusTop": 6,
+     "radiusBottom": 6,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p27"
+    }
+   ]
+  },
+  {
+   "id": "g28",
+   "x": 336,
+   "y": 416,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "14 kHz",
+     "size": 12,
+     "variant": "filled",
+     "icon": null,
+     "id": "p28"
+    }
+   ]
+  },
+  {
+   "id": "g29",
+   "x": 16,
+   "y": 444,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Bas Güçlendirici",
+     "size": 380,
+     "checked": true,
+     "variant": "filled",
+     "icon": null,
+     "id": "p29"
+    }
+   ]
+  },
+  {
+   "id": "g30",
+   "x": 16,
+   "y": 484,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "slider",
+     "value": 60,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p30"
+    }
+   ]
+  },
+  {
+   "id": "g31",
+   "x": 16,
+   "y": 528,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Sanallaştırıcı",
+     "size": 380,
+     "checked": true,
+     "variant": "filled",
+     "icon": null,
+     "id": "p31"
+    }
+   ]
+  },
+  {
+   "id": "g32",
+   "x": 16,
+   "y": 568,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "slider",
+     "value": 40,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p32"
+    }
+   ]
+  },
+  {
+   "id": "g33",
+   "x": 16,
+   "y": 612,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Ses Yükseltici",
+     "size": 380,
+     "checked": false,
+     "variant": "filled",
+     "icon": null,
+     "id": "p33"
+    }
+   ]
+  },
+  {
+   "id": "g34",
+   "x": 16,
+   "y": 652,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "slider",
+     "value": 25,
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p34"
+    }
+   ]
+  },
+  {
+   "id": "g35",
+   "x": 86,
+   "y": 712,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "extendedFab",
+     "label": "Yapay zekâyla ayarla",
+     "icon": "auto_awesome",
+     "action": {
+      "to": "ai",
+      "transition": "slideLeft"
+     },
+     "note": "Çalan parçanın künyesini yapay zekâya gönderir, dönen 5 bant değerlerini uygular.",
+     "variant": "filled",
+     "id": "p35"
+    }
+   ]
+  },
+  {
+   "id": "g36",
+   "x": 0,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "bottomNav",
+     "tabs": [
+      {
+       "icon": "equalizer",
+       "label": "Ekolayzır"
+      },
+      {
+       "icon": "auto_awesome",
+       "label": "Yapay Zekâ"
+      },
+      {
+       "icon": "library_music",
+       "label": "Ön Ayarlar"
+      },
+      {
+       "icon": "settings",
+       "label": "Kurulum"
+      }
+     ],
+     "selected": 0,
+     "note": "Klasik Material 3 NavigationBar, 80 dp, etiketler her zaman görünür.",
+     "actions": {
+      "tab:1": {
+       "to": "ai",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "presets",
+       "transition": "fade"
+      },
+      "tab:3": {
+       "to": "setup",
+       "transition": "fade"
+      }
+     },
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p36"
+    }
+   ]
+  },
+  {
+   "id": "g37",
+   "x": 492,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Yapay Zekâ",
+     "variant": "filled",
+     "icon": null,
+     "id": "p37"
+    }
+   ]
+  },
+  {
+   "id": "g38",
+   "x": 508,
+   "y": 104,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Claude",
+     "size": 182,
+     "icon": "check",
+     "variant": "filled",
+     "id": "p38_0"
+    },
+    {
+     "kind": "button",
+     "label": "OpenAI uyumlu",
+     "size": 182,
+     "variant": "outlined",
+     "icon": null,
+     "id": "p38_1"
+    }
+   ]
+  },
+  {
+   "id": "g39",
+   "x": 508,
+   "y": 176,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "API anahtarı",
+     "icon": "key",
+     "icon2": "visibility_off",
+     "variant": "outlined",
+     "note": "Gizli alan; anahtar cihazda şifreli saklanır.",
+     "id": "p39"
+    }
+   ]
+  },
+  {
+   "id": "g40",
+   "x": 508,
+   "y": 244,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Model",
+     "icon": "memory",
+     "variant": "outlined",
+     "id": "p40"
+    }
+   ]
+  },
+  {
+   "id": "g41",
+   "x": 508,
+   "y": 312,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Adres",
+     "supporting": "https://api.anthropic.com",
+     "icon": "link",
+     "variant": "outlined",
+     "id": "p41"
+    }
+   ]
+  },
+  {
+   "id": "g42",
+   "x": 508,
+   "y": 392,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Şarkı değişince otomatik ayarla",
+     "size": 380,
+     "checked": true,
+     "note": "Açıkken yeni şarkıda ekolayzır yapay zekâyla otomatik ayarlanır.",
+     "variant": "filled",
+     "icon": null,
+     "id": "p42"
+    }
+   ]
+  },
+  {
+   "id": "g43",
+   "x": 508,
+   "y": 452,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "Son açıklama",
+     "supporting": "Doom / Sludge algılandı: 60 Hz +6 dB ile bas ağırlığı artırıldı, 3,6 kHz hafif kısıldı.",
+     "noImage": true,
+     "size": 380,
+     "size2": 130,
+     "variant": "outlined",
+     "icon": "auto_awesome",
+     "id": "p43"
+    }
+   ]
+  },
+  {
+   "id": "g44",
+   "x": 508,
+   "y": 602,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Bağlantıyı dene",
+     "icon": "wifi_tethering",
+     "size": 380,
+     "note": "Girilen sağlayıcı, anahtar ve adresle deneme isteği gönderir; sonucu snackbar ile gösterir.",
+     "variant": "filled",
+     "id": "p44"
+    }
+   ]
+  },
+  {
+   "id": "g45",
+   "x": 492,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "bottomNav",
+     "tabs": [
+      {
+       "icon": "equalizer",
+       "label": "Ekolayzır"
+      },
+      {
+       "icon": "auto_awesome",
+       "label": "Yapay Zekâ"
+      },
+      {
+       "icon": "library_music",
+       "label": "Ön Ayarlar"
+      },
+      {
+       "icon": "settings",
+       "label": "Kurulum"
+      }
+     ],
+     "selected": 1,
+     "note": "Klasik Material 3 NavigationBar, 80 dp, etiketler her zaman görünür.",
+     "actions": {
+      "tab:0": {
+       "to": "eq",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "presets",
+       "transition": "fade"
+      },
+      "tab:3": {
+       "to": "setup",
+       "transition": "fade"
+      }
+     },
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p45"
+    }
+   ]
+  },
+  {
+   "id": "g46",
+   "x": 984,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Ön Ayarlar",
+     "variant": "filled",
+     "icon": null,
+     "id": "p46"
+    }
+   ]
+  },
+  {
+   "id": "g47",
+   "x": 1000,
+   "y": 96,
+   "axis": "y",
+   "items": [
+    {
+     "id": "pr0",
+     "kind": "listItem",
+     "label": "Stoner Rock",
+     "supporting": "Bas +6, orta -2, tiz +1",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled",
+     "note": "Sağdaki simge, ön ayarın mini eğrisinin yer tutucusudur. Dokununca ayar ekolayzıra uygulanır.",
+     "action": {
+      "to": "eq",
+      "transition": "slide"
+     }
+    },
+    {
+     "id": "pr1",
+     "kind": "listItem",
+     "label": "Doom / Sludge",
+     "supporting": "Bas +8, alt orta +3, tiz -3",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr2",
+     "kind": "listItem",
+     "label": "Psychedelic Rock",
+     "supporting": "Orta +3, tiz +2",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr3",
+     "kind": "listItem",
+     "label": "Noise Rock",
+     "supporting": "Orta +4, tiz +3, bas +1",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr4",
+     "kind": "listItem",
+     "label": "Harsh Noise",
+     "supporting": "Bas -4, tiz +6",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr5",
+     "kind": "listItem",
+     "label": "Drone / Yellow Swans",
+     "supporting": "Bas +5, orta -4, tiz +4",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr6",
+     "kind": "listItem",
+     "label": "Shoegaze",
+     "supporting": "Bas +2, orta -3, tiz +5",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    },
+    {
+     "id": "pr7",
+     "kind": "listItem",
+     "label": "Düz",
+     "supporting": "Tüm bantlar 0 dB",
+     "icon": "library_music",
+     "icon2": "show_chart",
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g48",
+   "x": 984,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "bottomNav",
+     "tabs": [
+      {
+       "icon": "equalizer",
+       "label": "Ekolayzır"
+      },
+      {
+       "icon": "auto_awesome",
+       "label": "Yapay Zekâ"
+      },
+      {
+       "icon": "library_music",
+       "label": "Ön Ayarlar"
+      },
+      {
+       "icon": "settings",
+       "label": "Kurulum"
+      }
+     ],
+     "selected": 2,
+     "note": "Klasik Material 3 NavigationBar, 80 dp, etiketler her zaman görünür.",
+     "actions": {
+      "tab:0": {
+       "to": "eq",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "ai",
+       "transition": "fade"
+      },
+      "tab:3": {
+       "to": "setup",
+       "transition": "fade"
+      }
+     },
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p48"
+    }
+   ]
+  },
+  {
+   "id": "g49",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Kurulum",
+     "variant": "filled",
+     "icon": null,
+     "id": "p49"
+    }
+   ]
+  },
+  {
+   "id": "g50",
+   "x": 1492,
+   "y": 96,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "1  Bildirim erişimi",
+     "supporting": "Şarkı bilgisini okumak için sistem ayarlarında Sludge EQ'ya izin ver.",
+     "noImage": true,
+     "size": 380,
+     "size2": 112,
+     "variant": "elevated",
+     "icon": null,
+     "id": "p50"
+    }
+   ]
+  },
+  {
+   "id": "g51",
+   "x": 1492,
+   "y": 216,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "2  Kısıtlanmış ayarlara izin ver",
+     "supporting": "Android 13+, APK ile kurulumda: Uygulama bilgisi → ⋮ → Kısıtlanmış ayarlara izin ver.",
+     "noImage": true,
+     "size": 380,
+     "size2": 150,
+     "variant": "outlined",
+     "icon": "help",
+     "id": "p51"
+    }
+   ]
+  },
+  {
+   "id": "g52",
+   "x": 1492,
+   "y": 374,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "3  Bildirim izni",
+     "supporting": "Ön plan hizmeti için gerekli.",
+     "noImage": true,
+     "size": 380,
+     "size2": 112,
+     "variant": "elevated",
+     "icon": null,
+     "id": "p52"
+    }
+   ]
+  },
+  {
+   "id": "g53",
+   "x": 1492,
+   "y": 494,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "4  Ses oturumu durumu",
+     "supporting": "Ekolayzırın bağlandığı ses oturumu.",
+     "noImage": true,
+     "size": 380,
+     "size2": 112,
+     "variant": "elevated",
+     "icon": null,
+     "id": "p53"
+    }
+   ]
+  },
+  {
+   "id": "g54",
+   "x": 1504,
+   "y": 156,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Verildi",
+     "checked": true,
+     "note": "Durum göstergesi; salt okunur.",
+     "variant": "filled",
+     "icon": null,
+     "id": "p54"
+    }
+   ]
+  },
+  {
+   "id": "g55",
+   "x": 1736,
+   "y": 156,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Ayarları aç",
+     "variant": "text",
+     "note": "Sistemin bildirim erişimi ayarlarını açar.",
+     "icon": null,
+     "id": "p55"
+    }
+   ]
+  },
+  {
+   "id": "g56",
+   "x": 1504,
+   "y": 314,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Verildi",
+     "checked": true,
+     "variant": "filled",
+     "icon": null,
+     "id": "p56"
+    }
+   ]
+  },
+  {
+   "id": "g57",
+   "x": 1504,
+   "y": 434,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "switch",
+     "label": "Verildi",
+     "checked": true,
+     "variant": "filled",
+     "icon": null,
+     "id": "p57"
+    }
+   ]
+  },
+  {
+   "id": "g58",
+   "x": 1756,
+   "y": 434,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "İzin ver",
+     "variant": "text",
+     "note": "Bildirim iznini ister.",
+     "icon": null,
+     "id": "p58"
+    }
+   ]
+  },
+  {
+   "id": "g59",
+   "x": 1504,
+   "y": 562,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Oturum etkin",
+     "icon": "check",
+     "checked": true,
+     "note": "Ses oturumu bulunduysa işaretli.",
+     "variant": "filled",
+     "id": "p59"
+    }
+   ]
+  },
+  {
+   "id": "g60",
+   "x": 1476,
+   "y": 788,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "bottomNav",
+     "tabs": [
+      {
+       "icon": "equalizer",
+       "label": "Ekolayzır"
+      },
+      {
+       "icon": "auto_awesome",
+       "label": "Yapay Zekâ"
+      },
+      {
+       "icon": "library_music",
+       "label": "Ön Ayarlar"
+      },
+      {
+       "icon": "settings",
+       "label": "Kurulum"
+      }
+     ],
+     "selected": 3,
+     "note": "Klasik Material 3 NavigationBar, 80 dp, etiketler her zaman görünür.",
+     "actions": {
+      "tab:0": {
+       "to": "eq",
+       "transition": "fade"
+      },
+      "tab:1": {
+       "to": "ai",
+       "transition": "fade"
+      },
+      "tab:2": {
+       "to": "presets",
+       "transition": "fade"
+      }
+     },
+     "variant": "filled",
+     "icon": null,
+     "label": "",
+     "id": "p60"
+    }
+   ]
+  }
+ ]
+}

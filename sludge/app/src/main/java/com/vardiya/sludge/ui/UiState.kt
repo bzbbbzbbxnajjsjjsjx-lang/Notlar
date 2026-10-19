@@ -1,0 +1,50 @@
+package com.vardiya.sludge.ui
+
+import androidx.compose.runtime.Immutable
+import com.vardiya.sludge.audio.AttachedSession
+import com.vardiya.sludge.audio.TuneStatus
+import com.vardiya.sludge.domain.AiConfig
+import com.vardiya.sludge.domain.AiProfile
+import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.TrackInfo
+
+enum class Tab(val title: String) {
+    EQUALIZER("Ekolayzır"),
+    AI("Yapay Zekâ"),
+    PRESETS("Ön Ayarlar"),
+    SETUP("Kurulum"),
+}
+
+/** Everything a screen draws. */
+@Immutable
+data class UiState(
+    val settings: EqSettings = EqSettings(),
+    val track: TrackInfo? = null,
+    val status: TuneStatus = TuneStatus.Idle,
+    val ai: AiConfig = AiConfig(),
+    val sessions: List<AttachedSession> = emptyList(),
+    val globalMixWorks: Boolean? = null,
+    val accessGranted: Boolean = false,
+    val restrictedSettingsLikely: Boolean = false,
+)
+
+/** What the screens can ask for. Every member has a default so previews and screenshot tests pass [NoActions]. */
+interface SludgeActions {
+    fun setEnabled(enabled: Boolean) = Unit
+    fun setBand(index: Int, db: Float) = Unit
+    fun resetBands() = Unit
+    fun setBass(value: Int) = Unit
+    fun setVirtualizer(value: Int) = Unit
+    fun setLoudness(valueMb: Int) = Unit
+    fun setAutoTune(enabled: Boolean) = Unit
+    fun applyPreset(genre: Genre) = Unit
+    fun tuneNow() = Unit
+    fun saveAi(config: AiConfig) = Unit
+    suspend fun testAi(config: AiConfig): Result<AiProfile> = Result.failure(UnsupportedOperationException())
+    fun openNotificationAccess() = Unit
+    fun openAppInfo() = Unit
+    fun openBatterySettings() = Unit
+}
+
+object NoActions : SludgeActions

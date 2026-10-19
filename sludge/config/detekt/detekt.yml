@@ -1,0 +1,31 @@
+# Only the differences from detekt's default config (buildUponDefaultConfig = true).
+
+complexity:
+  # SludgeActions is the one interface between the screens and the view model.
+  TooManyFunctions:
+    allowedFunctionsPerInterface: 20
+    allowedFunctionsPerClass: 20
+  ComplexCondition:
+    allowedConditions: 4
+  # Composable screens are long, branchy layout code; splitting them only for the metric hurts readability.
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+style:
+  MaxLineLength:
+    maxLineLength: 150
+  ReturnCount:
+    max: 4
+    excludeGuardClauses: true
+  # dp, sp, alpha and animation values in UI code are design values, not magic numbers; the pure domain code is
+  # frequencies, decibels and address ranges, named where it matters (BAND_HZ, MAX_GAIN_DB) and plain elsewhere.
+  MagicNumber:
+    ignoreAnnotated: ['Composable']
+    ignoreEnums: true
+    excludes: ['**/domain/**', '**/test/**']

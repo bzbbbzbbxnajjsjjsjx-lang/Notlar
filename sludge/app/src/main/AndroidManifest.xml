@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- Lets the app see the label of a player that has a media session (package visibility, Android 11+). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MEDIA_BUTTON" />
+        </intent>
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Sludge">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Notification access: the only way for an ordinary app to read what other players are playing. -->
+        <service
+            android:name=".audio.SludgeListenerService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Players that support external equalizers announce their audio sessions here. -->
+        <receiver
+            android:name=".audio.AudioSessionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION" />
+                <action android:name="android.media.action.CLOSE_AUDIO_EFFECT_CONTROL_SESSION" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
