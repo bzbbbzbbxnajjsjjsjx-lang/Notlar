@@ -6,7 +6,7 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.vardiya.sludge.audio.AttachedSession
-import com.vardiya.sludge.audio.TuneStatus
+import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.DayCount
@@ -50,6 +50,7 @@ class ScreenshotTest {
             source = TuneSource.AI,
         ),
         track = track,
+        playing = true,
         accessGranted = true,
         sessions = listOf(AttachedSession(1042, "com.spotify.music", failed = false)),
         globalMixWorks = false,

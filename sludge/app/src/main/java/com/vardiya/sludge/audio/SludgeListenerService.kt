@@ -6,7 +6,11 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.service.notification.NotificationListenerService
+import com.vardiya.sludge.app.SludgeRuntime
+import com.vardiya.sludge.domain.NowPlaying
+import com.vardiya.sludge.domain.SessionSnapshot
 import com.vardiya.sludge.domain.TrackInfo
+import com.vardiya.sludge.domain.pickCurrent
 
 /**
  * Notification access is the only way for an ordinary app to see other apps' media sessions. This service never
@@ -35,7 +39,7 @@ class SludgeListenerService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         runCatching { manager?.removeOnActiveSessionsChangedListener(sessionsListener) }
         unwatchAll()
-        SludgeRuntime.get(this).publishTrack(null)
+        SludgeRuntime.get(this).publish(NowPlaying())
     }
 
     override fun onDestroy() {
@@ -67,12 +71,12 @@ class SludgeListenerService : NotificationListenerService() {
         callbacks.keys.toList().forEach { stop(it) }
     }
 
-    /** The playing session wins; otherwise the first one that has a title. */
+    /** Hands the runtime what is playing; which session to follow is decided in the domain ([pickCurrent]). */
     private fun publish() {
-        val controllers = callbacks.keys.toList()
-        val chosen = controllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
-            ?: controllers.firstOrNull { it.metadata != null }
-        SludgeRuntime.get(this).publishTrack(chosen?.let { trackOf(it) })
+        val sessions = callbacks.keys.map { c ->
+            SessionSnapshot(trackOf(c), c.playbackState?.state == PlaybackState.STATE_PLAYING)
+        }
+        SludgeRuntime.get(this).publish(pickCurrent(sessions))
     }
 
     private fun trackOf(controller: MediaController): TrackInfo? {

@@ -5,6 +5,7 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.AiProtocol
 import com.vardiya.sludge.domain.HttpRequestSpec
 import com.vardiya.sludge.domain.HttpResult
+import com.vardiya.sludge.domain.ProfileSource
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.UrlRules
 import kotlinx.coroutines.CancellationException
@@ -47,8 +48,8 @@ class UrlConnectionTransport(private val io: CoroutineDispatcher = Dispatchers.I
 }
 
 /** Asks the configured model for an equalizer profile. Failures come back as a Turkish message, never a key. */
-class AiTuner(private val transport: Transport = UrlConnectionTransport()) {
-    suspend fun tune(config: AiConfig, track: TrackInfo): Result<AiProfile> {
+class AiTuner(private val transport: Transport = UrlConnectionTransport()) : ProfileSource {
+    override suspend fun tune(config: AiConfig, track: TrackInfo): Result<AiProfile> {
         if (!UrlRules.isAcceptable(config.baseUrl)) {
             return Result.failure(IllegalArgumentException("Adres https:// ile başlamalı (yerel ağ hariç)"))
         }

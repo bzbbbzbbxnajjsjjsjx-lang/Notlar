@@ -55,7 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.vardiya.sludge.audio.TuneStatus
+import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.Genre
@@ -105,7 +105,7 @@ fun EqualizerScreen(
         val track = state.track
         StatCard(
             icon = Icons.Filled.MusicNote,
-            label = "Çalan",
+            label = if (state.playing || track == null) "Çalan" else "Duraklatıldı",
             value = track?.let { "${it.title.ifBlank { "Adsız parça" }} · ${it.artist.ifBlank { "Bilinmeyen sanatçı" }}" } ?: "Çalan parça yok",
             pill = track?.source?.takeIf { it.isNotBlank() },
             pillContainer = MaterialTheme.colorScheme.secondary,
@@ -331,6 +331,12 @@ private fun ActionRow(state: UiState, actions: SludgeActions) {
                 Icon(if (on) Icons.Filled.Stop else Icons.Filled.PlayArrow, contentDescription = null, Modifier.size(36.dp))
             }
         }
+        val aiHint = when {
+            !on -> "Ekolayzır kapalı"
+            state.track == null -> "Yapay zekâ için bir şarkı çalmalı"
+            else -> null
+        }
+        aiHint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant) }
         (state.status as? TuneStatus.Failed)?.let {
             Text(
                 "Yapay zekâ yanıt vermedi: ${it.message}. Yerel ayar kullanıldı.",

@@ -2,7 +2,7 @@ package com.vardiya.sludge.ui
 
 import androidx.compose.runtime.Immutable
 import com.vardiya.sludge.audio.AttachedSession
-import com.vardiya.sludge.audio.TuneStatus
+import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.EqSettings
@@ -22,6 +22,8 @@ enum class Tab(val title: String) {
 data class UiState(
     val settings: EqSettings = EqSettings(),
     val track: TrackInfo? = null,
+    /** False while the player is paused: the track is still shown, but it is not being listened to. */
+    val playing: Boolean = false,
     val status: TuneStatus = TuneStatus.Idle,
     val ai: AiConfig = AiConfig(),
     val sessions: List<AttachedSession> = emptyList(),

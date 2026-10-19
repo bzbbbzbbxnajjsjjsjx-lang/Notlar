@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import com.vardiya.sludge.app.SludgeRuntime
 
 /**
  * Players that support external equalizers (Spotify, Poweramp, VLC, YouTube Music on many builds and others)

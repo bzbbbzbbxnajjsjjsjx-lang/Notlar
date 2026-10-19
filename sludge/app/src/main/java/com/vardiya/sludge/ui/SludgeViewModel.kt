@@ -1,17 +1,9 @@
 package com.vardiya.sludge.ui
 
 import android.app.Application
-import android.content.ActivityNotFoundException
-import android.content.ComponentName
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.vardiya.sludge.audio.SludgeListenerService
-import com.vardiya.sludge.audio.SludgeRuntime
+import com.vardiya.sludge.app.SludgeRuntime
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.CurveMath
@@ -32,12 +24,13 @@ import java.time.ZoneId
 
 class SludgeViewModel(private val app: Application) : AndroidViewModel(app), SludgeActions {
     private val runtime = SludgeRuntime.get(app)
-    private val access = MutableStateFlow(isAccessGranted())
+    private val system = SystemSettings(app)
+    private val access = MutableStateFlow(system.isNotificationAccessGranted())
 
     val accessGranted: Boolean get() = access.value
 
-    private val core = combine(runtime.settings, runtime.track, runtime.status, runtime.ai) { settings, track, status, ai ->
-        UiState(settings = settings, track = track, status = status, ai = ai)
+    private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.ai) { settings, playing, status, ai ->
+        UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, ai = ai)
     }
 
     val state: StateFlow<UiState> = combine(core, runtime.engine.state, access, runtime.history) { ui, engine, granted, history ->
@@ -51,10 +44,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     /** Called when the app comes back to the front: the user may just have flipped the switch in system settings. */
     fun refreshAccess() {
-        access.value = isAccessGranted()
+        access.value = system.isNotificationAccessGranted()
     }
-
-    private fun isAccessGranted() = NotificationManagerCompat.getEnabledListenerPackages(app).contains(app.packageName)
 
     private fun manual(transform: (EqSettings) -> EqSettings) = runtime.update { transform(it).copy(source = TuneSource.MANUAL) }
 
@@ -84,34 +75,11 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun clearHistory() = runtime.clearHistory()
 
-    override fun openNotificationAccess() {
-        val general = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-        val detail = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS).putExtra(
-                Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
-                ComponentName(app, SludgeListenerService::class.java).flattenToString(),
-            )
-        } else {
-            general
-        }
-        // The detail page is missing on some builds, and unreachable while the setting is restricted.
-        if (!start(detail)) start(general)
-    }
+    override fun openNotificationAccess() = system.openNotificationAccess()
 
-    override fun openAppInfo() {
-        start(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", app.packageName, null)))
-    }
+    override fun openAppInfo() = system.openAppInfo()
 
-    override fun openBatterySettings() {
-        if (!start(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))) openAppInfo()
-    }
-
-    private fun start(intent: Intent): Boolean = try {
-        app.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        true
-    } catch (_: ActivityNotFoundException) {
-        false
-    }
+    override fun openBatterySettings() = system.openBatterySettings()
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
