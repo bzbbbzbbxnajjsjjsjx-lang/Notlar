@@ -88,6 +88,8 @@ private val BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4
 private val BAND_NAMES = listOf("31 Hz", "62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 kHz", "2 kHz", "4 kHz", "8 kHz", "16 kHz")
 private const val DEFAULT_EFFECT = 500
 private const val DEFAULT_LOUDNESS = 400
+private const val PERCENT_FULL = 100f
+private const val PERCENT_MAX = 100
 
 @Composable
 fun EqualizerScreen(
@@ -330,10 +332,17 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                 SwitchRow(settings.headphoneAlways, actions::setHeadphoneAlways) {
                     Text("Her çıkışta uygula", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
+                val strength = settings.headphoneStrength / PERCENT_FULL
                 Text(
-                    "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır; ön kazanç " +
-                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", profile.preampDb)} dB uygulanır, " +
-                        "ses biraz kısılır. Kaynak: ${profile.source}.",
+                    "Düzeltme gücü: %${settings.headphoneStrength} · ses yaklaşık " +
+                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", -profile.preampDb(strength))} dB kısılır",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                PillSlider("Düzeltme gücü", settings.headphoneStrength, PERCENT_MAX, actions::setHeadphoneStrength)
+                Text(
+                    "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır. Uçlardaki (31 Hz, 16 kHz) büyük " +
+                        "artışlar ${profile.maxBoostDb.toInt()} dB ile sınırlıdır; böylece ses gereğinden fazla kısılmaz. " +
+                        "Daha az kısılsın istersen gücü düşür. Kaynak: ${profile.source}.",
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                 )

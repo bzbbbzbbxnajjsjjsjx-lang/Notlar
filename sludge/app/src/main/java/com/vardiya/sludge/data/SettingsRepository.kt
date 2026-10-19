@@ -97,6 +97,7 @@ class SettingsRepository(context: Context) {
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.
             headphoneId = Headphones.fromStored(this[HEADPHONE]),
             headphoneAlways = this[HEADPHONE_ALWAYS] ?: false,
+            headphoneStrength = (this[HEADPHONE_STRENGTH] ?: FULL_STRENGTH).coerceIn(0, FULL_STRENGTH),
         )
     }
 
@@ -127,6 +128,7 @@ class SettingsRepository(context: Context) {
         this[SOURCE] = s.source.name
         this[HEADPHONE] = s.headphoneId.orEmpty()
         this[HEADPHONE_ALWAYS] = s.headphoneAlways
+        this[HEADPHONE_STRENGTH] = s.headphoneStrength
     }
 
     private companion object {
@@ -141,6 +143,8 @@ class SettingsRepository(context: Context) {
         val SOURCE = stringPreferencesKey("source")
         val HEADPHONE = stringPreferencesKey("headphone")
         val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
+        val HEADPHONE_STRENGTH = intPreferencesKey("headphone_strength")
+        const val FULL_STRENGTH = 100
         val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_MODEL = stringPreferencesKey("ai_model")
         val AI_URL = stringPreferencesKey("ai_url")

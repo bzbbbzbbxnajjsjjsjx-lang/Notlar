@@ -3,7 +3,7 @@
 complexity:
   # SludgeActions is the one interface between the screens and the view model.
   TooManyFunctions:
-    allowedFunctionsPerInterface: 20
+    allowedFunctionsPerInterface: 25
     # The view model implements SludgeActions, one function per thing a person can do.
     allowedFunctionsPerClass: 25
   ComplexCondition:

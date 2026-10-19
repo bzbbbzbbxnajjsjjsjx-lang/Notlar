@@ -73,6 +73,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun setHeadphoneAlways(always: Boolean) = runtime.update { it.copy(headphoneAlways = always) }
 
+    override fun setHeadphoneStrength(percent: Int) = runtime.update { it.copy(headphoneStrength = percent.coerceIn(0, MAX_PERCENT)) }
+
     override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toProfile(), TuneSource.PRESET) }
 
     override fun tuneNow() = runtime.tuneNow()
@@ -96,6 +98,7 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     override fun openBatterySettings() = system.openBatterySettings()
 
     private companion object {
+        const val MAX_PERCENT = 100
         const val STOP_TIMEOUT_MS = 5_000L
     }
 }

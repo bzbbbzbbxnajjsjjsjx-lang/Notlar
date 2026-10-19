@@ -12,7 +12,9 @@ Material 3 Expressive ekolayzır. Çalan şarkının meta verisini okur, yapay z
   sanatçı ve albüme bakıp eğriyi seçer, nedenini Türkçe yazar. Sonuç saklanır, aynı şarkı için tekrar istek atılmaz.
 - **Ön ayarlar** (ana sayfada): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock, Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz.
 - **Kulaklık düzeltmesi**: JBL Tune 520BT için Harman over-ear 2018 hedefine göre auto-EQ. Sayılar AutoEq'in Rtings ölçümünden
-  ürettiği 10 bantlık düzeltmedir (ön kazanç −6,1 dB); seçtiğin eğrinin üstüne eklenir. Aynı modelin başka bir çifti bir iki dB
+  ürettiği 10 bantlık düzeltmedir; seçtiğin eğrinin üstüne eklenir. Uçlardaki (31 Hz, 16 kHz) büyük artışlar +3 dB ile
+  sınırlıdır ve ön kazanç gerçekte uygulanan artışa göre hesaplanır (AutoEq'in −6,1 dB'i yerine yaklaşık −3 dB); "Düzeltme gücü"
+  ile daha da azaltabilirsin. Aynı modelin başka bir çifti bir iki dB
   farklı çıkabilir. Düzeltme yalnızca o kulaklık bağlıyken (Bluetooth adından anlaşılır) uygulanır; telefon hoparlöründe ve başka
   kulaklıklarda uygulanmaz. Ad okunamıyorsa "Her çıkışta uygula" ile zorlanır.
 - **Last.fm**: çalan şarkının tür etiketlerini (stoner rock, doom metal…) Last.fm'den alır. Ücretsiz anahtar:

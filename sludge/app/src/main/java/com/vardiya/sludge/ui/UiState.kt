@@ -51,6 +51,7 @@ interface SludgeActions {
     fun setAutoTune(enabled: Boolean) = Unit
     fun setHeadphone(id: String?) = Unit
     fun setHeadphoneAlways(always: Boolean) = Unit
+    fun setHeadphoneStrength(percent: Int) = Unit
     fun applyPreset(genre: Genre) = Unit
     fun tuneNow() = Unit
     fun saveAi(config: AiConfig) = Unit

@@ -71,7 +71,9 @@ while it was being worked out; the AI button always asks the AI again, even for 
 - Headphone correction: the curve the person or the AI chose is kept; the profile's correction and preamp are added on top
   when the equalizer is applied (`effectiveBands(route)`), but only while that headphone is the output (matched by its
   Bluetooth name, spelling-insensitive; a Bluetooth name that cannot be read counts as a match; speaker, wired and other
-  Bluetooth devices never get it). "Her çıkışta uygula" forces it. The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
+  Bluetooth devices never get it). "Her çıkışta uygula" forces it. Boosts in a profile are capped (+3 dB; the end bands
+  are where a small headphone cannot deliver and where a boost eats the most headroom) and the headroom is the boost that
+  is really applied, so the correction costs about 3 dB, not the tool's 6.1; "Düzeltme gücü" scales it down further. The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
   target, Rtings B&K 5128 measurement); another headphone needs its own measured profile, never a guessed one.
 - Tuning: AI when a key is set and the request works, the offline genre guess otherwise. Harsh noise keeps the treble
   down and the loudness gain off; AI answers are clamped to the same limits.
