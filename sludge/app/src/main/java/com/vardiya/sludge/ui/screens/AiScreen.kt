@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -21,9 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -65,14 +64,19 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
         ElevatedCard {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SectionTitle("Sağlayıcı")
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
                     AiProvider.entries.forEachIndexed { index, provider ->
-                        SegmentedButton(
-                            selected = draft.provider == provider,
-                            onClick = {
+                        ToggleButton(
+                            checked = draft.provider == provider,
+                            onCheckedChange = {
                                 draft = draft.copy(provider = provider, model = provider.defaultModel, baseUrl = provider.defaultBaseUrl)
                             },
-                            shape = SegmentedButtonDefaults.itemShape(index, AiProvider.entries.size),
+                            shapes = if (index == 0) {
+                                ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            } else {
+                                ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            },
+                            modifier = Modifier.weight(1f),
                         ) { Text(provider.label) }
                     }
                 }

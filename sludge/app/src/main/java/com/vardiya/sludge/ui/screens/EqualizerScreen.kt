@@ -43,6 +43,7 @@ import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.BandColumn
 import com.vardiya.sludge.ui.components.BandScale
+import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.CurvePreview
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
@@ -153,12 +154,7 @@ private fun NowPlayingCard(state: UiState) {
     val track = state.track
     ElevatedCard {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Icon(
-                Icons.Filled.MusicNote,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            CookieBadge(Icons.Filled.MusicNote, size = 72.dp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     track?.title?.ifBlank { "Adsız parça" } ?: "Çalan parça yok",

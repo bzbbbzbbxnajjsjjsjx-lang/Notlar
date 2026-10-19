@@ -7,15 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +26,7 @@ import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
+import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.CurvePreview
 
 @Composable
@@ -65,11 +64,11 @@ fun PresetsScreen(state: UiState, actions: SludgeActions, padding: PaddingValues
                     }
                     CurvePreview(genre.bands, Modifier.width(88.dp).height(56.dp))
                     if (selected) {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp),
+                        CookieBadge(
+                            Icons.Filled.Check,
+                            size = 40.dp,
+                            container = MaterialTheme.colorScheme.primary,
+                            content = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }

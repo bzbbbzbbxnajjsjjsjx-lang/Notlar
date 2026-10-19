@@ -11,13 +11,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
+import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.SectionTitle
 
 const val PACKAGE_NAME = "com.vardiya.sludge"
@@ -112,11 +112,12 @@ private fun StepCard(done: Boolean, title: String, body: String, actions: @Compo
     ) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(
-                    if (done) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
+                CookieBadge(
+                    icon = if (done) Icons.Filled.Check else Icons.Filled.Remove,
+                    size = 40.dp,
+                    container = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    content = if (done) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     contentDescription = if (done) "Tamam" else "Bekliyor",
-                    tint = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.size(28.dp),
                 )
                 SectionTitle(title)
             }

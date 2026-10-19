@@ -1,6 +1,8 @@
 package com.vardiya.sludge.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -10,6 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -86,6 +91,27 @@ fun CheckSwitch(checked: Boolean, modifier: Modifier = Modifier, enabled: Boolea
         },
         modifier = modifier,
     )
+}
+
+/** A scalloped "cookie" badge, the Material 3 Expressive shape for status marks and avatars. */
+@Composable
+fun CookieBadge(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 48.dp,
+    container: Color = MaterialTheme.colorScheme.primaryContainer,
+    content: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    contentDescription: String? = null,
+) {
+    Box(
+        modifier
+            .size(size)
+            .clip(MaterialShapes.Cookie9Sided.toShape())
+            .background(container),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = contentDescription, tint = content, modifier = Modifier.size(size / 2))
+    }
 }
 
 /** The EQ curve as a smooth line over a faint 0 dB guide; used big on the main screen and small on presets. */

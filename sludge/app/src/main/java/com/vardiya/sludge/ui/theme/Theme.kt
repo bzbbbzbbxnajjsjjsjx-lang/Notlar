@@ -1,11 +1,14 @@
 package com.vardiya.sludge.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 // Burnt-orange fuzz pedal on olive and violet: a desert-rock palette (seed #9A4521), with a dark scheme tuned
 // for a dim room.
@@ -79,5 +82,15 @@ fun SludgeTheme(
     content: @Composable () -> Unit,
 ) {
     // Expressive theme: spring-based motion scheme and the emphasized type styles.
-    MaterialExpressiveTheme(colorScheme = if (darkTheme) DarkColors else LightColors, content = content)
+    MaterialExpressiveTheme(
+        colorScheme = if (darkTheme) DarkColors else LightColors,
+        // Expressive corners: cards and sheets are rounder than the baseline 12dp.
+        shapes = Shapes(
+            small = RoundedCornerShape(16.dp),
+            medium = RoundedCornerShape(28.dp),
+            large = RoundedCornerShape(36.dp),
+            extraLarge = RoundedCornerShape(48.dp),
+        ),
+        content = content,
+    )
 }
