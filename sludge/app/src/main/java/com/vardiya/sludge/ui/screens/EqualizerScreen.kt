@@ -9,28 +9,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSliderState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,10 @@ import com.vardiya.sludge.ui.components.BandColumn
 import com.vardiya.sludge.ui.components.BandScale
 import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.CurvePreview
+import com.vardiya.sludge.ui.components.EffectCard
+import com.vardiya.sludge.ui.components.PillSlider
+import com.vardiya.sludge.ui.components.RotaryKnob
+import com.vardiya.sludge.ui.components.WavyLevel
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
 
@@ -100,14 +105,40 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
             }
         }
 
-        ElevatedCard {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SectionTitle("Efektler")
-                EffectRow("Bas güçlendirici", s.bassBoost, MAX_EFFECT, 500, s.enabled, actions::setBass)
-                EffectRow("Sanallaştırıcı (geniş sahne)", s.virtualizer, MAX_EFFECT, 500, s.enabled, actions::setVirtualizer)
-                EffectRow("Ses yükseltici", s.loudnessMb, MAX_LOUDNESS_MB, 400, s.enabled, actions::setLoudness)
-            }
-        }
+        SectionTitle("Efektler", Modifier.padding(start = 8.dp, top = 8.dp))
+        EffectCard(
+            title = "Bas güçlendirici",
+            icon = Icons.Filled.Speaker,
+            polygon = MaterialShapes.Cookie9Sided,
+            value = s.bassBoost,
+            max = MAX_EFFECT,
+            enabled = s.enabled,
+            container = MaterialTheme.colorScheme.tertiaryContainer,
+            onValue = actions::setBass,
+            defaultOn = DEFAULT_EFFECT,
+        ) { RotaryKnob("Bas güçlendirici", s.bassBoost, MAX_EFFECT, actions::setBass, enabled = s.enabled) }
+        EffectCard(
+            title = "Sanallaştırıcı (geniş sahne)",
+            icon = Icons.Filled.Headphones,
+            polygon = MaterialShapes.Flower,
+            value = s.virtualizer,
+            max = MAX_EFFECT,
+            enabled = s.enabled,
+            container = MaterialTheme.colorScheme.secondaryContainer,
+            onValue = actions::setVirtualizer,
+            defaultOn = DEFAULT_EFFECT,
+        ) { PillSlider("Sanallaştırıcı", s.virtualizer, MAX_EFFECT, actions::setVirtualizer, enabled = s.enabled) }
+        EffectCard(
+            title = "Ses yükseltici",
+            icon = Icons.AutoMirrored.Filled.VolumeUp,
+            polygon = MaterialShapes.Clover4Leaf,
+            value = s.loudnessMb,
+            max = MAX_LOUDNESS_MB,
+            enabled = s.enabled,
+            container = MaterialTheme.colorScheme.surfaceContainerHigh,
+            onValue = actions::setLoudness,
+            defaultOn = DEFAULT_LOUDNESS,
+        ) { WavyLevel("Ses yükseltici", s.loudnessMb, MAX_LOUDNESS_MB, actions::setLoudness, enabled = s.enabled) }
 
         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -119,8 +150,9 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
                 }
                 Button(
                     onClick = actions::tuneNow,
+                    shapes = ButtonDefaults.shapes(),
                     enabled = state.track != null && state.status != TuneStatus.Working,
-                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    modifier = Modifier.fillMaxWidth().height(72.dp),
                 ) {
                     if (state.status == TuneStatus.Working) {
                         LoadingIndicator(Modifier.size(32.dp))
@@ -172,32 +204,13 @@ private fun NowPlayingCard(state: UiState) {
                     overflow = TextOverflow.Ellipsis,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (state.settings.genre.isNotBlank()) AssistChip(onClick = {}, label = { Text(state.settings.genre) })
-                    if (!track?.source.isNullOrBlank()) AssistChip(onClick = {}, label = { Text(track?.source.orEmpty()) })
+                    if (state.settings.genre.isNotBlank()) AssistChip(onClick = {}, shape = CircleShape, label = { Text(state.settings.genre) })
+                    if (!track?.source.isNullOrBlank()) AssistChip(onClick = {}, shape = CircleShape, label = { Text(track?.source.orEmpty()) })
                 }
             }
         }
     }
 }
 
-@Composable
-private fun EffectRow(title: String, value: Int, max: Int, onValue: Int, enabled: Boolean, onChange: (Int) -> Unit) {
-    Column {
-        SwitchRow(value > 0, { on -> onChange(if (on) onValue else 0) }, enabled = enabled) {
-            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-            Text("${value * 100 / max}%", style = MaterialTheme.typography.labelLarge)
-        }
-        val slider = rememberSliderState(value = value.toFloat(), trackRange = 0f..max.toFloat())
-        // Follow the stored value when it changes from outside (a preset, the AI, the switch above).
-        LaunchedEffect(value) { if (slider.value.toInt() != value) slider.value = value.toFloat() }
-        Slider(
-            state = slider,
-            onValueChange = {
-                slider.value = it
-                onChange(it.toInt())
-            },
-            enabled = enabled,
-            modifier = Modifier.semantics { contentDescription = title },
-        )
-    }
-}
+private const val DEFAULT_EFFECT = 500
+private const val DEFAULT_LOUDNESS = 400

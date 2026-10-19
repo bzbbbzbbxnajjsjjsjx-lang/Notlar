@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
@@ -47,7 +48,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             body = "Çalan şarkının adını, sanatçısını ve albümünü okumak için Android bu izni ister. Bildirim metinlerini okumayız; " +
                 "yalnızca medya oturumlarına bakarız. Android bu izni uygulama içinden veremez: ayarlarda \"Sludge EQ\" anahtarını sen açarsın.",
         ) {
-            Button(onClick = actions::openNotificationAccess) {
+            Button(onClick = actions::openNotificationAccess, shapes = ButtonDefaults.shapes()) {
                 Text(if (state.accessGranted) "Ayarları aç" else "Erişimi ver")
             }
         }
@@ -58,7 +59,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             body = "Android 13 ve sonrasında APK ile kurulan uygulamalarda bu anahtar \"Kısıtlanmış ayar\" yüzünden kilitli gelir. " +
                 "Uygulama bilgisi → sağ üst ⋮ menüsü → \"Kısıtlanmış ayarlara izin ver\", sonra 1. adıma dön.",
         ) {
-            OutlinedButton(onClick = actions::openAppInfo) { Text("Uygulama bilgisini aç") }
+            OutlinedButton(onClick = actions::openAppInfo, shapes = ButtonDefaults.shapes()) { Text("Uygulama bilgisini aç") }
             Text("Bilgisayarın varsa aynı iş iki komutla da olur:", style = MaterialTheme.typography.bodySmall)
             SelectionContainer {
                 Text(
@@ -76,7 +77,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             body = "Bazı telefonlar pil tasarrufu için uygulamayı kapatır; ekolayzır da susar. Pil ayarlarında Sludge EQ için " +
                 "\"Kısıtlama yok\" seç.",
         ) {
-            OutlinedButton(onClick = actions::openBatterySettings) { Text("Pil ayarlarını aç") }
+            OutlinedButton(onClick = actions::openBatterySettings, shapes = ButtonDefaults.shapes()) { Text("Pil ayarlarını aç") }
         }
 
         StepCard(

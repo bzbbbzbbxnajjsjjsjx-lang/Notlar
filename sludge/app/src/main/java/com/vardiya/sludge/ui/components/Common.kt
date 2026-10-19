@@ -38,7 +38,7 @@ import com.vardiya.sludge.domain.MAX_GAIN_DB
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
-        style = MaterialTheme.typography.titleMediumEmphasized,
+        style = MaterialTheme.typography.titleLargeEmphasized,
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier.semantics { heading() },
     )
@@ -99,6 +99,7 @@ fun CookieBadge(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = 48.dp,
+    polygon: androidx.graphics.shapes.RoundedPolygon = MaterialShapes.Cookie9Sided,
     container: Color = MaterialTheme.colorScheme.primaryContainer,
     content: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     contentDescription: String? = null,
@@ -106,7 +107,7 @@ fun CookieBadge(
     Box(
         modifier
             .size(size)
-            .clip(MaterialShapes.Cookie9Sided.toShape())
+            .clip(polygon.toShape())
             .background(container),
         contentAlignment = Alignment.Center,
     ) {

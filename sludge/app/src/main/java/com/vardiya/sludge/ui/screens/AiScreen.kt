@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,6 +96,7 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                             )
                         }
                     },
+                    shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
@@ -102,6 +104,7 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                     onValueChange = { draft = draft.copy(model = it) },
                     label = { Text("Model") },
                     singleLine = true,
+                    shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
@@ -112,15 +115,18 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                     isError = !urlOk,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = { actions.saveAi(draft) },
+                        shapes = ButtonDefaults.shapes(),
                         enabled = draft != state.ai && urlOk,
                         modifier = Modifier.weight(1f),
                     ) { Text("Kaydet") }
                     FilledTonalButton(
+                        shapes = ButtonDefaults.shapes(),
                         onClick = {
                             testing = true
                             testResult = ""

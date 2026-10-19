@@ -56,6 +56,8 @@ class ScreenshotTest {
         ai = AiConfig(apiKey = "sk-ant-demo-key"),
     )
 
+    private val tuned = playing.copy(settings = playing.settings.copy(bassBoost = 700, virtualizer = 400, loudnessMb = 600))
+
     private val fresh = UiState()
 
     private val today = LocalDate.of(2026, 10, 19)
@@ -79,6 +81,13 @@ class ScreenshotTest {
 
     @Test @Config(qualifiers = "+night")
     fun equalizerDark() = capture("equalizer_dark") { Screen(playing, Tab.EQUALIZER) }
+
+    // A tall screen, so the effect cards below the bands are in the picture too.
+    @Test @Config(qualifiers = "w411dp-h2300dp-xxhdpi")
+    fun equalizerTall() = capture("equalizer_tall") { Screen(tuned, Tab.EQUALIZER) }
+
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
+    fun equalizerTallDark() = capture("equalizer_tall_dark") { Screen(tuned, Tab.EQUALIZER) }
 
     @Test fun equalizerIdle() = capture("equalizer_idle") { Screen(fresh, Tab.EQUALIZER) }
 
