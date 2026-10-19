@@ -22,9 +22,11 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +46,7 @@ import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,6 +56,7 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
     var showKey by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf("") }
+    var models by remember { mutableStateOf<ModelListState?>(null) }
     val scope = rememberCoroutineScope()
     val urlOk = UrlRules.isAcceptable(draft.baseUrl)
 
@@ -113,6 +117,13 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth(),
                 )
+                if (draft.provider == AiProvider.OPENROUTER) {
+                    FilledTonalButton(
+                        onClick = { loadModels(scope, actions, draft.baseUrl) { models = it } },
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Listeden model seç") }
+                }
                 OutlinedTextField(
                     value = draft.baseUrl,
                     onValueChange = { draft = draft.copy(baseUrl = it.trim()) },
@@ -176,6 +187,21 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
+        }
+    }
+
+    models?.let { current ->
+        ModalBottomSheet(onDismissRequest = { models = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            ModelPickerContent(
+                state = current,
+                selectedId = draft.model,
+                onPick = {
+                    draft = draft.copy(model = it.id)
+                    models = null
+                },
+                onRetry = { loadModels(scope, actions, draft.baseUrl) { models = it } },
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
         }
     }
 }
@@ -243,5 +269,18 @@ private fun LastFmCard(state: UiState, actions: SludgeActions) {
             }
             if (result.isNotEmpty()) Text(result, style = MaterialTheme.typography.bodyMedium)
         }
+    }
+}
+
+/** Fetches the model list for the picker, showing the spinner first. */
+private fun loadModels(scope: CoroutineScope, actions: SludgeActions, baseUrl: String, show: (ModelListState) -> Unit) {
+    show(ModelListState.Loading)
+    scope.launch {
+        show(
+            actions.loadModels(baseUrl).fold(
+                onSuccess = { ModelListState.Loaded(it) },
+                onFailure = { ModelListState.Failed(it.message.orEmpty().ifEmpty { "Liste alınamadı" }) },
+            ),
+        )
     }
 }

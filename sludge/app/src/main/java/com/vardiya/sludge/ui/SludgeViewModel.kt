@@ -10,6 +10,7 @@ import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.LastFmConfig
+import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
@@ -75,6 +76,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     override fun saveAi(config: AiConfig) = runtime.saveAi(config)
 
     override fun saveLastFm(config: LastFmConfig) = runtime.saveLastFm(config)
+
+    override suspend fun loadModels(baseUrl: String): Result<List<ModelOption>> = runtime.loadModels(baseUrl)
 
     override suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = runtime.testLastFm(config)
 

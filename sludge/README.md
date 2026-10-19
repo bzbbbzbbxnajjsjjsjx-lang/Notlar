@@ -7,7 +7,8 @@ Material 3 Expressive ekolayzır. Çalan şarkının meta verisini okur, yapay z
 
 - **Ekolayzır**: 10 ince sütun (31 Hz–16 kHz, ±12 dB), bas güçlendirici, sanallaştırıcı,
   ses yükseltici. Anahtarların hepsi tikli.
-- **Yapay Zekâ**: Claude, OpenAI ya da OpenRouter; kendi API anahtarını girersin. Şarkı değişince model adı,
+- **Yapay Zekâ**: Claude, OpenAI ya da OpenRouter; kendi API anahtarını girersin. OpenRouter'da model adı yazmadan
+  canlı listeden seçilir (aranabilir, fiyatı ve "ücretsiz" etiketiyle). Şarkı değişince model adı,
   sanatçı ve albüme bakıp eğriyi seçer, nedenini Türkçe yazar. Sonuç saklanır, aynı şarkı için tekrar istek atılmaz.
 - **Ön ayarlar** (ana sayfada): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock, Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz.
 - **Kulaklık düzeltmesi**: JBL Tune 520BT için Harman over-ear 2018 hedefine göre auto-EQ. Sayılar AutoEq'in Rtings ölçümünden

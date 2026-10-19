@@ -8,6 +8,7 @@ import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.LastFmConfig
+import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 
@@ -50,6 +51,7 @@ interface SludgeActions {
     fun tuneNow() = Unit
     fun saveAi(config: AiConfig) = Unit
     fun saveLastFm(config: LastFmConfig) = Unit
+    suspend fun loadModels(baseUrl: String): Result<List<ModelOption>> = Result.failure(UnsupportedOperationException())
     suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = Result.failure(UnsupportedOperationException())
     suspend fun testAi(config: AiConfig): Result<AiProfile> = Result.failure(UnsupportedOperationException())
     fun clearHistory() = Unit

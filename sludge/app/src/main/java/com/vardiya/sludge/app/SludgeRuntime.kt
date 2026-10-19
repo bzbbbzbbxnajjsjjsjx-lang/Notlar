@@ -6,6 +6,7 @@ import com.vardiya.sludge.audio.EffectEngine
 import com.vardiya.sludge.data.AiTuner
 import com.vardiya.sludge.data.LastFmClient
 import com.vardiya.sludge.data.LastFmTagSource
+import com.vardiya.sludge.data.ModelCatalog
 import com.vardiya.sludge.data.test
 import com.vardiya.sludge.data.RepoTuneStore
 import com.vardiya.sludge.data.SettingsRepository
@@ -16,6 +17,7 @@ import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenEntry
+import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.NowPlaying
 import com.vardiya.sludge.domain.TrackInfo
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -44,6 +46,7 @@ class SludgeRuntime private constructor(context: Context) {
     private val repo = SettingsRepository(context)
     private val aiTuner = AiTuner()
     private val lastFm = LastFmClient()
+    private val models = ModelCatalog()
 
     private val engine = EffectEngine()
     val engineState: StateFlow<EngineState> = engine.state
@@ -84,6 +87,9 @@ class SludgeRuntime private constructor(context: Context) {
 
     /** The Last.fm try-it button: looks up a known stoner track with the key as typed, without saving it. */
     suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = lastFm.test(config, SAMPLE_TRACK)
+
+    /** The provider's model list for the picker (cached for this run). */
+    suspend fun loadModels(baseUrl: String): Result<List<ModelOption>> = models.load(baseUrl)
 
     fun clearHistory() {
         scope.launch { repo.clearHistory() }

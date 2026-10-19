@@ -6,7 +6,7 @@
 - Dinleme sekmesi: hangi türleri dinlediğini son 30 gün için halka grafikte gösterir; kayıt yalnızca telefonunda kalır.
 - JBL Tune 520BT için Harman hedefli kulaklık düzeltmesi (AutoEq verisi).
 - Last.fm etiketleriyle şarkının türünü daha doğru tanır.
-- Yapay zekâ sağlayıcısı olarak OpenRouter.
+- Yapay zekâ sağlayıcısı olarak OpenRouter; modeli yazmadan canlı listeden seçersin.
 - 8 hazır tür ayarı, internetsiz çalışan yerel tür tanıma ve harsh noise için kulak koruması.
 - Kurulum sekmesi: bildirim erişimi ve "Kısıtlanmış ayarlara izin ver" adımları.
 

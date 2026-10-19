@@ -4,7 +4,8 @@ complexity:
   # SludgeActions is the one interface between the screens and the view model.
   TooManyFunctions:
     allowedFunctionsPerInterface: 20
-    allowedFunctionsPerClass: 20
+    # The view model implements SludgeActions, one function per thing a person can do.
+    allowedFunctionsPerClass: 25
   ComplexCondition:
     allowedConditions: 4
   # Composable screens are long, branchy layout code; splitting them only for the metric hurts readability.

@@ -5,6 +5,8 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.AiProtocol
 import com.vardiya.sludge.domain.HttpRequestSpec
 import com.vardiya.sludge.domain.HttpResult
+import com.vardiya.sludge.domain.ModelCatalogProtocol
+import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.ProfileSource
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.UrlRules
@@ -78,5 +80,38 @@ class AiTuner(private val transport: Transport = UrlConnectionTransport()) : Pro
 
     private companion object {
         val SUCCESS = 200..299
+    }
+}
+
+/** Loads and remembers (for the life of the process) a provider's model list. */
+class ModelCatalog(private val transport: Transport = UrlConnectionTransport()) {
+    private val cache = HashMap<String, List<ModelOption>>()
+
+    suspend fun load(baseUrl: String): Result<List<ModelOption>> {
+        if (!UrlRules.isAcceptable(baseUrl)) return Result.failure(IllegalArgumentException("Adres https:// ile başlamalı"))
+        synchronized(cache) { cache[baseUrl] }?.let { return Result.success(it) }
+        val response = try {
+            transport.send(ModelCatalogProtocol.request(baseUrl))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: IOException) {
+            return Result.failure(IOException("Model listesine bağlanılamadı"))
+        }
+        if (response.code !in SUCCESS_RANGE) return Result.failure(IOException("Model listesi alınamadı (${response.code})"))
+        return ModelCatalogProtocol.parse(response.body).fold(
+            onSuccess = { list ->
+                if (list.isEmpty()) {
+                    Result.failure(IOException("Liste boş geldi"))
+                } else {
+                    synchronized(cache) { cache[baseUrl] = list }
+                    Result.success(list)
+                }
+            },
+            onFailure = { Result.failure(IOException("Model listesi okunamadı")) },
+        )
+    }
+
+    private companion object {
+        val SUCCESS_RANGE = 200..299
     }
 }

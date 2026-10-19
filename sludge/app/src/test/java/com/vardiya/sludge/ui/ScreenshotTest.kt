@@ -8,14 +8,18 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
+import com.vardiya.sludge.domain.AiProvider
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.DayCount
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.GenreShare
 import com.vardiya.sludge.domain.LastFmConfig
+import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
+import com.vardiya.sludge.ui.screens.ModelListState
+import com.vardiya.sludge.ui.screens.ModelPickerContent
 import com.vardiya.sludge.ui.theme.SludgeTheme
 import org.junit.Rule
 import org.junit.Test
@@ -113,6 +117,29 @@ class ScreenshotTest {
     @Test fun statsEmpty() = capture("stats_empty") { Screen(fresh, Tab.STATS) }
 
     @Test fun ai() = capture("ai") { Screen(playing, Tab.AI) }
+
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
+    fun aiOpenRouter() = capture("ai_openrouter_dark") {
+        val config = AiConfig(AiProvider.OPENROUTER, "openai/gpt-4o-mini", "https://openrouter.ai/api/v1", "sk-or-demo")
+        Screen(playing.copy(ai = config), Tab.AI)
+    }
+
+    @Test @Config(qualifiers = "+night")
+    fun modelPicker() = capture("model_picker_dark") {
+        ModelPickerContent(
+            state = ModelListState.Loaded(
+                listOf(
+                    ModelOption("anthropic/claude-sonnet", "Anthropic: Claude Sonnet", 3.0, 15.0, 200_000),
+                    ModelOption("openai/gpt-4o-mini", "OpenAI: GPT-4o mini", 0.15, 0.6, 128_000),
+                    ModelOption("meta-llama/llama-3.3-70b-instruct:free", "Meta: Llama 3.3 70B Instruct (free)", 0.0, 0.0, 131_072),
+                    ModelOption("openrouter/auto", "Auto Router", null, null, null),
+                ),
+            ),
+            selectedId = "openai/gpt-4o-mini",
+            onPick = {},
+            onRetry = {},
+        )
+    }
 
     // A tall screen, so the Last.fm card below the provider card is in the picture too.
     @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
