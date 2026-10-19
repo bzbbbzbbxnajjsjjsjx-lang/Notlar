@@ -14,7 +14,6 @@ enum class Tab(val title: String) {
     EQUALIZER("Ekolayzır"),
     STATS("Dinleme"),
     AI("Yapay Zekâ"),
-    PRESETS("Ön Ayarlar"),
     SETUP("Kurulum"),
 }
 

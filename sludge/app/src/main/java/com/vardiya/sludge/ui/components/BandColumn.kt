@@ -113,7 +113,7 @@ fun BandColumn(
             maxLines = 1,
         )
         val boost = scheme.primary
-        val cut = scheme.tertiary
+        val cut = scheme.secondary
         val grid = scheme.outline
         val handle = scheme.onSurface
         Box(

@@ -1,6 +1,9 @@
 package com.vardiya.sludge.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,57 +11,88 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Speaker
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.audio.TuneStatus
 import com.vardiya.sludge.domain.BAND_COUNT
+import com.vardiya.sludge.domain.CurveMath
+import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.Health
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
+import com.vardiya.sludge.domain.Status
 import com.vardiya.sludge.domain.TuneSource
+import com.vardiya.sludge.domain.chartLabel
+import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.BandColumn
 import com.vardiya.sludge.ui.components.BandScale
-import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.CurvePreview
 import com.vardiya.sludge.ui.components.EffectCard
 import com.vardiya.sludge.ui.components.PillSlider
 import com.vardiya.sludge.ui.components.RotaryKnob
-import com.vardiya.sludge.ui.components.WavyLevel
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
+import com.vardiya.sludge.ui.components.WavyLevel
 
 private val BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
 private val BAND_NAMES = listOf("31 Hz", "62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 kHz", "2 kHz", "4 kHz", "8 kHz", "16 kHz")
+private const val DEFAULT_EFFECT = 500
+private const val DEFAULT_LOUDNESS = 400
 
 @Composable
-fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, modifier: Modifier = Modifier) {
+fun EqualizerScreen(
+    state: UiState,
+    actions: SludgeActions,
+    padding: PaddingValues,
+    onOpenSetup: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val s = state.settings
+    val status = statusOf(s.enabled, state.accessGranted, state.sessions.size)
     Column(
         modifier
             .verticalScroll(rememberScrollState())
@@ -66,24 +100,38 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
-            SwitchRow(s.enabled, actions::setEnabled, Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                Column(Modifier.weight(1f)) {
-                    Text("Ekolayzır", style = MaterialTheme.typography.titleLargeEmphasized, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    Text(
-                        when {
-                            !s.enabled -> "Kapalı: ses olduğu gibi çalıyor"
-                            state.sessions.isEmpty() -> "Açık: çalar bağlanınca ses işlenir"
-                            else -> "Açık: ses işleniyor"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
+        StatusHeader(status, onOpenSetup)
+
+        val track = state.track
+        StatCard(
+            icon = Icons.Filled.MusicNote,
+            label = "Çalan",
+            value = track?.let { "${it.title.ifBlank { "Adsız parça" }} · ${it.artist.ifBlank { "Bilinmeyen sanatçı" }}" } ?: "Çalan parça yok",
+            pill = track?.source?.takeIf { it.isNotBlank() },
+            pillContainer = MaterialTheme.colorScheme.secondary,
+            pillContent = MaterialTheme.colorScheme.onSecondary,
+        )
+        StatCard(
+            icon = Icons.Filled.Tune,
+            label = "Ayar (${s.source.label})",
+            value = if (s.genre.isBlank()) "Henüz seçilmedi" else s.genre,
+            pill = if (s.genre.isBlank()) null else "${s.bassBoost / PERCENT_STEP}% bas",
+            pillContainer = MaterialTheme.colorScheme.tertiary,
+            pillContent = MaterialTheme.colorScheme.onTertiary,
+        )
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+            SwitchRow(s.autoTune, actions::setAutoTune, Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                    Text("Otomatik ayar", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Şarkı değişince kendisi ayarlar", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
 
-        NowPlayingCard(state)
+        PresetRow(state, actions)
+
+        ActionRow(state, actions)
 
         ElevatedCard {
             Column(Modifier.padding(16.dp)) {
@@ -140,37 +188,6 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
             defaultOn = DEFAULT_LOUDNESS,
         ) { WavyLevel("Ses yükseltici", s.loudnessMb, MAX_LOUDNESS_MB, actions::setLoudness, enabled = s.enabled) }
 
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SwitchRow(s.autoTune, actions::setAutoTune) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Şarkı değişince otomatik ayarla", style = MaterialTheme.typography.titleMedium)
-                        Text("Yapay zekâ ya da yerel tür tanıma ayarı seçer", style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-                Button(
-                    onClick = actions::tuneNow,
-                    shapes = ButtonDefaults.shapes(),
-                    enabled = state.track != null && state.status != TuneStatus.Working,
-                    modifier = Modifier.fillMaxWidth().height(72.dp),
-                ) {
-                    if (state.status == TuneStatus.Working) {
-                        LoadingIndicator(Modifier.size(32.dp))
-                        Text("Ayarlanıyor…", Modifier.padding(start = 12.dp))
-                    } else {
-                        Icon(Icons.Filled.AutoAwesome, contentDescription = null)
-                        Text("Yapay zekâyla ayarla", Modifier.padding(start = 12.dp), style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-                (state.status as? TuneStatus.Failed)?.let {
-                    Text("Yapay zekâ yanıt vermedi: ${it.message}. Yerel ayar kullanıldı.", color = MaterialTheme.colorScheme.error)
-                }
-                if (state.track == null) {
-                    Text("Çalan bir şarkı görünmüyor; Kurulum sekmesinden bildirim erişimini aç.", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-
         if (s.explanation.isNotBlank() && s.source != TuneSource.MANUAL) {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -182,35 +199,175 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
     }
 }
 
+private const val PERCENT_STEP = 10
+
+/** The line the page leads with: what is happening, in words and in the colour of the strip under it. */
 @Composable
-private fun NowPlayingCard(state: UiState) {
-    val track = state.track
-    ElevatedCard {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            CookieBadge(Icons.Filled.MusicNote, size = 72.dp)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun StatusHeader(status: Status, onOpenSetup: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val strip = when (status.health) {
+        Health.ACTIVE -> scheme.tertiary
+        Health.WAITING -> scheme.secondary
+        Health.NEEDS_SETUP -> scheme.error
+        Health.OFF -> scheme.outline
+    }
+    Card(colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLowest)) {
+        Column(
+            Modifier.fillMaxWidth().semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Column(Modifier.padding(horizontal = 20.dp, vertical = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(status.headline, style = MaterialTheme.typography.headlineMediumEmphasized, textAlign = TextAlign.Center)
                 Text(
-                    track?.title?.ifBlank { "Adsız parça" } ?: "Çalan parça yok",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    track?.artist?.ifBlank { "Bilinmeyen sanatçı" } ?: "Bir şarkı başlat",
+                    status.detail,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    color = scheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (state.settings.genre.isNotBlank()) AssistChip(onClick = {}, shape = CircleShape, label = { Text(state.settings.genre) })
-                    if (!track?.source.isNullOrBlank()) AssistChip(onClick = {}, shape = CircleShape, label = { Text(track?.source.orEmpty()) })
+                if (status.health == Health.NEEDS_SETUP) {
+                    FilledTonalButton(onClick = onOpenSetup, shapes = ButtonDefaults.shapes(), modifier = Modifier.padding(top = 12.dp)) {
+                        Text("Kuruluma git")
+                    }
+                }
+            }
+            Box(Modifier.fillMaxWidth().height(STRIP_HEIGHT).background(strip))
+        }
+    }
+}
+
+private val STRIP_HEIGHT = 6.dp
+
+/** An icon, a small label, the value and a coloured pill on the right, like the stat rows of a connection screen. */
+@Composable
+private fun StatCard(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    pill: String?,
+    pillContainer: Color,
+    pillContent: Color,
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp).semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(value, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            if (pill != null) {
+                Surface(shape = CircleShape, color = pillContainer, contentColor = pillContent) {
+                    Text(
+                        pill,
+                        Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
                 }
             }
         }
     }
 }
 
-private const val DEFAULT_EFFECT = 500
-private const val DEFAULT_LOUDNESS = 400
+/** The genre presets as one scrolling row of pills; the one that matches the current sound is selected. */
+@Composable
+private fun PresetRow(state: UiState, actions: SludgeActions) {
+    val s = state.settings
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionTitle("Ön ayar", Modifier.padding(start = 8.dp))
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Genre.entries.forEach { genre ->
+                val selected = CurveMath.sameCurve(s.bands, genre.bands) && s.bassBoost == genre.bass && s.virtualizer == genre.virtualizer
+                FilterChip(
+                    selected = selected,
+                    onClick = { actions.applyPreset(genre) },
+                    label = { Text(genre.chartLabel) },
+                    leadingIcon = if (selected) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) }
+                    } else {
+                        null
+                    },
+                    shape = CircleShape,
+                )
+            }
+        }
+    }
+}
+
+/** The two big actions: a round one that tunes with AI, and a square one that stops or starts the equalizer. */
+@Composable
+private fun ActionRow(state: UiState, actions: SludgeActions) {
+    val scheme = MaterialTheme.colorScheme
+    val on = state.settings.enabled
+    val working = state.status == TuneStatus.Working
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+            BigAction(
+                label = if (working) "Ayarlanıyor" else "Yapay zekâyla ayarla",
+                onClick = actions::tuneNow,
+                enabled = state.track != null && !working && on,
+                shape = CircleShape,
+                container = scheme.secondary,
+                content = scheme.onSecondary,
+            ) {
+                if (working) {
+                    LoadingIndicator(Modifier.size(40.dp))
+                } else {
+                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, Modifier.size(36.dp))
+                }
+            }
+            BigAction(
+                label = if (on) "Kapat" else "Aç",
+                onClick = { actions.setEnabled(!on) },
+                enabled = true,
+                shape = RoundedCornerShape(BIG_ACTION_CORNER),
+                container = if (on) scheme.errorContainer else scheme.tertiary,
+                content = if (on) scheme.onErrorContainer else scheme.onTertiary,
+            ) {
+                Icon(if (on) Icons.Filled.Stop else Icons.Filled.PlayArrow, contentDescription = null, Modifier.size(36.dp))
+            }
+        }
+        (state.status as? TuneStatus.Failed)?.let {
+            Text(
+                "Yapay zekâ yanıt vermedi: ${it.message}. Yerel ayar kullanıldı.",
+                color = scheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+private val BIG_ACTION_SIZE = 88.dp
+private val BIG_ACTION_CORNER = 28.dp
+
+@Composable
+private fun BigAction(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    shape: Shape,
+    container: Color,
+    content: Color,
+    icon: @Composable () -> Unit,
+) {
+    Column(
+        Modifier.width(BIG_ACTION_SIZE + 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        FilledIconButton(
+            onClick = onClick,
+            enabled = enabled,
+            shape = shape,
+            colors = IconButtonDefaults.filledIconButtonColors(containerColor = container, contentColor = content),
+            modifier = Modifier.size(BIG_ACTION_SIZE),
+        ) { icon() }
+        Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
+    }
+}
+

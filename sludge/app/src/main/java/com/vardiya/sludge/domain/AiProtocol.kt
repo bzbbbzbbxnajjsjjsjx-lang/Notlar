@@ -22,6 +22,8 @@ data class HttpResult(val code: Int, val body: String)
 /** Builds the prompt and the request for each provider and reads the answer back. */
 object AiProtocol {
     private const val MAX_FIELD = 160
+    private const val APP_URL = "https://github.com/bzbbbzbbxnajjsjjsjx-lang/Notlar"
+    private const val APP_TITLE = "Sludge EQ"
 
     val json = Json { ignoreUnknownKeys = true; isLenient = true; coerceInputValues = true }
 
@@ -69,12 +71,17 @@ object AiProtocol {
                     }
                 }.toString(),
             )
-            AiProvider.OPENAI -> HttpRequestSpec(
+            AiProvider.OPENAI, AiProvider.OPENROUTER -> HttpRequestSpec(
                 url = "$base/chat/completions",
-                headers = mapOf(
-                    "authorization" to "Bearer ${config.apiKey.trim()}",
-                    "content-type" to "application/json",
-                ),
+                headers = buildMap {
+                    put("authorization", "Bearer ${config.apiKey.trim()}")
+                    put("content-type", "application/json")
+                    // OpenRouter lists apps by these headers; they carry nothing about the user.
+                    if (config.provider == AiProvider.OPENROUTER) {
+                        put("http-referer", APP_URL)
+                        put("x-title", APP_TITLE)
+                    }
+                },
                 body = buildJsonObject {
                     put("model", config.model.trim())
                     put("temperature", 0.3)
@@ -94,7 +101,7 @@ object AiProtocol {
             AiProvider.CLAUDE -> root.getValue("content").jsonArray
                 .firstOrNull { it.jsonObject["type"]?.jsonPrimitive?.contentOrNull == "text" }
                 ?.jsonObject?.get("text")?.jsonPrimitive?.contentOrNull
-            AiProvider.OPENAI -> root.getValue("choices").jsonArray.firstOrNull()
+            AiProvider.OPENAI, AiProvider.OPENROUTER -> root.getValue("choices").jsonArray.firstOrNull()
                 ?.jsonObject?.get("message")?.jsonObject?.get("content")?.jsonPrimitive?.contentOrNull
         }
     }.getOrNull()

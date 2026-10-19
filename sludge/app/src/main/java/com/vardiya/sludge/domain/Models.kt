@@ -27,7 +27,9 @@ data class TrackInfo(
 /** Which service answers the AI tuning request. */
 enum class AiProvider(val label: String, val defaultModel: String, val defaultBaseUrl: String) {
     CLAUDE("Claude", "claude-haiku-5-5", "https://api.anthropic.com"),
-    OPENAI("OpenAI uyumlu", "gpt-4o-mini", "https://api.openai.com/v1"),
+    OPENAI("OpenAI", "gpt-4o-mini", "https://api.openai.com/v1"),
+    // One key for many models; model names look like "provider/model" (see openrouter.ai/models).
+    OPENROUTER("OpenRouter", "openai/gpt-4o-mini", "https://openrouter.ai/api/v1"),
 }
 
 /** Connection settings. [toString] never prints the key. */

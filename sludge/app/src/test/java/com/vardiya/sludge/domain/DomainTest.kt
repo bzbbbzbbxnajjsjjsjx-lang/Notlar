@@ -307,3 +307,30 @@ class PresetExpansionTest {
         assertEquals(List(BAND_COUNT) { 0f }, Genre.FLAT.bands)
     }
 }
+
+class StatusAndProviderTest {
+    @Test fun `the status follows what is really true`() {
+        assertEquals(Health.OFF, statusOf(enabled = false, accessGranted = true, sessions = 2).health)
+        assertEquals(Health.ACTIVE, statusOf(enabled = true, accessGranted = false, sessions = 1).health)
+        assertEquals(Health.ACTIVE, statusOf(enabled = true, accessGranted = true, sessions = 1).health)
+        assertEquals(Health.NEEDS_SETUP, statusOf(enabled = true, accessGranted = false, sessions = 0).health)
+        assertEquals(Health.WAITING, statusOf(enabled = true, accessGranted = true, sessions = 0).health)
+    }
+
+    @Test fun `openrouter uses the chat completions shape with a bearer key and app headers`() {
+        val config = AiConfig(AiProvider.OPENROUTER, "openai/gpt-4o-mini", "https://openrouter.ai/api/v1", "sk-or-secret")
+        val req = AiProtocol.buildRequest(config, TrackInfo(title = "t", artist = "a"))
+        assertEquals("https://openrouter.ai/api/v1/chat/completions", req.url)
+        assertEquals("Bearer sk-or-secret", req.headers["authorization"])
+        assertEquals("Sludge EQ", req.headers["x-title"])
+        assertTrue(req.body.contains("\"model\":\"openai/gpt-4o-mini\""))
+        assertFalse(req.toString().contains("sk-or-secret"))
+        assertEquals("hi", AiProtocol.extractText(AiProvider.OPENROUTER, """{"choices":[{"message":{"content":"hi"}}]}"""))
+        assertTrue(config.isUsable)
+    }
+
+    @Test fun `only openrouter sends the app headers`() {
+        val openai = AiConfig(AiProvider.OPENAI, "gpt-4o-mini", "https://api.openai.com/v1", "k")
+        assertNull(AiProtocol.buildRequest(openai, TrackInfo(title = "t")).headers["x-title"])
+    }
+}

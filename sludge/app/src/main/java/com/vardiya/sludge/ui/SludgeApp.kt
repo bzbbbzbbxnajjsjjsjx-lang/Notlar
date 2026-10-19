@@ -9,12 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Equalizer
-import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -40,7 +38,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vardiya.sludge.ui.screens.AiScreen
 import com.vardiya.sludge.ui.screens.EqualizerScreen
-import com.vardiya.sludge.ui.screens.PresetsScreen
 import com.vardiya.sludge.ui.screens.SetupScreen
 import com.vardiya.sludge.ui.screens.StatsScreen
 
@@ -76,10 +73,9 @@ fun SludgeScreen(state: UiState, tab: Tab, onTabChange: (Tab) -> Unit, actions: 
             modifier = Modifier.fillMaxSize(),
         ) { current ->
             when (current) {
-                Tab.EQUALIZER -> EqualizerScreen(state, actions, padding)
+                Tab.EQUALIZER -> EqualizerScreen(state, actions, padding, onOpenSetup = { onTabChange(Tab.SETUP) })
                 Tab.STATS -> StatsScreen(state, actions, padding)
                 Tab.AI -> AiScreen(state, actions, padding)
-                Tab.PRESETS -> PresetsScreen(state, actions, padding)
                 Tab.SETUP -> SetupScreen(state, actions, padding)
             }
         }
@@ -112,7 +108,6 @@ private val Tab.icon: ImageVector
         Tab.EQUALIZER -> Icons.Outlined.Equalizer
         Tab.STATS -> Icons.Outlined.BarChart
         Tab.AI -> Icons.Outlined.AutoAwesome
-        Tab.PRESETS -> Icons.Outlined.LibraryMusic
         Tab.SETUP -> Icons.Outlined.Settings
     }
 
@@ -121,6 +116,5 @@ private val Tab.selectedIcon: ImageVector
         Tab.EQUALIZER -> Icons.Filled.Equalizer
         Tab.STATS -> Icons.Filled.BarChart
         Tab.AI -> Icons.Filled.AutoAwesome
-        Tab.PRESETS -> Icons.Filled.LibraryMusic
         Tab.SETUP -> Icons.Filled.Settings
     }

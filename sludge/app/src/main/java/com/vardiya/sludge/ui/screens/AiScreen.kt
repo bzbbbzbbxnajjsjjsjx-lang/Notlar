@@ -72,10 +72,10 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                             onCheckedChange = {
                                 draft = draft.copy(provider = provider, model = provider.defaultModel, baseUrl = provider.defaultBaseUrl)
                             },
-                            shapes = if (index == 0) {
-                                ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            } else {
-                                ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            shapes = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                AiProvider.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
                             modifier = Modifier.weight(1f),
                         ) { Text(provider.label) }
@@ -103,6 +103,11 @@ fun AiScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, mod
                     value = draft.model,
                     onValueChange = { draft = draft.copy(model = it) },
                     label = { Text("Model") },
+                    supportingText = if (draft.provider == AiProvider.OPENROUTER) {
+                        { Text("sağlayıcı/model biçiminde yaz, liste: openrouter.ai/models") }
+                    } else {
+                        null
+                    },
                     singleLine = true,
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth(),

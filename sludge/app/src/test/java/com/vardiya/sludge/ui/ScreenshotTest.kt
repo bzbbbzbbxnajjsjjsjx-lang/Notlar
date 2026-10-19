@@ -91,6 +91,14 @@ class ScreenshotTest {
 
     @Test fun equalizerIdle() = capture("equalizer_idle") { Screen(fresh, Tab.EQUALIZER) }
 
+    @Test fun equalizerWaiting() = capture("equalizer_waiting") {
+        Screen(playing.copy(sessions = emptyList(), track = null), Tab.EQUALIZER)
+    }
+
+    @Test fun equalizerOff() = capture("equalizer_off") {
+        Screen(playing.copy(settings = playing.settings.copy(enabled = false)), Tab.EQUALIZER)
+    }
+
     @Test fun equalizerWorking() = capture("equalizer_working") { Screen(playing.copy(status = TuneStatus.Working), Tab.EQUALIZER) }
 
     @Test fun stats() = capture("stats") { Screen(withHistory, Tab.STATS) }
@@ -104,11 +112,6 @@ class ScreenshotTest {
 
     @Test @Config(qualifiers = "+night")
     fun aiDark() = capture("ai_dark") { Screen(playing, Tab.AI) }
-
-    @Test fun presets() = capture("presets") { Screen(playing, Tab.PRESETS) }
-
-    @Test @Config(qualifiers = "+night")
-    fun presetsDark() = capture("presets_dark") { Screen(playing, Tab.PRESETS) }
 
     @Test fun setupFresh() = capture("setup_fresh") { Screen(fresh, Tab.SETUP) }
 
