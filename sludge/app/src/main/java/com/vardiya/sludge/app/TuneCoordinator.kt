@@ -74,8 +74,9 @@ class TuneCoordinator(
         } catch (e: CancellationException) {
             throw e
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-            // A storage hiccup must not stop the pipeline for every later track.
+            // A storage hiccup must not stop the pipeline for every later track; the AI button still says it failed.
             Log.w(TAG, "tuning failed: ${e.javaClass.simpleName}")
+            if (request.manual) _status.value = TuneStatus.Failed("Ayar uygulanamadı")
         } finally {
             withContext(NonCancellable) {
                 // The listen is counted even when a newer track cancelled the tuning or the tuning failed.
@@ -101,7 +102,12 @@ class TuneCoordinator(
     /** One more play in the stats log, filed under the genre the tuner named or, failing that, the offline guess. */
     private suspend fun record(track: TrackInfo, genreText: String) {
         val bucket = ListenStats.bucket(genreText, track)
-        env.record(ListenEntry(clock(), track.artist, track.title, bucket.name))
+        try {
+            env.record(ListenEntry(clock(), track.artist, track.title, bucket.name))
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            // Losing one log line is fine; ending the pipeline for every later track is not.
+            Log.w(TAG, "listen not saved: ${e.javaClass.simpleName}")
+        }
     }
 
     private companion object {

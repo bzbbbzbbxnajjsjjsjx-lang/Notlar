@@ -26,12 +26,22 @@ import java.io.IOException
 private class Env(var settings: EqSettings = EqSettings(autoTune = true), var ai: AiConfig = AiConfig(apiKey = "sk-test")) : TuneEnvironment {
     val applied = mutableListOf<Pair<AiProfile, TuneSource>>()
     val listens = mutableListOf<ListenEntry>()
+    var failRecordOnce = false
+    var failApplyOnce = false
     override suspend fun settings() = settings
     override suspend fun aiConfig() = ai
     override suspend fun apply(profile: AiProfile, source: TuneSource) {
+        if (failApplyOnce) {
+            failApplyOnce = false
+            throw IOException("disk")
+        }
         applied += profile to source
     }
     override suspend fun record(entry: ListenEntry) {
+        if (failRecordOnce) {
+            failRecordOnce = false
+            throw IOException("disk")
+        }
         listens += entry
     }
 }
@@ -153,16 +163,44 @@ class TuneCoordinatorTest {
         assertEquals(TuneStatus.Idle, c.status.value)
     }
 
-    @Test fun `a paused newer track does not leave the status stuck on working`() = runTest {
+    @Test fun `a manual request replaces an automatic one in flight and the status ends idle`() = runTest {
         val env = Env()
         val now = MutableStateFlow(NowPlaying())
         val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(1_000, Result.success(profile))), settle)
         now.value = playing(a)
         advanceTimeBy(settle + 50)
         runCurrent()
-        now.value = NowPlaying(b, playing = false)
+        assertEquals(TuneStatus.Working, c.status.value)
+        c.tuneNow(b)
         pass(PASS_MS)
         assertEquals(TuneStatus.Idle, c.status.value)
+        assertEquals(1, env.applied.size)
+        assertEquals(listOf("Dopesmoker"), env.listens.map { it.title })
+    }
+
+    @Test fun `a failed log write does not stop the next track from being tuned and counted`() = runTest {
+        val env = Env().apply { failRecordOnce = true }
+        val now = MutableStateFlow(NowPlaying())
+        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))), settle)
+        now.value = playing(a)
+        pass(PASS_MS)
+        now.value = playing(b)
+        pass(PASS_MS)
+        assertEquals(2, env.applied.size)
+        assertEquals(listOf("Sleeping Giant"), env.listens.map { it.title })
+    }
+
+    @Test fun `a storage failure after the AI button says so and the pipeline keeps working`() = runTest {
+        val env = Env().apply { failApplyOnce = true }
+        val tuner = AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile)))
+        val c = TuneCoordinator(backgroundScope, MutableStateFlow(NowPlaying()), env, tuner, settle)
+        c.tuneNow(a)
+        pass(PASS_MS)
+        assertTrue(c.status.value is TuneStatus.Failed)
+        c.tuneNow(b)
+        pass(PASS_MS)
+        assertEquals(TuneStatus.Idle, c.status.value)
+        assertEquals(1, env.applied.size)
     }
 
     @Test fun `a slider moved while the AI thinks is not undone by the automatic result`() = runTest {

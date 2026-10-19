@@ -29,25 +29,33 @@ class EqController(
     init {
         scope.launch(audio) {
             // Wait for the stored settings before touching the audio, so a restart never flashes the defaults.
-            engine.tryGlobalMix(repo.settings.first())
-            launch { repo.settings.distinctUntilChanged().collect { engine.apply(it) } }
+            guarded("global mix") { engine.tryGlobalMix(repo.settings.first()) }
+            launch { guarded("settings") { repo.settings.distinctUntilChanged().collect { engine.apply(it) } } }
             for (command in commands) {
                 try {
-                    // A null package name is a close.
-                    if (command.packageName == null) {
-                        engine.detach(command.session)
-                    } else {
-                        engine.attach(command.session, command.packageName, repo.settings.first())
+                    guarded("audio session ${command.session}") {
+                        // A null package name is a close.
+                        if (command.packageName == null) {
+                            engine.detach(command.session)
+                        } else {
+                            engine.attach(command.session, command.packageName, repo.settings.first())
+                        }
                     }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
-                    // Whatever one session throws must not end the queue for every session after it.
-                    Log.w(TAG, "audio session ${command.session} failed: ${e.javaClass.simpleName}")
                 } finally {
                     command.done()
                 }
             }
+        }
+    }
+
+    /** Whatever one step throws must not end the queue for every session after it, nor leave a receiver waiting. */
+    private suspend fun guarded(what: String, block: suspend () -> Unit) {
+        try {
+            block()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            Log.w(TAG, "$what failed: ${e.javaClass.simpleName}")
         }
     }
 
