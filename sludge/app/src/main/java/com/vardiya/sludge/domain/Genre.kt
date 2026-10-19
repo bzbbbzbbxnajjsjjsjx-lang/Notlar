@@ -1,14 +1,15 @@
 package com.vardiya.sludge.domain
 
 /**
- * The genre presets. Curves are dB at [BAND_HZ] (60 Hz, 230 Hz, 910 Hz, 3.6 kHz, 14 kHz); bass, virtualizer and
- * loudness use the same 0..1000 scale as the Android effects. Harsh noise keeps the treble down on purpose:
+ * The genre presets. Each curve is written as five dB anchors (60 Hz, 230 Hz, 910 Hz, 3.6 kHz, 14 kHz) and
+ * spread over the ten bands; bass, virtualizer and loudness use the same 0..1000 scale as the Android effects.
+ * Harsh noise keeps the treble down on purpose:
  * those recordings are loud and bright already, and boosting them hurts ears and speakers.
  */
 enum class Genre(
     val label: String,
     val blurb: String,
-    val bands: List<Float>,
+    val anchors: List<Float>,
     val bass: Int,
     val virtualizer: Int,
     val loudness: Int,
@@ -20,7 +21,11 @@ enum class Genre(
     HARSH_NOISE("Harsh Noise", "Kulak koruması: 2-6 kHz kısık, ses yükseltici kapalı", listOf(2f, 0f, -2f, -4f, -3f), 100, 0, 0),
     DRONE("Drone / Yellow Swans", "Uzayan katmanlar; derin alt, geniş stereo, yumuşak tiz", listOf(4f, 2f, 0f, -1f, 2f), 500, 750, 100),
     SHOEGAZE("Shoegaze", "Ses duvarı; orta çökük, parlak üst", listOf(2f, 1f, -1f, 1f, 3f), 250, 500, 250),
-    FLAT("Düz", "Hiçbir şey eklenmez", EqSettings.FLAT_BANDS, 0, 0, 0),
+    FLAT("Düz", "Hiçbir şey eklenmez", listOf(0f, 0f, 0f, 0f, 0f), 0, 0, 0),
+    ;
+
+    /** The preset on the ten bands. */
+    val bands: List<Float> = CurveMath.expand(anchors)
 }
 
 /** Turns a curve preset into the profile shape the AI also returns. */

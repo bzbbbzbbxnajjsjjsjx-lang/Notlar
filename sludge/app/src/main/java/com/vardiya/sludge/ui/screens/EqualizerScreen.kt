@@ -48,7 +48,8 @@ import com.vardiya.sludge.ui.components.CurvePreview
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
 
-private val BAND_LABELS = listOf("60 Hz", "230 Hz", "910 Hz", "3,6 kHz", "14 kHz")
+private val BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
+private val BAND_NAMES = listOf("31 Hz", "62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 kHz", "2 kHz", "4 kHz", "8 kHz", "16 kHz")
 
 @Composable
 fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, modifier: Modifier = Modifier) {
@@ -81,7 +82,7 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
 
         ElevatedCard {
             Column(Modifier.padding(16.dp)) {
-                SectionTitle("Bantlar")
+                SectionTitle("Bantlar (Hz)")
                 CurvePreview(s.bands, Modifier.fillMaxWidth().height(64.dp).padding(vertical = 8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
                     // The scale sits beside the columns; the empty text above keeps it level with the bars.
@@ -90,7 +91,7 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
                         BandScale()
                     }
                     for (i in 0 until BAND_COUNT) {
-                        BandColumn(BAND_LABELS[i], s.bands[i], { actions.setBand(i, it) }, Modifier.weight(1f), enabled = s.enabled)
+                        BandColumn(BAND_LABELS[i], BAND_NAMES[i], s.bands[i], { actions.setBand(i, it) }, Modifier.weight(1f), enabled = s.enabled)
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

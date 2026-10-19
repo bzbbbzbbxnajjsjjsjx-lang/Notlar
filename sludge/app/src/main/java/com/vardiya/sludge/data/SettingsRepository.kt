@@ -91,8 +91,9 @@ class SettingsRepository(context: Context) {
         )
     }
 
+    // Entries written when the equalizer had five bands no longer fit and are dropped.
     private fun Preferences.toCache(): Map<String, AiProfile> = runCatching {
-        AiProtocol.json.decodeFromString(CACHE_SERIALIZER, this[CACHE].orEmpty())
+        AiProtocol.json.decodeFromString(CACHE_SERIALIZER, this[CACHE].orEmpty()).filterValues { it.bands.size == BAND_COUNT }
     }.getOrDefault(emptyMap())
 
     private fun androidx.datastore.preferences.core.MutablePreferences.write(s: EqSettings) {

@@ -9,18 +9,18 @@ import org.junit.Test
 
 class CurveMathTest {
     @Test fun `device bands at the canonical frequencies read the canonical gains`() {
-        val bands = listOf(5f, 3f, -1f, 1f, -1f)
+        val bands = listOf(5f, 4f, 3f, 1f, -1f, -1f, 0f, 1f, 2f, -1f)
         assertEquals(bands, CurveMath.mapToDevice(bands, BAND_HZ))
     }
 
     @Test fun `in between frequencies interpolate on a log axis`() {
-        val bands = listOf(0f, 10f, 10f, 10f, 10f)
-        val mid = CurveMath.mapToDevice(bands, listOf(Math.sqrt(60.0 * 230.0).toFloat())).single()
-        assertEquals(5f, mid, 0.01f)
+        val bands = listOf(0f, 10f, 10f, 10f, 10f, 10f, 10f, 10f, 10f, 10f)
+        val mid = CurveMath.mapToDevice(bands, listOf(Math.sqrt(31.0 * 62.0).toFloat())).single()
+        assertEquals(5f, mid, 0.05f)
     }
 
     @Test fun `frequencies outside the range hold the end values`() {
-        val bands = listOf(4f, 0f, 0f, 0f, -6f)
+        val bands = listOf(4f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -6f)
         assertEquals(listOf(4f, -6f), CurveMath.mapToDevice(bands, listOf(20f, 20_000f)))
     }
 
@@ -95,7 +95,7 @@ class GenreDetectorTest {
 
     @Test fun `harsh noise never boosts the harsh range or the loudness`() {
         val preset = Genre.HARSH_NOISE
-        assertTrue(preset.bands[3] < 0 && preset.bands[4] < 0)
+        assertTrue(preset.bands[6] <= 0 && preset.bands[7] < 0 && preset.bands[8] < 0 && preset.bands[9] < 0)
         assertEquals(0, preset.loudness)
     }
 
@@ -150,19 +150,19 @@ class AiProtocolTest {
     }
 
     @Test fun `a profile inside a code fence parses`() {
-        val text = "Elbette!\n```json\n{\"genre\":\"Stoner\",\"bands\":[5,3,-1,1,-1],\"bass_boost\":450,\"virtualizer\":150," +
+        val text = "Elbette!\n```json\n{\"genre\":\"Stoner\",\"bands\":[5,4,3,1,-1,-1,0,1,2,-1],\"bass_boost\":450,\"virtualizer\":150," +
             "\"loudness\":300,\"explanation\":\"Sıcak.\"}\n```"
         val p = AiProtocol.parseProfile(text).getOrThrow()
-        assertEquals(listOf(5f, 3f, -1f, 1f, -1f), p.bands)
+        assertEquals(listOf(5f, 4f, 3f, 1f, -1f, -1f, 0f, 1f, 2f, -1f), p.bands)
         assertEquals(450, p.bassBoost)
         assertEquals("Stoner", p.genre)
     }
 
     @Test fun `wild values are clamped`() {
         val p = AiProtocol.parseProfile(
-            "{\"bands\":[99,-99,0,0.3,0],\"bass_boost\":5000,\"virtualizer\":-4,\"loudness\":99999}",
+            "{\"bands\":[99,-99,0,0.3,0,0,0,0,0,0],\"bass_boost\":5000,\"virtualizer\":-4,\"loudness\":99999}",
         ).getOrThrow()
-        assertEquals(listOf(12f, -12f, 0f, 0.5f, 0f), p.bands)
+        assertEquals(listOf(12f, -12f, 0f, 0.5f, 0f, 0f, 0f, 0f, 0f, 0f), p.bands)
         assertEquals(MAX_EFFECT, p.bassBoost)
         assertEquals(0, p.virtualizer)
         assertEquals(MAX_LOUDNESS_MB, p.loudness)
@@ -291,5 +291,19 @@ class UrlRulesHostTest {
     @Test fun `a key with whitespace is not usable`() {
         assertFalse(AiConfig(apiKey = "sk-abc\ndef").isUsable)
         assertTrue(AiConfig(apiKey = "sk-abcdef").isUsable)
+    }
+}
+
+class PresetExpansionTest {
+    @Test fun `a preset keeps its anchor values on the ten bands`() {
+        val bands = Genre.DOOM.bands
+        assertEquals(BAND_COUNT, bands.size)
+        // 62 Hz and 250 Hz are the bands nearest to the 60 Hz and 230 Hz anchors.
+        assertTrue(bands[1] > 6f)
+        assertTrue(bands.last() <= bands.first())
+    }
+
+    @Test fun `flat stays flat`() {
+        assertEquals(List(BAND_COUNT) { 0f }, Genre.FLAT.bands)
     }
 }

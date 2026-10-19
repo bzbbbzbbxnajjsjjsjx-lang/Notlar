@@ -12,16 +12,26 @@ object CurveMath {
      */
     fun mapToDevice(bands: List<Float>, deviceHz: List<Float>): List<Float> {
         require(bands.size == BAND_COUNT) { "expected $BAND_COUNT bands, got ${bands.size}" }
-        return deviceHz.map { hz -> interpolate(bands, hz) }
+        return resample(bands, BAND_HZ, deviceHz)
     }
 
-    private fun interpolate(bands: List<Float>, hz: Float): Float {
-        if (hz <= BAND_HZ.first()) return bands.first()
-        if (hz >= BAND_HZ.last()) return bands.last()
-        val upper = BAND_HZ.indexOfFirst { it >= hz }
+    /** The same log-frequency reading for any pair of frequency lists. */
+    fun resample(values: List<Float>, valuesHz: List<Float>, targetHz: List<Float>): List<Float> =
+        targetHz.map { hz -> interpolate(values, valuesHz, hz) }
+
+    /** Spreads the five-point shape of a preset over the ten bands, rounded to half decibels. */
+    fun expand(anchors: List<Float>): List<Float> = resample(anchors, ANCHOR_HZ, BAND_HZ).map(::snap)
+
+    /** Where the presets' five anchor values sit (Hz). */
+    val ANCHOR_HZ: List<Float> = listOf(60f, 230f, 910f, 3_600f, 14_000f)
+
+    private fun interpolate(values: List<Float>, valuesHz: List<Float>, hz: Float): Float {
+        if (hz <= valuesHz.first()) return values.first()
+        if (hz >= valuesHz.last()) return values.last()
+        val upper = valuesHz.indexOfFirst { it >= hz }
         val lower = upper - 1
-        val t = (ln(hz) - ln(BAND_HZ[lower])) / (ln(BAND_HZ[upper]) - ln(BAND_HZ[lower]))
-        return bands[lower] + (bands[upper] - bands[lower]) * t
+        val t = (ln(hz) - ln(valuesHz[lower])) / (ln(valuesHz[upper]) - ln(valuesHz[lower]))
+        return values[lower] + (values[upper] - values[lower]) * t
     }
 
     /** dB to the millibels the Android API wants, clamped to the range the device reports. */

@@ -3,10 +3,10 @@ package com.vardiya.sludge.domain
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Center frequencies of the five canonical bands every curve is written in (Hz). */
-val BAND_HZ: List<Float> = listOf(60f, 230f, 910f, 3_600f, 14_000f)
+/** Center frequencies of the ten octave bands every curve is written in (Hz). */
+val BAND_HZ: List<Float> = listOf(31f, 62f, 125f, 250f, 500f, 1_000f, 2_000f, 4_000f, 8_000f, 16_000f)
 
-const val BAND_COUNT = 5
+const val BAND_COUNT = 10
 const val MAX_GAIN_DB = 12f
 const val MAX_EFFECT = 1000
 const val MAX_LOUDNESS_MB = 1000

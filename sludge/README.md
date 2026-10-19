@@ -5,7 +5,7 @@ Material 3 Expressive ekolayzır. Çalan şarkının meta verisini okur, yapay z
 
 ## Ne yapar
 
-- **Ekolayzır**: 5 dikdörtgen sütun (60 Hz, 230 Hz, 910 Hz, 3,6 kHz, 14 kHz, ±12 dB), bas güçlendirici, sanallaştırıcı,
+- **Ekolayzır**: 10 ince sütun (31 Hz–16 kHz, ±12 dB), bas güçlendirici, sanallaştırıcı,
   ses yükseltici. Anahtarların hepsi tikli.
 - **Yapay Zekâ**: Claude ya da OpenAI uyumlu bir uç nokta; kendi API anahtarını girersin. Şarkı değişince model adı,
   sanatçı ve albüme bakıp eğriyi seçer, nedenini Türkçe yazar. Sonuç saklanır, aynı şarkı için tekrar istek atılmaz.
