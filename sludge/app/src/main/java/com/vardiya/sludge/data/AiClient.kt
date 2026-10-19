@@ -7,6 +7,7 @@ import com.vardiya.sludge.domain.HttpRequestSpec
 import com.vardiya.sludge.domain.HttpResult
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.UrlRules
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,8 +54,13 @@ class AiTuner(private val transport: Transport = UrlConnectionTransport()) {
         }
         val response = try {
             transport.send(AiProtocol.buildRequest(config, track))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: IOException) {
             return Result.failure(IOException("Bağlanılamadı: ${e.javaClass.simpleName}"))
+        } catch (_: IllegalArgumentException) {
+            // A header value with a line break (a key pasted with a newline in it) is refused by the connection.
+            return Result.failure(IOException("API anahtarı geçersiz karakter içeriyor"))
         }
         if (response.code !in SUCCESS) {
             return Result.failure(IOException(AiProtocol.describeFailure(response.code, response.body)))

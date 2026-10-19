@@ -6,11 +6,14 @@ import com.vardiya.sludge.data.SettingsRepository
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.ListenEntry
+import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneCache
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.applying
 import com.vardiya.sludge.domain.localProfile
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,7 +44,8 @@ sealed interface TuneStatus {
  */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class SludgeRuntime private constructor(context: Context) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // An effect that fails in an unexpected way must not take the process (and the listener) down with it.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, _ -> })
     // Audio effect calls block on the media server; keep them off the main thread and in order.
     private val audio = Dispatchers.Default.limitedParallelism(1)
     private val repo = SettingsRepository(context)
@@ -50,6 +54,8 @@ class SludgeRuntime private constructor(context: Context) {
 
     val settings: StateFlow<EqSettings> = repo.settings.stateIn(scope, SharingStarted.Eagerly, EqSettings())
     val ai: StateFlow<AiConfig> = repo.ai.stateIn(scope, SharingStarted.Eagerly, AiConfig())
+
+    val history: StateFlow<List<ListenEntry>> = repo.history.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     private val _track = MutableStateFlow<TrackInfo?>(null)
     val track: StateFlow<TrackInfo?> = _track.asStateFlow()
@@ -66,7 +72,8 @@ class SludgeRuntime private constructor(context: Context) {
         }
         scope.launch {
             _track.filterNotNull().distinctUntilChanged().debounce(TRACK_SETTLE_MS).collectLatest { track ->
-                if (settings.value.autoTune) tune(track, manual = false)
+                val profile = if (settings.value.autoTune) tune(track, manual = false) else null
+                record(track, profile?.genre.orEmpty())
             }
         }
     }
@@ -99,6 +106,16 @@ class SludgeRuntime private constructor(context: Context) {
         scope.launch { repo.updateSettings(transform) }
     }
 
+    fun clearHistory() {
+        scope.launch { repo.clearHistory() }
+    }
+
+    /** One more play in the stats log, filed under the genre the tuner named or, failing that, the offline guess. */
+    private suspend fun record(track: TrackInfo, genreText: String) {
+        val bucket = ListenStats.bucket(genreText, track)
+        repo.addListen(ListenEntry(System.currentTimeMillis(), track.artist, track.title, bucket.name))
+    }
+
     fun saveAi(config: AiConfig) {
         scope.launch { repo.saveAi(config) }
     }
@@ -112,7 +129,8 @@ class SludgeRuntime private constructor(context: Context) {
     /** Connection test from the AI screen: runs a known stoner track through the model without changing the sound. */
     suspend fun testConnection(config: AiConfig): Result<AiProfile> = tuner.tune(config, SAMPLE_TRACK)
 
-    private suspend fun tune(track: TrackInfo, manual: Boolean) {
+    /** Tunes for [track] and returns the profile that was applied. */
+    private suspend fun tune(track: TrackInfo, manual: Boolean): AiProfile {
         _status.value = TuneStatus.Working
         val config = ai.value
         val key = TuneCache.key(track)
@@ -120,25 +138,30 @@ class SludgeRuntime private constructor(context: Context) {
         if (cached != null) {
             applyProfile(cached, TuneSource.AI)
             _status.value = TuneStatus.Idle
-            return
+            return cached
         }
-        if (!config.isUsable) {
-            applyProfile(localProfile(track), TuneSource.LOCAL)
-            _status.value = TuneStatus.Idle
-            return
-        }
-        tuner.tune(config, track).fold(
+        if (!config.isUsable) return applyLocal(track)
+        return tuner.tune(config, track).fold(
             onSuccess = { profile ->
                 repo.updateCache { TuneCache.put(it, key, profile) }
                 applyProfile(profile, TuneSource.AI)
                 _status.value = TuneStatus.Idle
+                profile
             },
             onFailure = { error ->
                 // Offline or over quota: the local guess still beats leaving the previous track's curve on.
-                applyProfile(localProfile(track), TuneSource.LOCAL)
-                _status.value = if (manual) TuneStatus.Failed(error.message.orEmpty()) else TuneStatus.Idle
+                val local = applyLocal(track)
+                if (manual) _status.value = TuneStatus.Failed(error.message.orEmpty())
+                local
             },
         )
+    }
+
+    private suspend fun applyLocal(track: TrackInfo): AiProfile {
+        val profile = localProfile(track)
+        applyProfile(profile, TuneSource.LOCAL)
+        _status.value = TuneStatus.Idle
+        return profile
     }
 
     private suspend fun applyProfile(profile: AiProfile, source: TuneSource) {

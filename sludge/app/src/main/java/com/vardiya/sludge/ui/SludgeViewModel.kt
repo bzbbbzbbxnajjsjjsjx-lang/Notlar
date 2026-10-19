@@ -17,6 +17,7 @@ import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.TuneSource
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.time.ZoneId
 
 class SludgeViewModel(private val app: Application) : AndroidViewModel(app), SludgeActions {
     private val runtime = SludgeRuntime.get(app)
@@ -38,8 +40,13 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
         UiState(settings = settings, track = track, status = status, ai = ai)
     }
 
-    val state: StateFlow<UiState> = combine(core, runtime.engine.state, access) { ui, engine, granted ->
-        ui.copy(sessions = engine.sessions, globalMixWorks = engine.globalMixWorks, accessGranted = granted)
+    val state: StateFlow<UiState> = combine(core, runtime.engine.state, access, runtime.history) { ui, engine, granted, history ->
+        ui.copy(
+            sessions = engine.sessions,
+            globalMixWorks = engine.globalMixWorks,
+            accessGranted = granted,
+            listens = ListenStats.summarize(history, System.currentTimeMillis(), ZoneId.systemDefault()),
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState(accessGranted = access.value))
 
     /** Called when the app comes back to the front: the user may just have flipped the switch in system settings. */
@@ -74,6 +81,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     override fun saveAi(config: AiConfig) = runtime.saveAi(config)
 
     override suspend fun testAi(config: AiConfig): Result<AiProfile> = runtime.testConnection(config)
+
+    override fun clearHistory() = runtime.clearHistory()
 
     override fun openNotificationAccess() {
         val general = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)

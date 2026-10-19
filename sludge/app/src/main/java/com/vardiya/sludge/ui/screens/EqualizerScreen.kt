@@ -42,6 +42,7 @@ import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.BandColumn
+import com.vardiya.sludge.ui.components.BandScale
 import com.vardiya.sludge.ui.components.CurvePreview
 import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
@@ -63,7 +64,11 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
                 Column(Modifier.weight(1f)) {
                     Text("Ekolayzır", style = MaterialTheme.typography.titleLargeEmphasized, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Text(
-                        if (s.enabled) "Açık: ses işleniyor" else "Kapalı: ses olduğu gibi çalıyor",
+                        when {
+                            !s.enabled -> "Kapalı: ses olduğu gibi çalıyor"
+                            state.sessions.isEmpty() -> "Açık: çalar bağlanınca ses işlenir"
+                            else -> "Açık: ses işleniyor"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
@@ -77,9 +82,14 @@ fun EqualizerScreen(state: UiState, actions: SludgeActions, padding: PaddingValu
             Column(Modifier.padding(16.dp)) {
                 SectionTitle("Bantlar")
                 CurvePreview(s.bands, Modifier.fillMaxWidth().height(64.dp).padding(vertical = 8.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
+                    // The scale sits beside the columns; the empty text above keeps it level with the bars.
+                    Column {
+                        Text("", style = MaterialTheme.typography.labelLarge)
+                        BandScale()
+                    }
                     for (i in 0 until BAND_COUNT) {
-                        BandColumn(BAND_LABELS[i], s.bands[i], { actions.setBand(i, it) }, enabled = s.enabled)
+                        BandColumn(BAND_LABELS[i], s.bands[i], { actions.setBand(i, it) }, Modifier.weight(1f), enabled = s.enabled)
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

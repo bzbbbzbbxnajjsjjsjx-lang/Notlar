@@ -222,3 +222,74 @@ class TuningTest {
         assertEquals(TuneSource.AI, s.source)
     }
 }
+
+class ListenStatsTest {
+    private val zone = java.time.ZoneOffset.UTC
+    private val now = java.time.LocalDate.of(2026, 10, 19).atTime(12, 0).toInstant(zone).toEpochMilli()
+    private val day = 24L * 60 * 60 * 1000
+
+    private fun entry(daysAgo: Int, artist: String, genre: Genre) = ListenEntry(now - daysAgo * day, artist, "t", genre.name)
+
+    @Test fun `plays are counted per genre, largest first`() {
+        val log = listOf(
+            entry(0, "Sleep", Genre.STONER), entry(1, "Sleep", Genre.STONER), entry(1, "Earth", Genre.DRONE),
+        )
+        val s = ListenStats.summarize(log, now, zone)
+        assertEquals(3, s.total)
+        assertEquals(listOf(Genre.STONER, Genre.DRONE), s.genres.map { it.genre })
+        assertEquals(2f / 3, s.genres.first().fraction, 0.001f)
+        assertEquals("Sleep" to 2, s.topArtists.first())
+    }
+
+    @Test fun `entries older than the window are left out`() {
+        val log = listOf(entry(0, "A", Genre.DOOM), entry(45, "B", Genre.DRONE))
+        assertEquals(1, ListenStats.summarize(log, now, zone).total)
+    }
+
+    @Test fun `the week has seven days ending today`() {
+        val s = ListenStats.summarize(listOf(entry(0, "A", Genre.DOOM), entry(0, "A", Genre.DOOM), entry(6, "A", Genre.DOOM)), now, zone)
+        assertEquals(7, s.days.size)
+        assertEquals(2, s.days.last().count)
+        assertEquals(1, s.days.first().count)
+        assertEquals(java.time.LocalDate.of(2026, 10, 19), s.days.last().date)
+    }
+
+    @Test fun `an empty log gives an empty summary`() {
+        val s = ListenStats.summarize(emptyList(), now, zone)
+        assertEquals(0, s.total)
+        assertTrue(s.genres.isEmpty())
+        assertEquals(7, s.days.size)
+    }
+
+    @Test fun `unknown genre names fall into other`() {
+        val s = ListenStats.summarize(listOf(ListenEntry(now, "A", "t", "NOPE")), now, zone)
+        assertEquals(Genre.FLAT, s.genres.single().genre)
+        assertEquals("Diğer", Genre.FLAT.chartLabel)
+    }
+
+    @Test fun `the genre text wins, then the artist`() {
+        assertEquals(Genre.DOOM, ListenStats.bucket("Funeral Doom", TrackInfo(artist = "Kyuss")))
+        assertEquals(Genre.STONER, ListenStats.bucket("Rock", TrackInfo(artist = "Kyuss")))
+        assertEquals(Genre.FLAT, ListenStats.bucket("", TrackInfo(artist = "Nobody")))
+    }
+
+    @Test fun `the log keeps only the newest entries`() {
+        var log = emptyList<ListenEntry>()
+        for (i in 1..5) log = ListenStats.append(log, ListenEntry(i.toLong(), "A", "t$i", Genre.DOOM.name), max = 3)
+        assertEquals(listOf(3L, 4L, 5L), log.map { it.at })
+    }
+}
+
+class UrlRulesHostTest {
+    @Test fun `a public name that starts with an address is not local`() {
+        assertFalse(UrlRules.isAcceptable("http://127.0.0.1.evil.com"))
+        assertFalse(UrlRules.isAcceptable("http://10.0.0.1.attacker.net/v1"))
+        assertFalse(UrlRules.isAcceptable("http://192.168.1.999"))
+        assertTrue(UrlRules.isAcceptable("http://10.0.0.5:8000"))
+    }
+
+    @Test fun `a key with whitespace is not usable`() {
+        assertFalse(AiConfig(apiKey = "sk-abc\ndef").isUsable)
+        assertTrue(AiConfig(apiKey = "sk-abcdef").isUsable)
+    }
+}

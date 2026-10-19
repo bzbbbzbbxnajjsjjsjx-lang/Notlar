@@ -7,10 +7,12 @@ import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 
 enum class Tab(val title: String) {
     EQUALIZER("Ekolayzır"),
+    STATS("Dinleme"),
     AI("Yapay Zekâ"),
     PRESETS("Ön Ayarlar"),
     SETUP("Kurulum"),
@@ -26,7 +28,7 @@ data class UiState(
     val sessions: List<AttachedSession> = emptyList(),
     val globalMixWorks: Boolean? = null,
     val accessGranted: Boolean = false,
-    val restrictedSettingsLikely: Boolean = false,
+    val listens: ListenSummary = ListenSummary(),
 )
 
 /** What the screens can ask for. Every member has a default so previews and screenshot tests pass [NoActions]. */
@@ -42,6 +44,7 @@ interface SludgeActions {
     fun tuneNow() = Unit
     fun saveAi(config: AiConfig) = Unit
     suspend fun testAi(config: AiConfig): Result<AiProfile> = Result.failure(UnsupportedOperationException())
+    fun clearHistory() = Unit
     fun openNotificationAccess() = Unit
     fun openAppInfo() = Unit
     fun openBatterySettings() = Unit

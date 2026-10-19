@@ -125,7 +125,7 @@ object AiProtocol {
         404 -> "Adres ya da model bulunamadı (404)"
         429 -> "İstek sınırına takıldı (429); biraz sonra dene"
         in 500..599 -> "Sağlayıcı şu an yanıt veremiyor ($code)"
-        else -> "İstek başarısız ($code): " + errorMessage(body)
+        else -> errorMessage(body).let { if (it.isEmpty()) "İstek başarısız ($code)" else "İstek başarısız ($code): $it" }
     }
 
     private const val MAX_EXPLANATION = 400
@@ -138,8 +138,8 @@ object AiProtocol {
             is JsonPrimitive -> error.contentOrNull
             else -> null
         }
-        (message ?: body).take(MAX_ERROR)
-    }.getOrDefault(body.take(MAX_ERROR))
+        message.orEmpty().take(MAX_ERROR)
+    }.getOrDefault("")
 }
 
 /** Small cache so replaying a record does not cost another API call. Oldest entries go first. */

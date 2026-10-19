@@ -37,7 +37,9 @@ data class AiConfig(
     val baseUrl: String = AiProvider.CLAUDE.defaultBaseUrl,
     val apiKey: String = "",
 ) {
-    val isUsable: Boolean get() = apiKey.isNotBlank() && model.isNotBlank() && UrlRules.isAcceptable(baseUrl)
+    val isUsable: Boolean
+        get() = apiKey.isNotBlank() && apiKey.none { it.isISOControl() || it.isWhitespace() } && model.isNotBlank() &&
+            UrlRules.isAcceptable(baseUrl)
 
     override fun toString() = "AiConfig(provider=$provider, model=$model, baseUrl=$baseUrl, apiKey=<hidden>)"
 }

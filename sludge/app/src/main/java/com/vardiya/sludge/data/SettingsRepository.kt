@@ -13,9 +13,12 @@ import com.vardiya.sludge.domain.AiProtocol
 import com.vardiya.sludge.domain.AiProvider
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.ListenEntry
+import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.TuneSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 
@@ -28,6 +31,7 @@ class SettingsRepository(context: Context) {
     val settings: Flow<EqSettings> = store.data.map { it.toSettings() }
     val ai: Flow<AiConfig> = store.data.map { it.toAiConfig() }
     val cache: Flow<Map<String, AiProfile>> = store.data.map { it.toCache() }
+    val history: Flow<List<ListenEntry>> = store.data.map { it.toHistory() }
 
     suspend fun updateSettings(transform: (EqSettings) -> EqSettings) {
         store.edit { prefs -> prefs.write(transform(prefs.toSettings())) }
@@ -47,6 +51,20 @@ class SettingsRepository(context: Context) {
             prefs[CACHE] = AiProtocol.json.encodeToString(CACHE_SERIALIZER, transform(prefs.toCache()))
         }
     }
+
+    suspend fun addListen(entry: ListenEntry) {
+        store.edit { prefs ->
+            prefs[HISTORY] = AiProtocol.json.encodeToString(HISTORY_SERIALIZER, ListenStats.append(prefs.toHistory(), entry))
+        }
+    }
+
+    suspend fun clearHistory() {
+        store.edit { it.remove(HISTORY) }
+    }
+
+    private fun Preferences.toHistory(): List<ListenEntry> = runCatching {
+        AiProtocol.json.decodeFromString(HISTORY_SERIALIZER, this[HISTORY].orEmpty())
+    }.getOrDefault(emptyList())
 
     private fun Preferences.toSettings(): EqSettings {
         val bands = this[BANDS]?.split(',')?.mapNotNull { it.toFloatOrNull() }?.takeIf { it.size == BAND_COUNT }
@@ -104,6 +122,8 @@ class SettingsRepository(context: Context) {
         val AI_URL = stringPreferencesKey("ai_url")
         val AI_KEY = stringPreferencesKey("ai_key")
         val CACHE = stringPreferencesKey("tune_cache")
+        val HISTORY = stringPreferencesKey("history")
+        val HISTORY_SERIALIZER = ListSerializer(ListenEntry.serializer())
         val CACHE_SERIALIZER = MapSerializer(String.serializer(), AiProfile.serializer())
     }
 }

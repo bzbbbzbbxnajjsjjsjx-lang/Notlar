@@ -57,6 +57,8 @@ class EffectEngine {
         chain.virt = create { Virtualizer(0, session) }
         chain.loud = create { LoudnessEnhancer(session) }
         chains[session] = chain
+        // A player that crashes never sends CLOSE; drop the oldest sessions so their native effects are freed.
+        while (chains.size > MAX_SESSIONS) chains.remove(chains.keys.first())?.release()
         apply(chain, settings)
         publish()
     }
@@ -138,6 +140,7 @@ class EffectEngine {
 
     private companion object {
         const val GLOBAL_SESSION = 0
+        const val MAX_SESSIONS = 8
         const val MILLI_HZ = 1000f
     }
 }

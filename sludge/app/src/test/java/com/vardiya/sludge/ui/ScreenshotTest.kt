@@ -9,7 +9,10 @@ import com.vardiya.sludge.audio.AttachedSession
 import com.vardiya.sludge.audio.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.DayCount
 import com.vardiya.sludge.domain.Genre
+import com.vardiya.sludge.domain.GenreShare
+import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.ui.theme.SludgeTheme
@@ -19,6 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.LocalDate
 
 /**
  * Renders every tab, light and dark, into `app/src/test/screenshots/`.
@@ -54,6 +58,23 @@ class ScreenshotTest {
 
     private val fresh = UiState()
 
+    private val today = LocalDate.of(2026, 10, 19)
+    private val withHistory = playing.copy(
+        listens = ListenSummary(
+            total = 86,
+            genres = listOf(
+                GenreShare(Genre.STONER, 31, 31f / 86),
+                GenreShare(Genre.DOOM, 22, 22f / 86),
+                GenreShare(Genre.DRONE, 14, 14f / 86),
+                GenreShare(Genre.PSYCH, 10, 10f / 86),
+                GenreShare(Genre.HARSH_NOISE, 6, 6f / 86),
+                GenreShare(Genre.FLAT, 3, 3f / 86),
+            ),
+            topArtists = listOf("Sleep" to 14, "Electric Wizard" to 11, "Yellow Swans" to 9, "Earth" to 7, "Melvins" to 5),
+            days = listOf(3, 0, 7, 12, 5, 9, 4).mapIndexed { i, n -> DayCount(today.minusDays(6L - i), n) },
+        ),
+    )
+
     @Test fun equalizer() = capture("equalizer") { Screen(playing, Tab.EQUALIZER) }
 
     @Test @Config(qualifiers = "+night")
@@ -62,6 +83,13 @@ class ScreenshotTest {
     @Test fun equalizerIdle() = capture("equalizer_idle") { Screen(fresh, Tab.EQUALIZER) }
 
     @Test fun equalizerWorking() = capture("equalizer_working") { Screen(playing.copy(status = TuneStatus.Working), Tab.EQUALIZER) }
+
+    @Test fun stats() = capture("stats") { Screen(withHistory, Tab.STATS) }
+
+    @Test @Config(qualifiers = "+night")
+    fun statsDark() = capture("stats_dark") { Screen(withHistory, Tab.STATS) }
+
+    @Test fun statsEmpty() = capture("stats_empty") { Screen(fresh, Tab.STATS) }
 
     @Test fun ai() = capture("ai") { Screen(playing, Tab.AI) }
 

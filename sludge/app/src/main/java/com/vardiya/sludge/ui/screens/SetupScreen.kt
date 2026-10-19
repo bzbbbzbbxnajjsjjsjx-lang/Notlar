@@ -16,7 +16,7 @@ import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,7 +58,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             body = "Android 13 ve sonrasında APK ile kurulan uygulamalarda bu anahtar \"Kısıtlanmış ayar\" yüzünden kilitli gelir. " +
                 "Uygulama bilgisi → sağ üst ⋮ menüsü → \"Kısıtlanmış ayarlara izin ver\", sonra 1. adıma dön.",
         ) {
-            FilledTonalButton(onClick = actions::openAppInfo) { Text("Uygulama bilgisini aç") }
+            OutlinedButton(onClick = actions::openAppInfo) { Text("Uygulama bilgisini aç") }
             Text("Bilgisayarın varsa aynı iş iki komutla da olur:", style = MaterialTheme.typography.bodySmall)
             SelectionContainer {
                 Text(
@@ -76,7 +76,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             body = "Bazı telefonlar pil tasarrufu için uygulamayı kapatır; ekolayzır da susar. Pil ayarlarında Sludge EQ için " +
                 "\"Kısıtlama yok\" seç.",
         ) {
-            FilledTonalButton(onClick = actions::openBatterySettings) { Text("Pil ayarlarını aç") }
+            OutlinedButton(onClick = actions::openBatterySettings) { Text("Pil ayarlarını aç") }
         }
 
         StepCard(
