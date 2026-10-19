@@ -43,6 +43,8 @@ android {
     testOptions {
         // Robolectric screenshot tests need the app's resources and theme.
         unitTests.isIncludeAndroidResources = true
+        // android.util.Log in code under a plain JUnit test returns defaults instead of throwing.
+        unitTests.isReturnDefaultValues = true
     }
     lint {
         abortOnError = true
@@ -81,6 +83,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)

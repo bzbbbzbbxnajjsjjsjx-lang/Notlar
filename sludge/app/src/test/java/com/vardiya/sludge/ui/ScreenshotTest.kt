@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.vardiya.sludge.audio.AttachedSession
+import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.EqSettings

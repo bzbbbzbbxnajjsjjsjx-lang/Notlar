@@ -19,6 +19,7 @@ import com.vardiya.sludge.domain.pickCurrent
  */
 class SludgeListenerService : NotificationListenerService() {
     private val callbacks = HashMap<MediaController, MediaController.Callback>()
+    private val labels = HashMap<String, String>()
     private var manager: MediaSessionManager? = null
 
     private val sessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
@@ -44,6 +45,7 @@ class SludgeListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         unwatchAll()
+        SludgeRuntime.get(this).publish(NowPlaying())
         super.onDestroy()
     }
 
@@ -81,9 +83,12 @@ class SludgeListenerService : NotificationListenerService() {
 
     private fun trackOf(controller: MediaController): TrackInfo? {
         val meta = controller.metadata ?: return null
-        val source = runCatching {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(controller.packageName, 0)).toString()
-        }.getOrDefault(controller.packageName)
+        // Resolving a label goes through the package manager; every metadata callback would repeat it.
+        val source = labels.getOrPut(controller.packageName) {
+            runCatching {
+                packageManager.getApplicationLabel(packageManager.getApplicationInfo(controller.packageName, 0)).toString()
+            }.getOrDefault(controller.packageName)
+        }
         return TrackInfo(
             title = meta.getString(MediaMetadata.METADATA_KEY_TITLE).orEmpty(),
             artist = meta.getString(MediaMetadata.METADATA_KEY_ARTIST)

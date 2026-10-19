@@ -1,10 +1,10 @@
 package com.vardiya.sludge.ui
 
 import androidx.compose.runtime.Immutable
-import com.vardiya.sludge.audio.AttachedSession
 import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
+import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.ListenSummary

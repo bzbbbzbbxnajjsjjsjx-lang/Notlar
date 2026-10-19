@@ -1,6 +1,7 @@
 package com.vardiya.sludge.app
 
 import android.content.Context
+import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
 import com.vardiya.sludge.data.AiTuner
 import com.vardiya.sludge.data.RepoTuneStore
@@ -8,6 +9,7 @@ import com.vardiya.sludge.data.SettingsRepository
 import com.vardiya.sludge.domain.AiConfig
 import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.AutoTuner
+import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.NowPlaying
@@ -32,11 +34,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class SludgeRuntime private constructor(context: Context) {
     // An effect that fails in an unexpected way must not take the process (and the listener) down with it.
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, _ -> })
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> Log.w(TAG, "background failure: ${e.javaClass.simpleName}") },
+    )
     private val repo = SettingsRepository(context)
     private val aiTuner = AiTuner()
 
-    val engine = EffectEngine()
+    private val engine = EffectEngine()
+    val engineState: StateFlow<EngineState> = engine.state
     val settings: StateFlow<EqSettings> = repo.settings.stateIn(scope, SharingStarted.Eagerly, EqSettings())
     val ai: StateFlow<AiConfig> = repo.ai.stateIn(scope, SharingStarted.Eagerly, AiConfig())
     val history: StateFlow<List<ListenEntry>> = repo.history.stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -44,8 +49,8 @@ class SludgeRuntime private constructor(context: Context) {
     private val _nowPlaying = MutableStateFlow(NowPlaying())
     val nowPlaying: StateFlow<NowPlaying> = _nowPlaying.asStateFlow()
 
-    private val eq = EqController(scope, Dispatchers.Default.limitedParallelism(1), engine, repo)
-    private val tuning = TuneCoordinator(scope, nowPlaying, settings, ai, AutoTuner(RepoTuneStore(repo), aiTuner), repo)
+    private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, repo)
+    private val tuning = TuneCoordinator(scope, nowPlaying, RepoTuneEnvironment(repo), AutoTuner(RepoTuneStore(repo), aiTuner))
     val status: StateFlow<TuneStatus> = tuning.status
 
     fun publish(nowPlaying: NowPlaying) {
@@ -77,6 +82,7 @@ class SludgeRuntime private constructor(context: Context) {
     suspend fun testConnection(config: AiConfig): Result<AiProfile> = aiTuner.tune(config, SAMPLE_TRACK)
 
     companion object {
+        private const val TAG = "Sludge"
         private val SAMPLE_TRACK = TrackInfo(title = "Dopesmoker", artist = "Sleep", album = "Dopesmoker", genreTag = "Stoner Metal")
 
         @Volatile private var instance: SludgeRuntime? = null

@@ -8,20 +8,13 @@ import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
 import android.media.audiofx.Virtualizer
+import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.CurveMath
+import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
-/** One audio session the engine is holding effects on. */
-data class AttachedSession(val id: Int, val packageName: String, val failed: Boolean)
-
-data class EngineState(
-    val sessions: List<AttachedSession> = emptyList(),
-    /** Result of the attempt to sit on the global output mix: null = not tried yet. */
-    val globalMixWorks: Boolean? = null,
-)
 
 /**
  * Holds an Equalizer, BassBoost, Virtualizer and LoudnessEnhancer on every audio session a player announces, and

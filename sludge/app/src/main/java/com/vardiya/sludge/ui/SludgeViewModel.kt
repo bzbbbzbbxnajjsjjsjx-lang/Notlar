@@ -33,7 +33,7 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
         UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, ai = ai)
     }
 
-    val state: StateFlow<UiState> = combine(core, runtime.engine.state, access, runtime.history) { ui, engine, granted, history ->
+    val state: StateFlow<UiState> = combine(core, runtime.engineState, access, runtime.history) { ui, engine, granted, history ->
         ui.copy(
             sessions = engine.sessions,
             globalMixWorks = engine.globalMixWorks,

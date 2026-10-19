@@ -65,6 +65,37 @@ class AutoTunerTest {
         assertTrue(store.data.isEmpty())
     }
 
+    @Test fun `a refresh skips the remembered answer`() {
+        val ai = FakeAi(Result.success(aiProfile))
+        val store = FakeStore(mutableMapOf(TuneCache.key(track) to aiProfile.copy(genre = "old")))
+        val outcome = runBlocking { AutoTuner(store, ai).tune(track, usable, refresh = true) }
+        assertEquals(1, ai.calls)
+        assertEquals("Stoner", outcome.profile.genre)
+    }
+
+    @Test fun `the fallback profile is the offline one for that track`() {
+        val outcome = run(AutoTuner(FakeStore(), FakeAi(Result.failure(IOException("x")))))
+        assertEquals(localProfile(track), outcome.profile)
+    }
+
+    @Test fun `a remembered answer is used even when there is no key`() {
+        val store = FakeStore(mutableMapOf(TuneCache.key(track) to aiProfile))
+        val outcome = run(AutoTuner(store, FakeAi(Result.failure(IOException("x")))), AiConfig(apiKey = ""))
+        assertEquals(aiProfile, outcome.profile)
+    }
+
+    @Test fun `different tracks are remembered separately`() {
+        val store = FakeStore()
+        val ai = FakeAi(Result.success(aiProfile))
+        val tuner = AutoTuner(store, ai)
+        runBlocking {
+            tuner.tune(track, usable)
+            tuner.tune(TrackInfo(title = "Other", artist = "Band"), usable)
+        }
+        assertEquals(2, ai.calls)
+        assertEquals(2, store.data.size)
+    }
+
     @Test fun `the second request for the same track is served from memory`() {
         val ai = FakeAi(Result.success(aiProfile))
         val tuner = AutoTuner(FakeStore(), ai)

@@ -42,14 +42,19 @@ imports nothing from Android and holds every rule, so every rule has a unit test
   `SludgeListenerService` (notification access, only used to read media sessions), `AudioSessionReceiver` (players
   announce their audio session through the audio-effect broadcast).
 - `app/` — `SludgeRuntime` is the composition root and the one object the UI and the Android entry points talk to.
-  `EqController` keeps the effects in step with the settings; `TuneCoordinator` follows the player, tunes and logs.
+  `EqController` keeps the effects in step with the settings and runs audio sessions through one queue (a close can
+  never overtake its open). `TuneCoordinator` follows the player through one pipeline (a newer request replaces an
+  older one), behind the `TuneEnvironment` port so `TuneCoordinatorTest` runs it on virtual time with fakes.
 - `ui/` — `SludgeViewModel` (state in, `SludgeActions` out), `SystemSettings` (the system screens it opens),
   `SludgeApp` (tabs: Ekolayzır, Dinleme, Yapay Zekâ, Kurulum), `screens/`, `components/` (band columns, effect cards,
   common pieces), `theme/Theme.kt`.
 
 Rules that keep it sound: a new rule goes in `domain/` with a test, not in a composable or a service; Android types
-stay out of `domain/`; the UI reads `UiState` and calls `SludgeActions` only; a paused track is shown but is neither
-tuned nor logged.
+stay out of `domain/`; the UI reads `UiState` and calls `SludgeActions` only (it may name an Android component, as
+`SystemSettings` does for the system screens); a paused track is shown but is neither tuned nor logged; a listen is
+counted even when a newer track cancels its tuning; an automatic result never overwrites a slider the person moved
+while it was being worked out; the AI button always asks the AI again, even for a remembered track. Tests that use
+`backgroundScope` must move the virtual clock with `advanceTimeBy` (`advanceUntilIdle` does not wait for it).
 
 ## Product logic
 

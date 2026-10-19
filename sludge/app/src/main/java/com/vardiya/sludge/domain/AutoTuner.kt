@@ -19,9 +19,10 @@ data class TuneOutcome(val profile: AiProfile, val source: TuneSource, val failu
  * genre guess when there is no key or the AI cannot be reached. It never throws for an AI failure.
  */
 class AutoTuner(private val store: TuneStore, private val ai: ProfileSource) {
-    suspend fun tune(track: TrackInfo, config: AiConfig): TuneOutcome {
+    /** [refresh] skips the remembered answer: a person who pressed the AI button wants a new opinion. */
+    suspend fun tune(track: TrackInfo, config: AiConfig, refresh: Boolean = false): TuneOutcome {
         val key = TuneCache.key(track)
-        store.cached(key)?.let { return TuneOutcome(it, TuneSource.AI) }
+        if (!refresh) store.cached(key)?.let { return TuneOutcome(it, TuneSource.AI) }
         if (!config.isUsable) return local(track)
         return ai.tune(config, track).fold(
             onSuccess = {
