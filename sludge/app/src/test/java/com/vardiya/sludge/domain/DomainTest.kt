@@ -516,3 +516,58 @@ class LastFmTagSafetyTest {
         assertEquals(listOf("r&b", "post-rock", "drum 'n' bass", "death/doom"), names("R&B", "Post-Rock", "drum 'n' bass", "death/doom"))
     }
 }
+
+class ShapingTest {
+    @Test fun `the bass shelf is empty at zero and full at the lowest bands at the top`() {
+        assertEquals(List(BAND_COUNT) { 0f }, Bass.shelf(0))
+        val full = Bass.shelf(MAX_EFFECT)
+        assertEquals(Bass.MAX_SHELF_DB, full[0], 0.001f)
+        assertEquals(Bass.MAX_SHELF_DB, full[1], 0.001f)
+        assertEquals(0f, full[5], 0f)
+        assertEquals(0f, full[9], 0f)
+    }
+
+    @Test fun `the shelf tapers from the lowest band upward and never goes negative`() {
+        val shelf = Bass.shelf(600)
+        for (i in 1 until shelf.size) assertTrue(shelf[i] <= shelf[i - 1])
+        assertTrue(shelf.all { it >= 0f })
+    }
+
+    @Test fun `the shelf scales with the knob and ignores out of range values`() {
+        assertEquals(Bass.shelf(MAX_EFFECT)[0] / 2f, Bass.shelf(MAX_EFFECT / 2)[0], 0.001f)
+        assertEquals(Bass.shelf(MAX_EFFECT), Bass.shelf(5_000))
+        assertEquals(Bass.shelf(0), Bass.shelf(-50))
+    }
+
+    @Test fun `the band edges sit between neighbours and end at 20 kHz`() {
+        assertEquals(BAND_COUNT, BAND_EDGES_HZ.size)
+        assertEquals(20_000f, BAND_EDGES_HZ.last(), 0f)
+        for (i in 0 until BAND_COUNT - 1) assertTrue(BAND_EDGES_HZ[i] > BAND_HZ[i] && BAND_EDGES_HZ[i] < BAND_HZ[i + 1])
+        assertEquals(Math.sqrt(31.0 * 62.0).toFloat(), BAND_EDGES_HZ[0], 0.01f)
+        assertEquals(BAND_EDGES_HZ.sorted(), BAND_EDGES_HZ)
+    }
+
+    @Test fun `the final bands add the shelf to the headphone-corrected curve`() {
+        val s = EqSettings(bands = Genre.DOOM.bands, bassBoost = 500, headphoneId = null)
+        val shelf = Bass.shelf(500)
+        val final = s.finalBands()
+        Genre.DOOM.bands.indices.forEach { assertEquals(Genre.DOOM.bands[it] + shelf[it], final[it], 0.001f) }
+    }
+
+    @Test fun `with the bass knob down the final bands are the effective bands`() {
+        val s = EqSettings(bands = Genre.STONER.bands, bassBoost = 0)
+        assertEquals(s.effectiveBands(), s.finalBands())
+    }
+
+    @Test fun `a bass boost on an already boosted curve is capped at the top of the range`() {
+        val s = EqSettings(bands = List(BAND_COUNT) { MAX_GAIN_DB }, bassBoost = MAX_EFFECT, headphoneId = null)
+        assertTrue(s.finalBands().all { it <= MAX_GAIN_DB })
+    }
+
+    @Test fun `the limiter's make-up gain is the loudness setting in decibels`() {
+        assertEquals(0f, EqSettings(loudnessMb = 0).limiterGainDb(), 0f)
+        assertEquals(3f, EqSettings(loudnessMb = 300).limiterGainDb(), 0.001f)
+        assertEquals(10f, EqSettings(loudnessMb = 99_999).limiterGainDb(), 0.001f)
+        assertEquals(0f, EqSettings(loudnessMb = -5).limiterGainDb(), 0f)
+    }
+}

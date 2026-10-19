@@ -41,6 +41,10 @@ bildirim metinlerini okumaz, yalnızca medya oturumlarına bakar.
 
 ## Ses nasıl işleniyor
 
+Önce Android'in **DynamicsProcessing** efekti denenir: 10 gerçek bant ve bir sınırlayıcı (ses yükseltme, sınırlayıcının kazancıdır,
+bu yüzden bozulmadan yükseltir). Bas düğmesi ekolayzırın alt bantlarını yükseltir. Telefon DynamicsProcessing'i kabul etmezse klasik
+ekolayzır ve ses yükseltici kullanılır. Hangisinin çalıştığı Kurulum sekmesinde her çalar için yazar.
+
 Ekolayzır, çalar uygulamanın ses oturumuna bağlanır. Spotify, Poweramp, VLC gibi "harici ekolayzır" destekleyen çalarlar
 oturumlarını `OPEN_AUDIO_EFFECT_CONTROL_SESSION` yayınıyla bildirir; bu izin istemez. Genel ses karışımına (oturum 0)
 bağlanma da denenir ama Android 10+ çoğunda çalışmaz; Kurulum sekmesi sonucu gösterir. Desteklemeyen bir çalarda

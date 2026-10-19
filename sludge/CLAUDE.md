@@ -37,11 +37,14 @@ imports nothing from Android and holds every rule, so every rule has a unit test
   - `ListenStats.kt` — the listening log and the charts' numbers.
   - `Headphones.kt` — headphone correction profiles (ten band gains and a preamp) and `effectiveBands()`, the curve the
     equalizer is really set to. `OutputRoute.kt` — where the sound goes (speaker, wired, Bluetooth with names) and whether a
-    profile applies to it. `LastFm.kt` — Last.fm requests, answers and tag filtering, the `TagSource` port, `withTags`.
+    profile applies to it. `Shaping.kt` — the bass knob as a low shelf on the bands (`Bass`), the band edges and `finalBands`,
+    the curve the effect is really set to. `LastFm.kt` — Last.fm requests, answers and tag filtering, the `TagSource` port, `withTags`.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; the API key goes through `KeyCipher`,
   an Android Keystore AES-GCM key), `AiClient.kt` (`Transport`, `AiTuner` implements `ProfileSource`),
   `RepoTuneStore` implements `TuneStore`, `LastFmClient` and `LastFmTagSource` (tags cached on disk, nothing asked without a key).
-- `audio/` — Android adapters: `EffectEngine` (Equalizer, BassBoost, Virtualizer, LoudnessEnhancer per audio session),
+- `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with ten bands and a limiter whose
+  make-up gain is the loudness boost; the classic Equalizer and LoudnessEnhancer when a phone refuses it; the Virtualizer
+  separately; BassBoost is not used),
   `SludgeListenerService` (notification access, only used to read media sessions), `AudioSessionReceiver` (players
   announce their audio session through the audio-effect broadcast), `OutputMonitor` (which output devices are connected).
 - `app/` — `SludgeRuntime` is the composition root and the one object the UI and the Android entry points talk to.
@@ -75,6 +78,10 @@ while it was being worked out; the AI button always asks the AI again, even for 
   are where a small headphone cannot deliver and where a boost eats the most headroom) and the headroom is the boost that
   is really applied, so the correction costs about 3 dB, not the tool's 6.1; "Düzeltme gücü" scales it down further. The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
   target, Rtings B&K 5128 measurement); another headphone needs its own measured profile, never a guessed one.
+- Bass and loudness: Android's BassBoost and LoudnessEnhancer are optional and on many phones do nothing audible, so the
+  bass knob is a +4 dB low shelf on the bands (`Bass.shelf`) and the loudness setting is the limiter's make-up gain, which
+  boosts without clipping. The setup screen shows, per audio session, which path is working. That the DynamicsProcessing
+  path sounds right has been checked on no real device from here; if a phone refuses it, the classic path takes over.
 - Tuning: AI when a key is set and the request works, the offline genre guess otherwise. Harsh noise keeps the treble
   down and the loudness gain off; AI answers are clamped to the same limits.
 

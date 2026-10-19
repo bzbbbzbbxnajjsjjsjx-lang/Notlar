@@ -69,7 +69,7 @@ import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.chartLabel
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.correctionActive
-import com.vardiya.sludge.domain.effectiveBands
+import com.vardiya.sludge.domain.finalBands
 import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
@@ -150,7 +150,7 @@ fun EqualizerScreen(
                 CurvePreview(
                     s.bands,
                     Modifier.fillMaxWidth().height(72.dp).padding(vertical = 8.dp),
-                    overlay = if (s.correctionActive(state.route)) s.effectiveBands(state.route) else null,
+                    overlay = s.finalBands(state.route).takeIf { it != s.bands },
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
                     // The scale sits beside the columns; the empty text above keeps it level with the bars.

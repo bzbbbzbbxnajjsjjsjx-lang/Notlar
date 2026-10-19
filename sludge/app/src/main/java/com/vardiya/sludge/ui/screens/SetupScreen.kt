@@ -85,7 +85,10 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             title = "4. Ses oturumu",
             body = when {
                 state.sessions.isNotEmpty() -> state.sessions.joinToString("\n") { s ->
-                    "• ${s.packageName.ifBlank { "bilinmeyen uygulama" }} (oturum ${s.id})" + if (s.failed) " — efekt kurulamadı" else ""
+                    "• ${s.packageName.ifBlank { "bilinmeyen uygulama" }} (oturum ${s.id}): " + when {
+                        s.failed -> "hiçbir efekt kurulamadı, bu çalarda ses işlenemiyor"
+                        else -> "${s.path.ifBlank { "yalnızca sanallaştırıcı" }} · ${s.effects.joinToString(", ")}"
+                    }
                 }
                 else -> "Henüz bir çalar oturumunu bildirmedi. Müzik uygulamasında bir şarkı başlat; çalar \"harici ekolayzır\" " +
                     "desteği veriyorsa (Spotify, Poweramp, VLC…) kendiliğinden görünür. Görünmezse çaların ayarlarında " +

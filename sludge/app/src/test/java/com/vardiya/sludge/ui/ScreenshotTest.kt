@@ -59,7 +59,10 @@ class ScreenshotTest {
         track = track,
         playing = true,
         accessGranted = true,
-        sessions = listOf(AttachedSession(1042, "com.spotify.music", failed = false)),
+        sessions = listOf(AttachedSession(
+                1042, "com.spotify.music", failed = false, path = "DynamicsProcessing",
+                effects = listOf("10 bantlı ekolayzır", "sınırlayıcı (ses yükseltici)", "sanallaştırıcı"),
+            )),
         globalMixWorks = false,
         ai = AiConfig(apiKey = "sk-ant-demo-key"),
         lastFm = LastFmConfig("0123456789abcdef0123456789abcdef"),
@@ -156,7 +159,7 @@ class ScreenshotTest {
 
     @Test fun setupFresh() = capture("setup_fresh") { Screen(fresh, Tab.SETUP) }
 
-    @Test @Config(qualifiers = "+night")
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
     fun setupDone() = capture("setup_done_dark") { Screen(playing.copy(accessGranted = true), Tab.SETUP) }
 
     @Composable

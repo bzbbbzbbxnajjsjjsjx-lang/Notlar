@@ -4,37 +4,59 @@
 package com.vardiya.sludge.audio
 
 import android.media.audiofx.AudioEffect
-import android.media.audiofx.BassBoost
+import android.media.audiofx.DynamicsProcessing
 import android.media.audiofx.Equalizer
 import android.media.audiofx.LoudnessEnhancer
 import android.media.audiofx.Virtualizer
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.vardiya.sludge.domain.AttachedSession
+import com.vardiya.sludge.domain.BAND_COUNT
+import com.vardiya.sludge.domain.BAND_EDGES_HZ
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.OutputRoute
-import com.vardiya.sludge.domain.effectiveBands
+import com.vardiya.sludge.domain.finalBands
+import com.vardiya.sludge.domain.limiterGainDb
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Holds an Equalizer, BassBoost, Virtualizer and LoudnessEnhancer on every audio session a player announces, and
- * keeps them in step with the settings. Every effect is optional: devices differ, and a missing one must not
- * stop the others. Calls are serialised by the caller (see [SludgeRuntime]).
+ * Puts the sound of every audio session a player announces through the best effect the phone has, and keeps it in
+ * step with the settings.
+ *
+ * First choice is DynamicsProcessing (Android 9+): ten real bands, and a limiter whose make-up gain is the loudness
+ * boost without clipping. If a phone refuses it, the classic Equalizer and LoudnessEnhancer are used. The bass knob is a
+ * low shelf on the bands in both cases. The Virtualizer is separate and optional. Calls are serialised by the caller.
  */
 class EffectEngine {
     private class Chain(val session: Int, val packageName: String) {
+        var dp: DynamicsProcessing? = null
         var eq: Equalizer? = null
-        var bass: BassBoost? = null
         var virt: Virtualizer? = null
         var loud: LoudnessEnhancer? = null
 
-        val failed get() = eq == null && bass == null && virt == null && loud == null
+        val failed get() = dp == null && eq == null && virt == null && loud == null
+
+        val path get() = when {
+            dp != null -> "DynamicsProcessing"
+            eq != null -> "Ekolayzır"
+            else -> ""
+        }
+
+        fun effects(): List<String> = buildList {
+            if (dp != null) add("10 bantlı ekolayzır")
+            if (dp != null) add("sınırlayıcı (ses yükseltici)")
+            if (eq != null) add("${eq?.numberOfBands} bantlı ekolayzır")
+            if (loud != null) add("ses yükseltici")
+            if (virt != null) add("sanallaştırıcı")
+        }
 
         fun release() {
-            listOf<AudioEffect?>(eq, bass, virt, loud).forEach { runCatching { it?.release() } }
-            eq = null; bass = null; virt = null; loud = null
+            listOf<AudioEffect?>(dp, eq, virt, loud).forEach { runCatching { it?.release() } }
+            dp = null; eq = null; virt = null; loud = null
         }
     }
 
@@ -48,10 +70,9 @@ class EffectEngine {
         chains.remove(session)?.release()
         val chain = Chain(session, packageName)
         // Priority 0 is the normal level; the effects are created disabled and switched on by apply().
-        chain.eq = create { Equalizer(0, session) }
-        chain.bass = create { BassBoost(0, session) }
+        chain.dp = createDynamics(session)
+        if (chain.dp == null) createClassic(chain)
         chain.virt = create { Virtualizer(0, session) }
-        chain.loud = create { LoudnessEnhancer(session) }
         chains[session] = chain
         // A player that crashes never sends CLOSE; drop the oldest sessions so their native effects are freed.
         while (chains.size > MAX_SESSIONS) chains.remove(chains.keys.first())?.release()
@@ -88,21 +109,29 @@ class EffectEngine {
 
     private fun apply(chain: Chain, s: EqSettings) {
         val on = s.enabled
+        val bands = s.finalBands(route)
+        // A phone that accepts DynamicsProcessing but then refuses its settings falls back to the classic effects.
+        val dp = chain.dp
+        if (dp != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !applyDynamics(dp, s, bands)) {
+            runCatching { dp.release() }
+            chain.dp = null
+            createClassic(chain)
+        }
         chain.eq?.let { eq ->
             runCatching {
                 val range = eq.bandLevelRange
                 val centers = (0 until eq.numberOfBands).map { eq.getCenterFreq(it.toShort()) / MILLI_HZ }
-                val gains = CurveMath.mapToDevice(s.effectiveBands(route), centers)
-                gains.forEachIndexed { band, db ->
+                CurveMath.mapToDevice(bands, centers).forEachIndexed { band, db ->
                     eq.setBandLevel(band.toShort(), CurveMath.toMillibels(db, range[0].toInt(), range[1].toInt()).toShort())
                 }
                 eq.enabled = on
             }
         }
-        chain.bass?.let { bass ->
+        chain.loud?.let { loud ->
             runCatching {
-                if (bass.strengthSupported) bass.setStrength(s.bassBoost.toShort())
-                bass.enabled = on && s.bassBoost > 0
+                val gain = CurveMath.safeLoudness(bands, s.loudnessMb)
+                loud.setTargetGain(gain)
+                loud.enabled = on && gain > 0
             }
         }
         chain.virt?.let { virt ->
@@ -111,13 +140,40 @@ class EffectEngine {
                 virt.enabled = on && s.virtualizer > 0
             }
         }
-        chain.loud?.let { loud ->
-            runCatching {
-                val gain = CurveMath.safeLoudness(s.effectiveBands(route), s.loudnessMb)
-                loud.setTargetGain(gain)
-                loud.enabled = on && gain > 0
-            }
+    }
+
+    /** Ten bands before the limiter, whose make-up gain is the loudness boost. False when the phone refuses it. */
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun applyDynamics(dp: DynamicsProcessing, s: EqSettings, bands: List<Float>): Boolean = try {
+        bands.forEachIndexed { i, db ->
+            dp.setPreEqBandAllChannelsTo(i, DynamicsProcessing.EqBand(true, BAND_EDGES_HZ[i], db))
         }
+        dp.setLimiterAllChannelsTo(
+            DynamicsProcessing.Limiter(true, true, LIMITER_LINK_GROUP, ATTACK_MS, RELEASE_MS, RATIO, THRESHOLD_DB, s.limiterGainDb()),
+        )
+        dp.enabled = s.enabled
+        true
+    } catch (_: RuntimeException) {
+        false
+    }
+
+    private fun createDynamics(session: Int): DynamicsProcessing? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
+        return create {
+            val config = DynamicsProcessing.Config.Builder(
+                DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION, CHANNELS,
+                true, BAND_COUNT, // pre-EQ
+                false, 0, // multiband compressor
+                false, 0, // post-EQ
+                true, // limiter
+            ).build()
+            DynamicsProcessing(0, session, config)
+        }
+    }
+
+    private fun createClassic(chain: Chain) {
+        chain.eq = create { Equalizer(0, chain.session) }
+        chain.loud = create { LoudnessEnhancer(chain.session) }
     }
 
     private fun <T : AudioEffect> create(factory: () -> T): T? = try {
@@ -131,7 +187,7 @@ class EffectEngine {
         _state.value = _state.value.copy(
             sessions = chains.values
                 .filter { it.session != GLOBAL_SESSION }
-                .map { AttachedSession(it.session, it.packageName, it.failed) },
+                .map { AttachedSession(it.session, it.packageName, it.failed, it.path, it.effects()) },
         )
     }
 
@@ -139,5 +195,11 @@ class EffectEngine {
         const val GLOBAL_SESSION = 0
         const val MAX_SESSIONS = 8
         const val MILLI_HZ = 1000f
+        const val CHANNELS = 2
+        const val LIMITER_LINK_GROUP = 0
+        const val ATTACK_MS = 1f
+        const val RELEASE_MS = 60f
+        const val RATIO = 10f
+        const val THRESHOLD_DB = -1f
     }
 }
