@@ -22,7 +22,7 @@ Material 3 Expressive **parametrik ekolayzır**. Her şeyi sen ayarlarsın; uygu
 - **Genel ince ayar**: genel bas ve tiz için ±3 dB'lik iki kaydırıcı. Aynı model kulaklıklar 1–2 dB farklı çıkabilir; kendi çiftindeki farkı
   kulağınla telafi edersin. Ön ayar seçince değişmez, her müziğe uygulanır.
 - **Test tonu** (Kurulum sekmesi): kulaklığın alt basta zorlanıp zorlanmadığını duymak için yavaş bir ses taraması (alt bas 20–200 Hz ya da
-  20 Hz–20 kHz). Ton müzikle aynı filtrelerden geçer ve çok kısıktır (yaklaşık −24 dBFS). Çıtırtı ya da vızırtı duyduğun frekansta
+  20 Hz–20 kHz). Ton müzikle aynı filtrelerden geçer ve çok kısıktır (ekolayzırdan önce yaklaşık −30 dBFS). Çıtırtı ya da vızırtı duyduğun frekansta
   yükseltmeyi azalt.
 - **Kurulum**: pil ayarı, hangi çalarların bağlandığı ve test tonu.
 
@@ -31,13 +31,12 @@ Harsh noise ön ayarı kulak ve hoparlör için tizi kısar ve ses yükseltiyi k
 ## Ses nasıl işleniyor
 
 Önce Android'in **DynamicsProcessing** efekti denenir: 31 üçte-bir oktav bant (20 Hz–20 kHz) ve bir sınırlayıcı. Parametrik
-filtrelerin (kulaklık düzeltmesi ve bas rafı dahil) toplam yanıtı bu bantlarda örneklenir; ses yükseltme sınırlayıcının kazancıdır, bu yüzden
-bozulmadan yükseltir. Bas düğmesi alt bantlara raf ekler. Telefon DynamicsProcessing'i kabul etmezse klasik ekolayzır ve ses
+filtrelerin (kulaklık düzeltmesi ve bas rafı dahil) toplam yanıtı bu bantlarda örneklenir; "Ses yükseltici" bantların kazancına sınırlayıcıdan ÖNCE eklenir, böylece
+sınırlayıcı yükseltilmiş sesin tepelerini yakalar ve ses kırpılmaz. Bas düğmesi alt bantlara raf ekler. Telefon DynamicsProcessing'i kabul etmezse klasik ekolayzır ve ses
 yükseltici kullanılır; eğri o ekolayzırın kendi bantlarında okunur. Hangisinin çalıştığı Kurulum sekmesinde her çalar için yazar.
 
 Ekolayzır, çalar uygulamanın ses oturumuna bağlanır. Spotify, Poweramp, VLC gibi "harici ekolayzır" destekleyen çalarlar
-oturumlarını `OPEN_AUDIO_EFFECT_CONTROL_SESSION` yayınıyla bildirir; bu izin istemez. Genel ses karışımına (oturum 0)
-bağlanma da denenir ama Android 10+ çoğunda çalışmaz; Kurulum sekmesi sonucu gösterir. Desteklemeyen bir çalarda
+oturumlarını `OPEN_AUDIO_EFFECT_CONTROL_SESSION` yayınıyla bildirir; bu izin istemez. Desteklemeyen bir çalarda
 ekolayzır sessiz kalır; bunu Android engeller, uygulama aşamaz.
 
 ## Gizlilik

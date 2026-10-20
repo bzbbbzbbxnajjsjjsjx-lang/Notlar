@@ -73,7 +73,8 @@ class TrimTest {
         assertEquals(-1.5f, Trim.fromSlider(30), 0.001f)
     }
 
-    @Test fun `trims are clamped`() {
+    @Test fun `trims are clamped and a missing number is zero`() {
+        assertEquals(0f, Trim.clamp(Float.NaN), 0f)
         assertEquals(3f, Trim.clamp(9f), 0f)
         assertEquals(-3f, Trim.clamp(-9f), 0f)
         assertEquals(Trim.SLIDER_MAX, Trim.toSlider(50f))

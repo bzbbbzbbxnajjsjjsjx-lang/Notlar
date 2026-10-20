@@ -43,7 +43,8 @@ değildir: filtrelerin, bas düğmesinin ve düzeltmenin toplam eğrisinin 40 Hz
 sınırlayıcıya güvenilen 3 dB pay bırakılır. En alt oktav (40 Hz altı) hesaba katılmaz: müziğin az bir kısmı orada yaşar ve bu
 kulaklık orayı çalamaz. İlk denemede bu oktavı da sayınca bas ağırlıklı bir ön ayarda ses 11 dB kısılıyordu; bu çok fazlaydı.
 Sonuç, ön ayar değiştirince de seviyeyi karşılaştırılabilir tutar. Kısılan seviyeyi "Ses
-yükseltici" (sınırlayıcının kazancı) geri getirir. Kaydırıcı yoktur; ekranda o anki kısılma dB olarak yazar.
+yükseltici" geri getirir; o, bantların kazancına sınırlayıcıdan önce eklenir (sınırlayıcıdan sonra eklenseydi tepeleri
+tam seviyenin üstüne çıkarabilirdi). Kaydırıcı yoktur; ekranda o anki kısılma dB olarak yazar.
 
 ### Sınırlar
 

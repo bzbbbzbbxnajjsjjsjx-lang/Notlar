@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,41 +38,52 @@ class TonePlayer(
     private val _state = MutableStateFlow(ToneState())
     val state: StateFlow<ToneState> = _state.asStateFlow()
     private var job: Job? = null
+    private var generation = 0
 
     /** Starts a sweep, replacing one that is playing. */
+    @Synchronized
     fun start(kind: SweepKind) {
         job?.cancel()
-        job = scope.launch(Dispatchers.IO) { play(kind) }
+        val mine = ++generation
+        job = scope.launch(Dispatchers.IO) { play(kind, mine) }
     }
 
+    @Synchronized
     fun stop() {
         job?.cancel()
     }
 
-    private suspend fun play(kind: SweepKind) {
+    private suspend fun play(kind: SweepKind, mine: Int) {
         val session = audio.generateAudioSessionId()
         val ready = CompletableDeferred<Unit>()
         attach(session) { ready.complete(Unit) }
         val track = runCatching { buildTrack(session) }.getOrNull()
+        var finished = false
         try {
-            if (track == null) return
-            withTimeoutOrNull(READY_TIMEOUT_MS) { ready.await() }
+            // A tone that would play without the equalizer would say one thing and do another, so it does not play.
+            if (track == null || withTimeoutOrNull(READY_TIMEOUT_MS) { ready.await() } == null) return
             track.play()
-            stream(kind, track)
+            finished = stream(kind, track)
+            // The last buffered samples hold the fade-out; let them play before the track is released.
+            if (finished) delay(DRAIN_MS)
         } finally {
             withContext(NonCancellable) {
                 runCatching {
-                    track?.pause()
-                    track?.flush()
+                    if (!finished) {
+                        track?.pause()
+                        track?.flush()
+                    }
                     track?.release()
                 }.onFailure { Log.w(TAG, "tone track release failed: ${it.javaClass.simpleName}") }
                 detach(session)
-                _state.value = ToneState()
+                // A newer sweep owns the state now.
+                synchronized(this@TonePlayer) { if (generation == mine) _state.value = ToneState() }
             }
         }
     }
 
-    private suspend fun stream(kind: SweepKind, track: AudioTrack) {
+    /** Writes the sweep; false when stopped or when the track stops accepting samples. */
+    private suspend fun stream(kind: SweepKind, track: AudioTrack): Boolean {
         val chunk = ShortArray(CHUNK_SAMPLES)
         val total = Sweep.totalSamples(kind)
         var written = 0
@@ -79,10 +91,12 @@ class TonePlayer(
         while (written < total) {
             currentCoroutineContext().ensureActive()
             phase = Sweep.fill(kind, written, phase, chunk)
-            track.write(chunk, 0, chunk.size)
+            // A negative result is an error (a dead track): stop instead of racing through the rest of the sweep.
+            if (track.write(chunk, 0, chunk.size) < 0) return false
             written += chunk.size
             _state.value = ToneState(kind, Sweep.frequencyAt(kind, written.toFloat() / Sweep.SAMPLE_RATE))
         }
+        return true
     }
 
     private fun buildTrack(session: Int): AudioTrack {
@@ -108,5 +122,6 @@ class TonePlayer(
         const val CHUNK_SAMPLES = 4_800
         const val BYTES_PER_SAMPLE = 2
         const val READY_TIMEOUT_MS = 2_000L
+        const val DRAIN_MS = 300L
     }
 }

@@ -1,7 +1,9 @@
 package com.vardiya.sludge.data
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -10,6 +12,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
+import com.vardiya.sludge.domain.MAX_EFFECT
+import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.Trim
@@ -19,7 +23,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-private val Context.store by preferencesDataStore(name = "sludge")
+// A store that cannot be read is replaced by an empty one: the defaults are safe, a dead equalizer is not.
+private val Context.store by preferencesDataStore(name = "sludge", corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() })
 
 /** Everything the app remembers, in one Preferences DataStore. */
 class SettingsRepository(context: Context) {
@@ -39,9 +44,9 @@ class SettingsRepository(context: Context) {
     private fun Preferences.toSettings(): EqSettings {
         return EqSettings(
             enabled = this[ENABLED] ?: true,
-            bassBoost = this[BASS] ?: 0,
-            virtualizer = this[VIRTUALIZER] ?: 0,
-            loudnessMb = this[LOUDNESS] ?: 0,
+            bassBoost = (this[BASS] ?: 0).coerceIn(0, MAX_EFFECT),
+            virtualizer = (this[VIRTUALIZER] ?: 0).coerceIn(0, MAX_EFFECT),
+            loudnessMb = (this[LOUDNESS] ?: 0).coerceIn(0, MAX_LOUDNESS_MB),
             genre = this[GENRE].orEmpty(),
             source = runCatching { TuneSource.valueOf(this[SOURCE].orEmpty()) }.getOrDefault(TuneSource.MANUAL),
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.

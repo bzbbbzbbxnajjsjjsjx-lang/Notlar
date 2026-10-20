@@ -37,23 +37,35 @@ const val HEADROOM_SLACK_DB = 3f
 
 /**
  * How many dB the whole sound is turned down so that what the curve boosts does not clip: its highest point from
- * [HEADROOM_FROM_HZ] up, less [HEADROOM_SLACK_DB] (never below zero). It follows the filters, the bass knob and the
- * headphone correction together, so the level stays comparable whichever preset is chosen.
+ * [HEADROOM_FROM_HZ] up, less [HEADROOM_SLACK_DB] (never below zero). It is read at the engine's own 31 bands, because
+ * that staircase is what is really played; a very narrow peak between two band centres is not realised and costs nothing.
  */
 fun EqSettings.headroomDb(route: OutputRoute = OutputRoute.UNKNOWN): Float {
-    // A narrow peak can fall between two grid points, so every filter's own centre is looked at too.
-    val centres = filters.map { it.freqHz } + Bass.CORNER_HZ
-    val at = (Parametric.GRID_HZ + centres).filter { it >= HEADROOM_FROM_HZ }
+    val at = Parametric.ENGINE_HZ.filter { it >= HEADROOM_FROM_HZ }
     return maxOf(0f, shapeAt(route, at).max() - HEADROOM_SLACK_DB)
 }
 
 /**
  * The curve the sound really gets, read at [hz]: the shape minus the headroom. From [HEADROOM_FROM_HZ] up its highest
- * point is at most [HEADROOM_SLACK_DB]; the loudness setting (the limiter's make-up gain) brings the level back up.
+ * point is at most [HEADROOM_SLACK_DB]; below it a boost is cut off at that same level, because the headroom does not
+ * look there and a boost there would otherwise get through unprotected.
  */
 fun EqSettings.curveAt(route: OutputRoute, hz: List<Float>): List<Float> {
     val headroom = headroomDb(route)
-    return shapeAt(route, hz).map { it - headroom }
+    val shape = shapeAt(route, hz)
+    return hz.indices.map { i ->
+        val v = shape[i] - headroom
+        if (hz[i] < HEADROOM_FROM_HZ) minOf(v, HEADROOM_SLACK_DB) else v
+    }
+}
+
+/**
+ * What the engine's bands are set to: the curve plus the loudness setting. The loudness is added before the limiter, so
+ * the limiter sees the boosted signal and catches its peaks; added after the limiter it could push peaks past full scale.
+ */
+fun EqSettings.engineCurve(route: OutputRoute, hz: List<Float>): List<Float> {
+    val makeup = limiterGainDb()
+    return curveAt(route, hz).map { it + makeup }
 }
 
 /** The make-up gain the limiter applies after the bands, in dB, from the loudness setting. */

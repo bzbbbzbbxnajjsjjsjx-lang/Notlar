@@ -48,7 +48,6 @@ class ScreenshotTest {
                 1042, "com.spotify.music", failed = false, path = "DynamicsProcessing",
                 effects = listOf("31 bantlı ekolayzır", "sınırlayıcı (ses yükseltici)", "sanallaştırıcı"),
             )),
-        globalMixWorks = false,
         route = OutputRoute(OutputKind.BLUETOOTH, listOf("JBL Tune 520BT")),
     )
 

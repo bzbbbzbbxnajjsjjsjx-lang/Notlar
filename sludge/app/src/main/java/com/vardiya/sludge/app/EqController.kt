@@ -34,7 +34,6 @@ class EqController(
     init {
         scope.launch(audio) {
             // Wait for the stored settings before touching the audio, so a restart never flashes the defaults.
-            guarded("global mix") { engine.tryGlobalMix(settings.first()) }
             launch {
                 guarded("settings") {
                     // Only the newest settings matter while a slider is being dragged; the effect calls block, so older ones are skipped.

@@ -18,7 +18,7 @@ import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.curveAt
-import com.vardiya.sludge.domain.limiterGainDb
+import com.vardiya.sludge.domain.engineCurve
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,10 +27,10 @@ import kotlinx.coroutines.flow.asStateFlow
  * Puts the sound of every audio session a player announces through the best effect the phone has, and keeps it in
  * step with the settings.
  *
- * First choice is DynamicsProcessing (Android 9+): 31 real bands (a graphic curve or parametric filters sampled on
- * them), and a limiter whose make-up gain is the loudness
- * boost without clipping. If a phone refuses it, the classic Equalizer and LoudnessEnhancer are used. The bass knob is a
- * low shelf on the bands in both cases. The Virtualizer is separate and optional. Calls are serialised by the caller.
+ * First choice is DynamicsProcessing (Android 9+): 31 real bands (the parametric filters sampled on them, with the
+ * loudness setting added to their gain) and a limiter after them that catches the peaks. If a phone refuses it, the
+ * classic Equalizer and LoudnessEnhancer are used. The bass knob is a low shelf filter in both cases. The Virtualizer is
+ * separate and optional. Calls are serialised by the caller.
  */
 class EffectEngine {
     private class Chain(val session: Int, val packageName: String) {
@@ -81,13 +81,6 @@ class EffectEngine {
         publish()
     }
 
-    /** Tries the global mix (session 0). Most Android 10+ builds ignore or refuse it, so the result is reported. */
-    @Synchronized
-    fun tryGlobalMix(settings: EqSettings) {
-        attach(GLOBAL_SESSION, "global", settings)
-        _state.value = _state.value.copy(globalMixWorks = chains[GLOBAL_SESSION]?.failed == false)
-    }
-
     @Synchronized
     fun detach(session: Int) {
         chains.remove(session)?.release()
@@ -111,7 +104,7 @@ class EffectEngine {
     private fun apply(chain: Chain, s: EqSettings) {
         val on = s.enabled
         // The curve is read at the engine's 31 bands; the classic equalizer reads it again at its own centres.
-        val bands = s.curveAt(route, Parametric.ENGINE_HZ)
+        val bands = s.engineCurve(route, Parametric.ENGINE_HZ)
         // A phone that accepts DynamicsProcessing but then refuses its settings falls back to the classic effects.
         val dp = chain.dp
         if (dp != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !applyDynamics(dp, s, bands)) {
@@ -144,14 +137,17 @@ class EffectEngine {
         }
     }
 
-    /** 31 bands before the limiter, whose make-up gain is the loudness boost. False when the phone refuses it. */
+    /**
+     * 31 bands (with the loudness already in their gain) before the limiter, which then catches the peaks. False when
+     * the phone refuses it.
+     */
     @RequiresApi(Build.VERSION_CODES.P)
     private fun applyDynamics(dp: DynamicsProcessing, s: EqSettings, bands: List<Float>): Boolean = try {
         bands.forEachIndexed { i, db ->
             dp.setPreEqBandAllChannelsTo(i, DynamicsProcessing.EqBand(true, Parametric.ENGINE_EDGES_HZ[i], db))
         }
         dp.setLimiterAllChannelsTo(
-            DynamicsProcessing.Limiter(true, true, LIMITER_LINK_GROUP, ATTACK_MS, RELEASE_MS, RATIO, THRESHOLD_DB, s.limiterGainDb()),
+            DynamicsProcessing.Limiter(true, true, LIMITER_LINK_GROUP, ATTACK_MS, RELEASE_MS, RATIO, THRESHOLD_DB, 0f),
         )
         dp.enabled = s.enabled
         true
@@ -188,13 +184,11 @@ class EffectEngine {
     private fun publish() {
         _state.value = _state.value.copy(
             sessions = chains.values
-                .filter { it.session != GLOBAL_SESSION }
                 .map { AttachedSession(it.session, it.packageName, it.failed, it.path, it.effects()) },
         )
     }
 
     private companion object {
-        const val GLOBAL_SESSION = 0
         const val MAX_SESSIONS = 8
         const val MILLI_HZ = 1000f
         const val CHANNELS = 2

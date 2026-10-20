@@ -38,8 +38,8 @@ imports nothing from Android and holds every rule, so every rule has a unit test
     sound really gets (the person's filters plus the bass shelf plus the headphone correction, minus the automatic headroom),
     the bass knob as a low shelf filter (`Bass`) and the limiter gain.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; it wipes the keys, listening log and notes older versions stored).
-- `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with 31 bands read from `curveAt` and a limiter whose
-  make-up gain is the loudness boost; the classic Equalizer and LoudnessEnhancer when a phone refuses it; the Virtualizer
+- `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with 31 bands read from `engineCurve` (the curve plus the loudness gain,
+  added before the limiter so the limiter sees and catches the boosted peaks) and a limiter at -1 dB with no post-gain; the classic Equalizer and LoudnessEnhancer when a phone refuses it; the Virtualizer
   separately; BassBoost is not used),
   `TonePlayer` (plays the sweep on its own audio session with the equalizer attached first, so it is heard through the same filters),
   `AudioSessionReceiver` (players
@@ -71,19 +71,26 @@ stay out of `domain/`; the UI reads `UiState` and calls `SludgeActions` only (it
   measures -6 dB and cannot play). Another headphone needs its own published filters, never guessed ones. The reasoning
   and sources are in `docs/eq-research.md`; the genre presets are engineering judgement, not measurements, and the doc says so.
 - Headroom is automatic and global (`headroomDb`): the sound is turned down by the highest point of the whole curve from 40 Hz up
-  (filters, bass shelf and headphone correction together) less a 3 dB slack for the limiter, never below zero. The bottom
-  octave is left out because little music lives there and a small headphone cannot play it; peak-normalising to it cost
-  11 dB on a bass-heavy preset. Presets thus stay at a comparable level. There is no strength slider; the loudness setting (the limiter's make-up gain) is what brings the level back.
+  (filters, bass shelf, trim and headphone correction together), read at the engine's own 31 band centres because that
+  staircase is what is played, less a 3 dB slack for the limiter; never below zero. The bottom octave is left out of the
+  headroom (little music lives there and a small headphone cannot play it; counting it cost 11 dB on a bass-heavy preset), but
+  `curveAt` cuts any boost below 40 Hz off at the slack level so it cannot get through unprotected. There is no strength
+  slider. The loudness setting is added to the band gains before the limiter (a make-up gain after a limiter can push peaks past
+  full scale).
 - Parametric EQ only: the sound is shaped by `EqSettings.filters` (up to ten); the engine reads `curveAt` on 31 third-octave
   bands. Presets set the filters. A shelf reaches its gain well below its corner (half at the corner), so the presets
   put their shelves higher than the band they are meant for.
 - Bass and loudness: Android's BassBoost and LoudnessEnhancer are optional and on many phones do nothing audible, so the
-  bass knob is a +4.5 dB low shelf filter (`Bass.filter`) and the loudness setting is the limiter's make-up gain, which
-  boosts without clipping. The Kurulum screen shows, per audio session, which path is working. That the DynamicsProcessing
+  bass knob is a +4.5 dB low shelf filter (`Bass.filter`) and the loudness setting is a gain added before the limiter. The Kurulum screen shows, per audio session, which path is working. That the DynamicsProcessing
   path sounds right has been checked on no real device from here; if a phone refuses it, the classic path takes over.
 - Trim: `trimBassDb`/`trimTrebleDb` (±3 dB) are two shelves added to the curve, after presets; a preset never resets them. The
-  test tone is 24 dB below full scale with half-second fades; stop it when the view model goes.
-- Presets never boost more than +8 dB anywhere (tested); harsh noise keeps the treble down and the loudness gain off.
+  test tone is 30 dB below full scale before the equalizer, with half-second fades; it stops when the view model goes, when the
+  output changes, when the track stops accepting samples, and it does not play at all if the equalizer is not on its session.
+- Settings live in memory and are saved 300 ms after the last change and again when the screen stops (`flush`); a failing read,
+  save or change is logged and never stops the other, and a store that cannot be read is replaced by defaults.
+- The app no longer tries the global output mix (session 0): where it worked it would have processed the sound twice.
+- Each preset's own filters never boost more than +8 dB anywhere (tested); the bass knob, trim and headphone correction add to
+  that, and the automatic headroom takes it back. Harsh noise keeps the treble down and the loudness gain off.
 
 ## Conventions
 

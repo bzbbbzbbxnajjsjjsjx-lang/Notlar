@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import kotlin.math.roundToInt
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.processing
 import com.vardiya.sludge.domain.ToneState
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
@@ -59,7 +60,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
         }
 
         StepCard(
-            done = state.sessions.isNotEmpty(),
+            done = state.sessions.processing().isNotEmpty(),
             title = "2. Ses oturumu",
             body = when {
                 state.sessions.isNotEmpty() -> state.sessions.joinToString("\n") { s ->
@@ -72,16 +73,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
                     "desteği veriyorsa (Spotify, Poweramp, VLC…) kendiliğinden görünür. Görünmezse çaların ayarlarında " +
                     "ses efektleri / ekolayzır seçeneğini ara."
             },
-        ) {
-            Text(
-                when (state.globalMixWorks) {
-                    true -> "Genel ses karışımına da bağlandı."
-                    false -> "Genel ses karışımı bu telefonda kullanılamıyor (Android 10+ çoğunda böyle); çalar oturumları yeterli."
-                    null -> "Genel ses karışımı denenmedi."
-                },
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+        ) {}
 
         StepCard(
             done = state.tone.kind != null,

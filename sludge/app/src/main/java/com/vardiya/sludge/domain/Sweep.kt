@@ -17,8 +17,8 @@ data class ToneState(val kind: SweepKind? = null, val hz: Float = 0f)
 object Sweep {
     const val SAMPLE_RATE = 48_000
 
-    /** About -24 dBFS: loud enough to hear a struggling driver, far too quiet to hurt. */
-    const val AMPLITUDE = 0.06f
+    /** About -30 dBFS before the equalizer, which can add a few dB: loud enough to hear a struggling driver, not to hurt. */
+    const val AMPLITUDE = 0.03f
     private const val FADE_SECONDS = 0.5f
     private const val PCM_MAX = 32_767f
 
@@ -61,7 +61,7 @@ object Trim {
     const val TREBLE_CORNER_HZ = 8_000f
     private const val SHELF_Q = 0.7f
 
-    fun clamp(db: Float): Float = db.coerceIn(-MAX_DB, MAX_DB)
+    fun clamp(db: Float): Float = if (db.isNaN()) 0f else db.coerceIn(-MAX_DB, MAX_DB)
 
     /** Slider position (0..[SLIDER_MAX], half-decibel steps) for a trim in dB. */
     fun toSlider(db: Float): Int = ((clamp(db) + MAX_DB) * STEPS_PER_DB).roundToInt()

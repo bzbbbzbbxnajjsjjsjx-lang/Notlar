@@ -28,7 +28,7 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     val state: StateFlow<UiState> = combine(
         runtime.settings, runtime.engineState, runtime.route, runtime.toneState,
     ) { settings, engine, route, tone ->
-        UiState(settings = settings, route = route, sessions = engine.sessions, globalMixWorks = engine.globalMixWorks, tone = tone)
+        UiState(settings = settings, route = route, sessions = engine.sessions, tone = tone)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState())
 
     private fun manual(transform: (EqSettings) -> EqSettings) = runtime.update { transform(it).copy(source = TuneSource.MANUAL) }

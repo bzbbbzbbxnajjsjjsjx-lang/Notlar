@@ -127,22 +127,24 @@ class HeadphonesTest {
 
     @Test fun `the headroom follows the loudest point of everything together`() {
         val doom = EqSettings(filters = Genre.DOOM.filters, headphoneId = null)
-        val peak = Parametric.GRID_HZ.filter { it >= HEADROOM_FROM_HZ }.maxOf { Parametric.responseDb(Genre.DOOM.filters, it) }
+        val peak = Parametric.ENGINE_HZ.filter { it >= HEADROOM_FROM_HZ }.maxOf { Parametric.responseDb(Genre.DOOM.filters, it) }
         assertEquals(peak - HEADROOM_SLACK_DB, doom.headroomDb(), 0.05f)
         assertTrue(EqSettings(filters = Genre.DOOM.filters, bassBoost = 800, headphoneId = null).headroomDb() > doom.headroomDb())
     }
 
-    @Test fun `the bottom octave does not set the headroom`() {
+    @Test fun `the bottom octave does not set the headroom but is still held to the slack`() {
         val sub = EqSettings(filters = listOf(ParametricFilter(FilterType.PEAK.key, 25f, 12f, 4f)), headphoneId = null)
         assertEquals(0f, sub.headroomDb(), 0.5f)
+        val low = sub.curveAt(OutputRoute.UNKNOWN, listOf(20f, 25f, 31.5f))
+        assertTrue(low.all { it <= HEADROOM_SLACK_DB + 0.001f })
     }
 
     @Test fun `from 40 Hz up the curve never goes above the slack whatever the preset or headphone`() {
         Genre.entries.forEach { genre ->
             listOf(null, Headphones.DEFAULT_ID).forEach { id ->
                 val s = EqSettings(filters = genre.filters, bassBoost = genre.bass, headphoneId = id)
-                val above = Parametric.GRID_HZ.filter { it >= HEADROOM_FROM_HZ }
-                assertTrue("${genre.name} $id", s.curveAt(OutputRoute.UNKNOWN, above).all { it <= HEADROOM_SLACK_DB + 0.05f })
+                val curve = s.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ)
+                assertTrue("${genre.name} $id", curve.all { it <= HEADROOM_SLACK_DB + 0.001f })
             }
         }
     }
@@ -289,5 +291,58 @@ class ShapingTest {
         assertEquals(3f, EqSettings(loudnessMb = 300).limiterGainDb(), 0.001f)
         assertEquals(10f, EqSettings(loudnessMb = 99_999).limiterGainDb(), 0.001f)
         assertEquals(0f, EqSettings(loudnessMb = -5).limiterGainDb(), 0f)
+    }
+}
+
+class EngineCurveTest {
+    @Test fun `the loudness is part of the band gain before the limiter`() {
+        val s = EqSettings(filters = Genre.DOOM.filters, loudnessMb = 400, headphoneId = null)
+        val hz = Parametric.ENGINE_HZ
+        val plain = s.curveAt(OutputRoute.UNKNOWN, hz)
+        val engine = s.engineCurve(OutputRoute.UNKNOWN, hz)
+        hz.indices.forEach { assertEquals(plain[it] + 4f, engine[it], 0.001f) }
+    }
+
+    @Test fun `no loudness leaves the curve as it is`() {
+        val s = EqSettings(filters = Genre.KYUSS.filters, headphoneId = null)
+        assertEquals(s.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ), s.engineCurve(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ))
+    }
+
+    @Test fun `the strongest setting still peaks at the slack plus the loudness at most`() {
+        val s = EqSettings(filters = Genre.DOOM.filters, bassBoost = MAX_EFFECT, loudnessMb = MAX_LOUDNESS_MB, trimBassDb = 3f)
+        val engine = s.engineCurve(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ)
+        assertTrue(engine.all { it <= HEADROOM_SLACK_DB + s.limiterGainDb() + 0.001f })
+    }
+
+    @Test fun `a narrow peak between two band centres is not paid for in headroom`() {
+        val between = EqSettings(filters = listOf(ParametricFilter(FilterType.PEAK.key, 1_130f, 12f, 10f)), headphoneId = null)
+        val engine = between.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ)
+        assertTrue(engine.all { it <= HEADROOM_SLACK_DB + 0.001f })
+        assertTrue(between.headroomDb() < 9f)
+    }
+
+    @Test fun `a preset is recognised only when everything about it matches`() {
+        val s = EqSettings().applying(Genre.DOOM)
+        assertTrue(s.isPreset(Genre.DOOM))
+        assertFalse(s.copy(loudnessMb = s.loudnessMb + 100).isPreset(Genre.DOOM))
+        assertFalse(s.isPreset(Genre.STONER))
+    }
+}
+
+class SessionsTest {
+    private fun session(pkg: String, failed: Boolean = false, path: String = "DynamicsProcessing") = AttachedSession(1, pkg, failed, path)
+
+    @Test fun `only a working player session counts as processing`() {
+        val sessions = listOf(
+            session("com.spotify.music"),
+            session("com.other", failed = true, path = ""),
+            session("com.virt", path = ""),
+            session(TONE_PACKAGE),
+        )
+        assertEquals(listOf("com.spotify.music"), sessions.processing().map { it.packageName })
+    }
+
+    @Test fun `no sessions means nothing is processing`() {
+        assertTrue(emptyList<AttachedSession>().processing().isEmpty())
     }
 }

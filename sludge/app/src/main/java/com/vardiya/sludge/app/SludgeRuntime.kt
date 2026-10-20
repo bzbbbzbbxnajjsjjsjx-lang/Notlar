@@ -10,6 +10,7 @@ import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.TONE_PACKAGE
 import com.vardiya.sludge.domain.ToneState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -55,17 +57,44 @@ class SludgeRuntime private constructor(context: Context) {
     val settings: StateFlow<EqSettings> = loaded.stateIn(scope, SharingStarted.Eagerly, EqSettings())
 
     private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, loaded, output.route)
-    private val tone = TonePlayer(context, scope, { session, done -> eq.attach(session, TONE_LABEL, done) }, { eq.detach(it) {} })
+    private val tone = TonePlayer(context, scope, { session, done -> eq.attach(session, TONE_PACKAGE, done) }, { eq.detach(it) {} })
     val toneState: StateFlow<ToneState> = tone.state
 
     init {
         scope.launch {
-            repo.dropRetiredKeys()
-            current.value = repo.settings.first()
-            // One coroutine applies the changes in the order they were made.
-            launch { for (change in changes) current.update { it?.let(change) } }
-            loaded.drop(1).debounce(SAVE_DELAY_MS).collect { repo.saveSettings(it) }
+            // A store that cannot be read or cleaned must not leave the equalizer dead: the defaults are safe.
+            runCatching { repo.dropRetiredKeys() }.onFailure { Log.w(TAG, "retired keys not wiped: ${it.javaClass.simpleName}") }
+            val initial = runCatching { repo.settings.first() }
+                .onFailure { Log.w(TAG, "settings not read: ${it.javaClass.simpleName}") }
+                .getOrDefault(EqSettings())
+            current.value = initial
+            // Changes and saving are separate coroutines: a failing save or change must not stop the other.
+            launch { applyChanges() }
+            launch { save(initial) }
         }
+        // Another output (a pulled plug) must not carry the tone onto the loudspeaker.
+        scope.launch { output.route.drop(1).collect { tone.stop() } }
+    }
+
+    // One coroutine applies the changes in the order they were made.
+    private suspend fun applyChanges() {
+        for (change in changes) {
+            runCatching { current.update { it?.let(change) } }.onFailure { Log.w(TAG, "change failed: ${it.javaClass.simpleName}") }
+        }
+    }
+
+    private suspend fun save(initial: EqSettings) {
+        loaded.filter { it != initial }.debounce(SAVE_DELAY_MS).collect { write(it) }
+    }
+
+    private suspend fun write(settings: EqSettings) {
+        runCatching { repo.saveSettings(settings) }.onFailure { Log.w(TAG, "settings not saved: ${it.javaClass.simpleName}") }
+    }
+
+    /** Saves at once; the screen leaving the front must not lose the last change that the short delay is still holding. */
+    fun flush() {
+        val settings = current.value ?: return
+        scope.launch { write(settings) }
     }
 
     fun attach(session: Int, packageName: String, done: () -> Unit) = eq.attach(session, packageName, done)
@@ -82,7 +111,6 @@ class SludgeRuntime private constructor(context: Context) {
 
     companion object {
         private const val TAG = "Sludge"
-        private const val TONE_LABEL = "Test tonu"
         private const val SAVE_DELAY_MS = 300L
 
         @Volatile private var instance: SludgeRuntime? = null

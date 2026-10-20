@@ -75,6 +75,8 @@ import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.correctionActive
 import com.vardiya.sludge.domain.headroomDb
+import com.vardiya.sludge.domain.isPreset
+import com.vardiya.sludge.domain.processing
 import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
@@ -98,7 +100,7 @@ fun EqualizerScreen(
     modifier: Modifier = Modifier,
 ) {
     val s = state.settings
-    val status = statusOf(s.enabled, state.sessions.size)
+    val status = statusOf(s.enabled, state.sessions.processing().size)
     Column(
         modifier
             .verticalScroll(rememberScrollState())
@@ -279,6 +281,16 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                     )
                 }
             }
+            val headroom = remember(settings, route) { settings.headroomDb(route) }
+            Text(
+                if (settings.enabled) {
+                    "Ses payı otomatik: şu an ses yaklaşık " +
+                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", headroom)} dB kısılıyor"
+                } else {
+                    "Ekolayzır kapalı: ses olduğu gibi çalıyor"
+                },
+                style = MaterialTheme.typography.titleSmall,
+            )
             if (profile != null) {
                 val active = settings.correctionActive(route)
                 Text(
@@ -293,12 +305,6 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                 SwitchRow(settings.headphoneAlways, actions::setHeadphoneAlways) {
                     Text("Her çıkışta uygula", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
-                val headroom = remember(settings, route) { settings.headroomDb(route) }
-                Text(
-                    "Ses payı otomatik: şu an ses yaklaşık " +
-                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", headroom)} dB kısılıyor",
-                    style = MaterialTheme.typography.titleSmall,
-                )
                 ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = profile::appliedAt)
                 Text(
                     "Çizgi, düzeltmenin hangi frekansı ne kadar değiştirdiğini gösterir. " +
@@ -322,7 +328,7 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
         SectionTitle("Ön ayar", Modifier.padding(start = 8.dp))
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Genre.entries.forEach { genre ->
-                val selected = s.filters == genre.filters && s.bassBoost == genre.bass && s.virtualizer == genre.virtualizer
+                val selected = s.isPreset(genre)
                 FilterChip(
                     selected = selected,
                     onClick = { actions.applyPreset(genre) },
@@ -336,7 +342,7 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
                 )
             }
         }
-        Genre.entries.firstOrNull { it.filters == s.filters && it.bass == s.bassBoost && it.virtualizer == s.virtualizer }?.let {
+        Genre.entries.firstOrNull { s.isPreset(it) }?.let {
             Text(
                 it.blurb,
                 Modifier.padding(start = 8.dp),

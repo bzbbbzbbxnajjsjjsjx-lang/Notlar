@@ -1,5 +1,8 @@
 package com.vardiya.sludge.domain
 
+/** The name the app's own test-tone session is attached under; it is not a player and never counts as one. */
+const val TONE_PACKAGE = "Test tonu"
+
 /** One audio session the engine is holding effects on. */
 data class AttachedSession(
     val id: Int,
@@ -11,8 +14,7 @@ data class AttachedSession(
     val effects: List<String> = emptyList(),
 )
 
-data class EngineState(
-    val sessions: List<AttachedSession> = emptyList(),
-    /** Result of the attempt to sit on the global output mix: null = not tried yet. */
-    val globalMixWorks: Boolean? = null,
-)
+/** The sessions that really process a player's sound: an equalizer path works and it is not the test tone. */
+fun List<AttachedSession>.processing(): List<AttachedSession> = filter { !it.failed && it.path.isNotEmpty() && it.packageName != TONE_PACKAGE }
+
+data class EngineState(val sessions: List<AttachedSession> = emptyList())

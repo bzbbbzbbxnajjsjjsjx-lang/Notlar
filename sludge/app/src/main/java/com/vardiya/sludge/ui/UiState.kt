@@ -21,7 +21,6 @@ data class UiState(
     /** Where the sound is going: the headphone correction is only used on the headphone it was measured for. */
     val route: OutputRoute = OutputRoute.UNKNOWN,
     val sessions: List<AttachedSession> = emptyList(),
-    val globalMixWorks: Boolean? = null,
     val tone: ToneState = ToneState(),
 )
 
