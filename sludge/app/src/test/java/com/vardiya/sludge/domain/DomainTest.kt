@@ -49,6 +49,20 @@ class PresetTest {
         assertTrue(curve[1] < -1f && curve[2] < -1f)
     }
 
+    @Test fun `kyuss is a thick low end with a dark top`() {
+        val c = Parametric.sample(Genre.KYUSS.filters, listOf(60f, 250f, 1_000f, 10_000f, 16_000f))
+        assertTrue(c[0] > 5f)
+        assertTrue(c[1] > 1f)
+        assertTrue(c[3] < 0f && c[4] < c[3])
+    }
+
+    @Test fun `high rise cuts the mud and pushes the fuzz mids`() {
+        val c = Parametric.sample(Genre.HIGH_RISE.filters, listOf(300f, 1_200f, 3_000f, 6_000f, 10_000f))
+        assertTrue(c[0] < -1f)
+        assertTrue(c[1] > 1.5f && c[2] > 1.5f)
+        assertTrue(c[3] < 0f && c[4] < 0f)
+    }
+
     @Test fun `flat has no filters`() {
         assertTrue(Genre.FLAT.filters.isEmpty())
     }

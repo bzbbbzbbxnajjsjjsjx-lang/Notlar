@@ -81,6 +81,27 @@ hiç yükseltme yapmaz ve ses yükseltici kapalıdır.
 520BT düzeltmesiyle birlikte kullanıldığında ön ayarlar düzeltmenin **üstüne** eklenir: düzeltme kulaklığı nötr
 hedefe getirir, ön ayar türün tadını verir. Örneğin harsh noise + 520BT, 3,5 kHz'de yaklaşık −11 dB'dir (ön ayarın −4,5 dB'si artı düzeltmenin −7 dB'si); bu kasıtlıdır, çünkü 520BT bu bölgede zaten +10 dB tepe verir.
 
+### Kyuss ve High Rise (sanatçıya özel ön ayarlar)
+
+Bulunan dayanak (ikisi de ses mühendisliği verisi değil, haber ve inceleme düzeyinde):
+
+- **Kyuss:** Josh Homme'un gitarını bas amfisinden çaldığı, gitarların alçak akortlandığı (bir incelemede C akortlu riff)
+  ve Chris Goss yapımının "gümbürdeyen alt uç"unun bundan beslendiği yazılıyor. Albümün ses tarifi tek tip değil; bir
+  incelemeci tiz ağırlıklı, bası duyulmayan bir miks bulmuş. Kaynaklarda amfi modeli, akort ya da ayar sayısı yok.
+  Ön ayar bu yüzden basa bağlı gitar mantığını izler: 150 Hz köşeli +5,5 dB alçak raf, 200 Hz gövde, 450 Hz'de kutu sesi
+  kesimi, 1,6 kHz'de fuzz ısırığı ve sıcak (kısık) üst.
+- **High Rise:** Tokyo'lu grup (1982–2002), gitarda Munehiro Narita, baside Asahito Nanjo. Psychedelic, free jazz ve garaj /
+  proto-punk saldırısı karışımı; Narita "motosiklet fuzz gitarı"nın kralı diye anılıyor. Kaynaklarda frekans verisi yok.
+  Ön ayar fuzz'lı garaj kaydı mantığıdır: 300 Hz çamur kesimi, 1,2 ve 3 kHz'de fuzz ortası, 6 kHz'de cızırtı kısma ve
+  hafif kısık tiz. 3 kHz artışı 520BT'nin kendi tepesi yüzünden düzeltmeyle birlikte yaklaşık −5 dB'ye düşer.
+
+| Tür | 40 Hz | 100 | 250 | 500 | 1k | 2k | 3,5k | 6k | 10k | 16k | Bas | Sanal. | Ses yük. |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Kyuss | +5,6 | +5,2 | +2,0 | −0,8 | +0,5 | +0,8 | −0,7 | −0,7 | −1,6 | −2,0 | 500 | 200 | 300 |
+| High Rise | +1,9 | +1,0 | −1,6 | −0,4 | +1,8 | +1,9 | +1,6 | −1,6 | −1,2 | −1,5 | 300 | 350 | 200 |
+
+Bunlar da yargıdır; başlangıç noktası olarak al, kulakla ayarla.
+
 ## 4. Neden otomatik ayar yok
 
 Uygulama hangi şarkının çaldığını bilmez: bunu okumak bildirim erişimi ister ve ürün bunu bilerek istemez. Ön ayarı sen seçersin,
@@ -92,5 +113,7 @@ sonra filtreleri düzenlersin.
 - Rtings, EQ ölçümleri hakkında: <https://www.rtings.com/headphones/learn/research/eq-remeasurements>
 - Harman hedefi ve dinleyici gruplarına dair özetler: <https://www.headphonesty.com/2024/10/harman-target-curve-alive/>, <https://audiosolace.com/harman-target-curve-explained/>
 - Eş-şiddet eğrileri (ISO 226): <https://www.sfu.ca/sonic-studio-webdav/cmns/Handbook/Equal_Loudness_Contours.html>
+- Kyuss, Blues for the Red Sun: <https://en.wikipedia.org/wiki/Blues_for_the_Red_Sun>, <https://everyrecordtellsastory.com/2016/09/10/blues-for-the-red-sun-the-story-of-josh-homme-and-kyuss/>
+- High Rise: <https://en.wikipedia.org/wiki/High_Rise_(band)>
 - Alçak raf / tepe filtresi ve Q kullanımı üzerine genel kılavuz: <https://guitar.soundshed.com/docs/effects/eq-parametric>
 - Filtre formülleri: Robert Bristow-Johnson, "Audio EQ Cookbook" (uygulamadaki `Biquad`).

@@ -19,6 +19,14 @@ enum class Genre(
         listOf(lowShelf(160f, 5f), peak(250f, 1.8f), peak(900f, -1.5f), peak(3_600f, 1.5f, 1.2f), highShelf(9_000f, -1.5f)),
         450, 150, 300,
     ),
+    KYUSS(
+        "Kyuss", "Basa bağlı gitarın kalın tabanı; alt orta dolgun, kutu sesi temiz, tiz sıcak ve kısık",
+        listOf(
+            lowShelf(150f, 5.5f), peak(200f, 2f, 0.9f), peak(450f, -1.5f, 1.2f), peak(1_600f, 1.5f),
+            peak(3_500f, -1f), highShelf(8_000f, -2f),
+        ),
+        500, 200, 300,
+    ),
     DOOM(
         "Doom / Sludge", "Ağır ve yavaş; en alt bölge öne çıkar, tizler kısık",
         listOf(lowShelf(150f, 7f), peak(230f, 2.3f), peak(900f, -2.5f, 0.9f), peak(3_600f, -1f), highShelf(6_000f, -3f)),
@@ -33,6 +41,14 @@ enum class Genre(
         "Noise Rock", "Sert vuruşlar; sıkı bas, keskin orta-tiz",
         listOf(lowShelf(140f, 2f), peak(400f, -1.5f), peak(3_500f, 3.5f, 1.2f), highShelf(10_000f, 1f)),
         250, 100, 300,
+    ),
+    HIGH_RISE(
+        "High Rise", "Garaj fuzz'ı; çamur kesik, orta ve üst orta önde, cızırtı ve tiz kısık",
+        listOf(
+            lowShelf(110f, 2f), peak(300f, -2f), peak(1_200f, 2f, 0.9f), peak(3_000f, 2f, 1.1f),
+            peak(6_000f, -2f, 1.5f), highShelf(9_000f, -1.5f),
+        ),
+        300, 350, 200,
     ),
     HARSH_NOISE(
         "Harsh Noise", "Kulak koruması: 2-6 kHz kısık, ses yükseltici kapalı",

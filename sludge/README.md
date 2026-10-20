@@ -8,8 +8,8 @@ Material 3 Expressive **parametrik ekolayzır**. Her şeyi sen ayarlarsın; uygu
 
 - **Parametrik ekolayzır**: en çok 10 filtre; her biri tepe, alçak raf ya da yüksek raf olabilir. Frekans (20 Hz–20 kHz),
   kazanç (±12 dB) ve Q (darlık) ayarlanır. Üstte filtrelerin toplam frekans eğrisi çizilir.
-- **Tür ön ayarları** (her biri gerçek bir filtre seti, elle seçilir): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock,
-  Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz. Bas güçlendirici, sanallaştırıcı ve ses yükseltici de ön ayarla gelir; seçtikten
+- **Tür ön ayarları** (her biri gerçek bir filtre seti, elle seçilir): Stoner Rock, Kyuss, Doom / Sludge, Psychedelic Rock, Noise Rock,
+  High Rise, Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz. Bas güçlendirici, sanallaştırıcı ve ses yükseltici de ön ayarla gelir; seçtikten
   sonra filtreleri istediğin gibi değiştirirsin.
 - **JBL Tune 520BT otomatik EQ**: AutoEq'in Rtings (B&K 5128) ölçümünden Harman over-ear 2018 hedefine ürettiği 10 filtrelik
   parametrik düzeltme, yayımlandığı haliyle uygulanır (filtre toplamı AutoEq'in eğrisiyle 0,25 dB içinde uyuşur, testle
