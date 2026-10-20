@@ -22,8 +22,6 @@ data class EqSettings(
     val headphoneId: String? = Headphones.DEFAULT_ID,
     /** Apply the correction on every output, not only when the headphone is the one connected. */
     val headphoneAlways: Boolean = false,
-    /** How much of the correction is applied, in percent: less of it costs less loudness. */
-    val headphoneStrength: Int = 100,
     /** The parametric filters the sound is shaped by. */
     val filters: List<ParametricFilter> = emptyList(),
 )

@@ -32,9 +32,9 @@ imports nothing from Android and holds every rule, so every rule has a unit test
   - `Parametric.kt` — `ParametricFilter` (peak, low and high shelf), `Biquad` (RBJ cookbook magnitude response), `Parametric`
     (summed response, `ENGINE_HZ` 31 third-octave bands), `FilterScale` (slider ↔ value maps).
   - `Status.kt` — the line the home screen leads with.
-  - `Headphones.kt` — headphone correction profiles (published parametric filters, boost cap, preamp). `OutputRoute.kt` — where the sound goes
+  - `Headphones.kt` — headphone correction profiles (published parametric filters, boost cap). `OutputRoute.kt` — where the sound goes
     (speaker, wired, Bluetooth with names) and whether a profile applies to it. `Shaping.kt` — `curveAt(route, hz)`: the curve the
-    sound really gets (the person's filters plus the bass shelf plus the headphone correction, never above +12 dB),
+    sound really gets (the person's filters plus the bass shelf plus the headphone correction, minus the automatic headroom),
     the bass knob as a low shelf filter (`Bass`) and the limiter gain.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; it wipes the keys, listening log and notes older versions stored).
 - `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with 31 bands read from `curveAt` and a limiter whose
@@ -65,10 +65,13 @@ stay out of `domain/`; the UI reads `UiState` and calls `SludgeActions` only (it
   ten ParametricEQ filters, checked in a test against AutoEq's own curve). `curveAt` adds the profile's correction on top of
   the person's filters, but only while that headphone is the output (matched by its Bluetooth name, spelling-insensitive; a
   Bluetooth name that cannot be read counts as a match; speaker, wired and other Bluetooth devices never get it). "Her
-  çıkışta uygula" forces it. The correction's boost is capped (+3 dB; the +6.4 dB at 20 Hz is where this headphone measures
-  -6 dB and cannot play) and the headroom is the largest boost really applied, so it costs about 3 dB, not AutoEq's 6.4;
-  "Düzeltme gücü" scales both. Another headphone needs its own published filters, never guessed ones. The reasoning and
-  sources are in `docs/eq-research.md`; the genre presets are engineering judgement, not measurements, and the doc says so.
+  çıkışta uygula" forces it. The correction's own boost is capped (+3 dB; the +6.4 dB at 20 Hz is where this headphone
+  measures -6 dB and cannot play). Another headphone needs its own published filters, never guessed ones. The reasoning
+  and sources are in `docs/eq-research.md`; the genre presets are engineering judgement, not measurements, and the doc says so.
+- Headroom is automatic and global (`headroomDb`): the sound is turned down by the highest point of the whole curve from 40 Hz up
+  (filters, bass shelf and headphone correction together) less a 3 dB slack for the limiter, never below zero. The bottom
+  octave is left out because little music lives there and a small headphone cannot play it; peak-normalising to it cost
+  11 dB on a bass-heavy preset. Presets thus stay at a comparable level. There is no strength slider; the loudness setting (the limiter's make-up gain) is what brings the level back.
 - Parametric EQ only: the sound is shaped by `EqSettings.filters` (up to ten); the engine reads `curveAt` on 31 third-octave
   bands. Presets set the filters. A shelf reaches its gain well below its corner (half at the corner), so the presets
   put their shelves higher than the band they are meant for.

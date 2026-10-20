@@ -15,6 +15,7 @@ import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.curveAt
 import com.vardiya.sludge.domain.limiterGainDb
@@ -130,7 +131,7 @@ class EffectEngine {
         }
         chain.loud?.let { loud ->
             runCatching {
-                val gain = CurveMath.safeLoudness(bands, s.loudnessMb)
+                val gain = s.loudnessMb.coerceIn(0, MAX_LOUDNESS_MB)
                 loud.setTargetGain(gain)
                 loud.enabled = on && gain > 0
             }

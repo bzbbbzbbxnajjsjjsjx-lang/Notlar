@@ -14,8 +14,9 @@ Material 3 Expressive **parametrik ekolayzır**. Her şeyi sen ayarlarsın; uygu
 - **JBL Tune 520BT otomatik EQ**: AutoEq'in Rtings (B&K 5128) ölçümünden Harman over-ear 2018 hedefine ürettiği 10 filtrelik
   parametrik düzeltme, yayımlandığı haliyle uygulanır (filtre toplamı AutoEq'in eğrisiyle 0,25 dB içinde uyuşur, testle
   doğrulanır). Bu kulaklık 3–4 kHz'de +10 dB'lik keskin bir tepe verir ve 10 kHz üstü ile alt bas zayıftır; düzeltme tepeyi alır,
-  üstü ve basın altını yükseltir. Çalamayan 35 Hz altı için artış +3 dB ile sınırlıdır, böylece ses AutoEq'in −6,4 dB'si yerine
-  yaklaşık −3 dB kısılır. Ekranda düzeltmenin eğrisi çizilir; "Düzeltme gücü" ile azaltabilirsin. Yalnızca o kulaklık bağlıyken
+  üstü ve basın altını yükseltir. Çalamayan 35 Hz altı için artış +3 dB ile sınırlıdır. Ses payı otomatiktir: filtrelerin, bas düğmesinin ve kulaklık düzeltmesinin
+  birlikte 40 Hz üstünde en çok yükselttiği nokta kadar (3 dB pay bırakılarak) ses kısılır, ekranda kaç dB olduğu yazar; böylece
+  hangi ön ayarı seçersen seç ses bozulmaz ve seviye tutarlı kalır; seviyeyi "Ses yükseltici" geri getirir. Ekranda düzeltmenin eğrisi çizilir. Yalnızca o kulaklık bağlıyken
   (Bluetooth adından anlaşılır) uygulanır; hoparlörde ve başka kulaklıklarda uygulanmaz, ad okunamıyorsa "Her çıkışta uygula" ile
   zorlanır. Tür ön ayarı düzeltmenin üstüne eklenir. Ayrıntı ve kaynaklar: `docs/eq-research.md`.
 - **Kurulum**: pil ayarı ve hangi çalarların bağlandığı.

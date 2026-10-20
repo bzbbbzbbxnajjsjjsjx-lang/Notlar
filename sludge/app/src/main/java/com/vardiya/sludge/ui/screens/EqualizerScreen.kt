@@ -73,6 +73,7 @@ import com.vardiya.sludge.domain.Status
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.correctionActive
+import com.vardiya.sludge.domain.headroomDb
 import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
@@ -86,8 +87,6 @@ import com.vardiya.sludge.ui.components.WavyLevel
 
 private const val DEFAULT_EFFECT = 500
 private const val DEFAULT_LOUDNESS = 400
-private const val PERCENT_FULL = 100f
-private const val PERCENT_MAX = 100
 
 @Composable
 fun EqualizerScreen(
@@ -291,18 +290,15 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                 SwitchRow(settings.headphoneAlways, actions::setHeadphoneAlways) {
                     Text("Her çıkışta uygula", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
-                val strength = settings.headphoneStrength / PERCENT_FULL
-                val preamp = remember(profile, strength) { profile.preampDb(strength) }
+                val headroom = remember(settings, route) { settings.headroomDb(route) }
                 Text(
-                    "Düzeltme gücü: %${settings.headphoneStrength} · ses yaklaşık " +
-                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", -preamp)} dB kısılır",
+                    "Ses payı otomatik: şu an ses yaklaşık " +
+                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", headroom)} dB kısılıyor",
                     style = MaterialTheme.typography.titleSmall,
                 )
-                PillSlider("Düzeltme gücü", settings.headphoneStrength, PERCENT_MAX, actions::setHeadphoneStrength)
-                val correction = remember(profile, strength) { profile.correctionCurve(strength) }
-                ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = correction)
+                ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = profile::appliedAt)
                 Text(
-                    "Çizgi, düzeltmenin hangi frekansı ne kadar değiştirdiğini gösterir (kısılma payı dahil). " +
+                    "Çizgi, düzeltmenin hangi frekansı ne kadar değiştirdiğini gösterir. " +
                         "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır: 3,5 kHz civarındaki sivrilik " +
                         "alınır, 10 kHz üstü ve alt bas yükseltilir. Çok alçak bas (35 Hz altı) bu kulaklıkta çalmadığı için " +
                         "artışlar ${profile.maxBoostDb.toInt()} dB ile sınırlıdır; böylece ses gereğinden fazla kısılmaz. " +

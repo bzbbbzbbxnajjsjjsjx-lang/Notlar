@@ -62,14 +62,15 @@ class ParametricTest {
 
     @Test fun `parametric curve follows the filters and still gets the bass shelf`() {
         val s = EqSettings(filters = listOf(peak(1_000f, 6f, 2f)), headphoneId = null, bassBoost = 1000)
-        val curve = s.curveAt(OutputRoute.UNKNOWN, listOf(31f, 1_000f))
-        assertEquals(6f, curve[1], 0.2f)
-        assertTrue(curve[0] > 2f)
+        val curve = s.curveAt(OutputRoute.UNKNOWN, listOf(31f, 1_000f, 8_000f))
+        assertTrue(curve[1] - curve[2] > 5f)
+        assertTrue(curve[0] - curve[2] > 3f)
     }
 
-    @Test fun `curve never exceeds twelve dB`() {
+    @Test fun `curve stays within the slack from 40 Hz up`() {
         val s = EqSettings(filters = List(5) { peak(1_000f, 12f, 1f) }, headphoneId = null)
-        assertTrue(s.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ).all { it <= 12f })
+        val above = Parametric.ENGINE_HZ.filter { it >= HEADROOM_FROM_HZ }
+        assertTrue(s.curveAt(OutputRoute.UNKNOWN, above).all { it <= HEADROOM_SLACK_DB + 0.05f })
     }
 
     @Test fun `applying a preset puts its filters in the settings`() {
@@ -77,11 +78,10 @@ class ParametricTest {
         assertEquals(Genre.DOOM.filters, s.filters)
     }
 
-    @Test fun `a preset in parametric mode shapes the sound through its filters`() {
+    @Test fun `a preset shapes the sound through its filters`() {
         val s = EqSettings(headphoneId = null).applying(Genre.DOOM)
         val curve = s.curveAt(OutputRoute.UNKNOWN, listOf(90f, 8_000f))
-        assertTrue(curve[0] > 4f)
-        assertTrue(curve[1] < -1f)
+        assertTrue(curve[0] - curve[1] > 5f)
     }
 
     @Test fun `slider scales round-trip and hit their ends`() {

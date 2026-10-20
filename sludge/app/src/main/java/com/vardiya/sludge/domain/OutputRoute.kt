@@ -17,8 +17,6 @@ fun OutputRoute.label(): String = when (kind) {
     OutputKind.BLUETOOTH -> names.firstOrNull { it.isNotBlank() } ?: "Bluetooth cihazı"
 }
 
-internal const val PERCENT_FULL = 100f
-
 // "JBL Tune 520BT", "JBL TUNE520BT" and "JBL T520BT" are the same headphone: compare letters and digits only.
 private fun squash(text: String) = text.lowercase().filter { it.isLetterOrDigit() }
 

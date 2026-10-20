@@ -21,19 +21,38 @@ object Bass {
     }
 }
 
-/**
- * The curve the sound really gets, read at [hz]: the person's parametric filters plus the bass shelf, plus the headphone
- * correction (with its headroom) while it is active. Never above +12 dB.
- */
-fun EqSettings.curveAt(route: OutputRoute, hz: List<Float>): List<Float> {
+/** The curve before any headroom: the person's filters, the bass shelf and the headphone correction, read at [hz]. */
+private fun EqSettings.shapeAt(route: OutputRoute, hz: List<Float>): List<Float> {
     val user = Parametric.sample(filters + listOfNotNull(Bass.filter(bassBoost)), hz)
     val profile = Headphones.byId(headphoneId)?.takeIf { correctionActive(route) }
-    val strength = headphoneStrength / PERCENT_FULL
-    val preamp = profile?.preampDb(strength) ?: 0f
-    return hz.indices.map { i ->
-        val correction = if (profile == null) 0f else profile.appliedAt(hz[i], strength) + preamp
-        (user[i] + correction).coerceAtMost(MAX_GAIN_DB)
-    }
+    return hz.indices.map { i -> user[i] + (profile?.appliedAt(hz[i]) ?: 0f) }
+}
+
+/** Below this the headroom does not look: the bottom octave carries little of the music and a small headphone cannot play it. */
+const val HEADROOM_FROM_HZ = 40f
+
+/** What the limiter is trusted with: music is rarely at full scale across a whole boosted band, so the last dB are not given up. */
+const val HEADROOM_SLACK_DB = 3f
+
+/**
+ * How many dB the whole sound is turned down so that what the curve boosts does not clip: its highest point from
+ * [HEADROOM_FROM_HZ] up, less [HEADROOM_SLACK_DB] (never below zero). It follows the filters, the bass knob and the
+ * headphone correction together, so the level stays comparable whichever preset is chosen.
+ */
+fun EqSettings.headroomDb(route: OutputRoute = OutputRoute.UNKNOWN): Float {
+    // A narrow peak can fall between two grid points, so every filter's own centre is looked at too.
+    val centres = filters.map { it.freqHz } + Bass.CORNER_HZ
+    val at = (Parametric.GRID_HZ + centres).filter { it >= HEADROOM_FROM_HZ }
+    return maxOf(0f, shapeAt(route, at).max() - HEADROOM_SLACK_DB)
+}
+
+/**
+ * The curve the sound really gets, read at [hz]: the shape minus the headroom. From [HEADROOM_FROM_HZ] up its highest
+ * point is at most [HEADROOM_SLACK_DB]; the loudness setting (the limiter's make-up gain) brings the level back up.
+ */
+fun EqSettings.curveAt(route: OutputRoute, hz: List<Float>): List<Float> {
+    val headroom = headroomDb(route)
+    return shapeAt(route, hz).map { it - headroom }
 }
 
 /** The make-up gain the limiter applies after the bands, in dB, from the loudness setting. */

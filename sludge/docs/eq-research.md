@@ -34,13 +34,16 @@ Ham ölçüm (hedefle karşılaştırma):
 Düzeltme bunu şöyle çözer: 3,5 kHz tepesini yaklaşık −4 dB (kısılma payı dahil −7 dB'ye kadar) alır, 10 kHz üstünü
 +3 dB'ye kadar yükseltir, alt basa hafif destek verir.
 
-### Neden AutoEq'in önerdiği −6,4 dB değil de yaklaşık −3 dB kısılma
+### Ses payı (kısılma) nasıl belirleniyor
 
-AutoEq'in ön kazancı en büyük artışa göre hesaplanır; burada o artış 20 Hz'deki +6,4 dB'dir. Ama bu kulaklık 20–30 Hz'i
-zaten çalamıyor (ölçüm −6 dB), yani o boost sese değil yalnızca ses kısılmasına yarar. Uygulama toplam düzeltmenin
-artışını **+3 dB ile sınırlar** ve kısılma payını gerçekte uygulanan en büyük artıştan hesaplar. Sonuç yaklaşık −3 dB;
-duyulabilir bölgedeki (40 Hz üstü) şekil AutoEq'inkiyle aynıdır. "Düzeltme gücü" kaydırıcısı hem düzeltmeyi hem de
-kısılmayı orantılı azaltır.
+AutoEq'in ön kazancı (−6,4 dB) yalnızca kulaklık düzeltmesine bakar ve en büyük artışa göre hesaplanır; burada o artış
+20 Hz'deki +6,4 dB'dir. Ama bu kulaklık 20–30 Hz'i zaten çalamıyor (ölçüm −6 dB), yani o boost sese değil yalnızca
+kısılmaya yarar. Uygulama düzeltmenin artışını **+3 dB ile sınırlar**. Ses payı ayrıca otomatiktir ve düzeltmeyle sınırlı
+değildir: filtrelerin, bas düğmesinin ve düzeltmenin toplam eğrisinin 40 Hz üstündeki en yüksek noktası kadar ses kısılır, ama
+sınırlayıcıya güvenilen 3 dB pay bırakılır. En alt oktav (40 Hz altı) hesaba katılmaz: müziğin az bir kısmı orada yaşar ve bu
+kulaklık orayı çalamaz. İlk denemede bu oktavı da sayınca bas ağırlıklı bir ön ayarda ses 11 dB kısılıyordu; bu çok fazlaydı.
+Sonuç, ön ayar değiştirince de seviyeyi karşılaştırılabilir tutar. Kısılan seviyeyi "Ses
+yükseltici" (sınırlayıcının kazancı) geri getirir. Kaydırıcı yoktur; ekranda o anki kısılma dB olarak yazar.
 
 ### Sınırlar
 

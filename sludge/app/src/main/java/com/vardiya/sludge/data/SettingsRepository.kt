@@ -45,7 +45,6 @@ class SettingsRepository(context: Context) {
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.
             headphoneId = Headphones.fromStored(this[HEADPHONE]),
             headphoneAlways = this[HEADPHONE_ALWAYS] ?: false,
-            headphoneStrength = (this[HEADPHONE_STRENGTH] ?: FULL_STRENGTH).coerceIn(0, FULL_STRENGTH),
             filters = this[FILTERS]?.let { stored ->
                 runCatching { json.decodeFromString(FILTERS_SERIALIZER, stored) }.getOrNull()
             }?.filter { it.isFinite }?.map { it.clamped() }?.take(Parametric.MAX_FILTERS)
@@ -62,7 +61,6 @@ class SettingsRepository(context: Context) {
         this[SOURCE] = s.source.name
         this[HEADPHONE] = s.headphoneId.orEmpty()
         this[HEADPHONE_ALWAYS] = s.headphoneAlways
-        this[HEADPHONE_STRENGTH] = s.headphoneStrength
         this[FILTERS] = json.encodeToString(FILTERS_SERIALIZER, s.filters)
     }
 
@@ -75,13 +73,11 @@ class SettingsRepository(context: Context) {
         val SOURCE = stringPreferencesKey("source")
         val HEADPHONE = stringPreferencesKey("headphone")
         val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
-        val HEADPHONE_STRENGTH = intPreferencesKey("headphone_strength")
         val FILTERS = stringPreferencesKey("filters")
         val FILTERS_SERIALIZER = ListSerializer(ParametricFilter.serializer())
-        const val FULL_STRENGTH = 100
         val RETIRED_KEYS = listOf(
             "ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode", "bands",
-            "history", "auto_tune", "explanation",
+            "history", "auto_tune", "explanation", "headphone_strength",
         )
         val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
     }

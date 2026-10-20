@@ -33,7 +33,6 @@ interface SludgeActions {
     fun setLoudness(valueMb: Int) = Unit
     fun setHeadphone(id: String?) = Unit
     fun setHeadphoneAlways(always: Boolean) = Unit
-    fun setHeadphoneStrength(percent: Int) = Unit
     fun applyPreset(genre: Genre) = Unit
     fun openAppInfo() = Unit
     fun openBatterySettings() = Unit

@@ -6,9 +6,9 @@ import kotlin.math.min
  * A correction that moves a headphone's measured sound toward a target curve, written as the parametric filters a
  * measurement-based tool computed for it ([filters], exactly as published).
  *
- * Two things keep it from costing more loudness than it is worth. The curve's boost is capped at [maxBoostDb]: the
- * biggest boosts sit at the very bottom, where a small headphone cannot deliver and where a boost eats the most
- * headroom. And the headroom (the preamp) is worked out from the boost that is really applied, not taken from the tool.
+ * The curve's boost is capped at [maxBoostDb]: the biggest boosts sit at the very bottom, where a small headphone
+ * cannot deliver and where a boost would only eat headroom. The headroom itself is worked out for the whole curve in
+ * `EqSettings.headroomDb`, not taken from the tool.
  */
 data class HeadphoneProfile(
     val id: String,
@@ -23,20 +23,8 @@ data class HeadphoneProfile(
     /** The tool's own correction at [hz], before any cap. */
     fun rawAt(hz: Float): Float = Parametric.responseDb(filters, hz)
 
-    /** The correction as applied at [hz]: boost capped, scaled by [strength] (0 = none, 1 = all of it). */
-    fun appliedAt(hz: Float, strength: Float = 1f): Float = min(rawAt(hz), maxBoostDb) * strength.coerceIn(0f, 1f)
-
-    /** The headroom: as many dB down as the largest boost that is applied anywhere, so the boosts cannot clip. */
-    fun preampDb(strength: Float = 1f): Float = -maxOf(0f, Parametric.GRID_HZ.maxOf { appliedAt(it, strength) })
-
-    /** The correction with its headroom, which is what the sound gets at [hz]. */
-    fun correctionAt(hz: Float, strength: Float = 1f): Float = appliedAt(hz, strength) + preampDb(strength)
-
-    /** The same, as a function whose headroom is worked out once: use it to draw many points. */
-    fun correctionCurve(strength: Float = 1f): (Float) -> Float {
-        val preamp = preampDb(strength)
-        return { hz -> appliedAt(hz, strength) + preamp }
-    }
+    /** The correction as applied at [hz]: the boost is capped, cuts are not. */
+    fun appliedAt(hz: Float): Float = min(rawAt(hz), maxBoostDb)
 
     companion object {
         const val DEFAULT_MAX_BOOST_DB = 3f
