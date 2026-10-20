@@ -2,7 +2,7 @@ package com.vardiya.sludge.app
 
 import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
-import com.vardiya.sludge.data.SettingsRepository
+import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.OutputRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -10,12 +10,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Keeps the audio effects in step with the stored settings and with the sessions players announce. Sessions open
+ * Keeps the audio effects in step with the settings and with the sessions players announce. Sessions open
  * and close through one queue that a single coroutine drains, so a close can never overtake the open before it.
  */
 class EqController(
@@ -23,7 +24,7 @@ class EqController(
     // Effect calls block on the media server: one dedicated background thread keeps them off the main thread and in order.
     audio: CoroutineDispatcher,
     private val engine: EffectEngine,
-    private val repo: SettingsRepository,
+    private val settings: Flow<EqSettings>,
     route: Flow<OutputRoute>,
 ) {
     private class Command(val session: Int, val packageName: String?, val done: () -> Unit)
@@ -33,10 +34,11 @@ class EqController(
     init {
         scope.launch(audio) {
             // Wait for the stored settings before touching the audio, so a restart never flashes the defaults.
-            guarded("global mix") { engine.tryGlobalMix(repo.settings.first()) }
+            guarded("global mix") { engine.tryGlobalMix(settings.first()) }
             launch {
                 guarded("settings") {
-                    combine(repo.settings, route, ::Pair).distinctUntilChanged().collect { (settings, out) -> engine.apply(settings, out) }
+                    // Only the newest settings matter while a slider is being dragged; the effect calls block, so older ones are skipped.
+                    combine(settings, route, ::Pair).distinctUntilChanged().conflate().collect { (s, out) -> engine.apply(s, out) }
                 }
             }
             for (command in commands) {
@@ -46,7 +48,7 @@ class EqController(
                         if (command.packageName == null) {
                             engine.detach(command.session)
                         } else {
-                            engine.attach(command.session, command.packageName, repo.settings.first())
+                            engine.attach(command.session, command.packageName, settings.first())
                         }
                     }
                 } finally {

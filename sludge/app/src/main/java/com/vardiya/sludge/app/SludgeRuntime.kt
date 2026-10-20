@@ -12,10 +12,19 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -23,7 +32,7 @@ import kotlinx.coroutines.launch
  * audio-session receiver) one place to talk to; the logic itself lives in [EqController] and the pure `domain`
  * package. They all run in the same process, so this is a plain singleton.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class SludgeRuntime private constructor(context: Context) {
     // An effect that fails in an unexpected way must not take the process down with it.
     private val scope = CoroutineScope(
@@ -35,12 +44,23 @@ class SludgeRuntime private constructor(context: Context) {
     private val engine = EffectEngine()
     val engineState: StateFlow<EngineState> = engine.state
     val route: StateFlow<OutputRoute> = output.route
-    val settings: StateFlow<EqSettings> = repo.settings.stateIn(scope, SharingStarted.Eagerly, EqSettings())
 
-    private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, repo, output.route)
+    // The settings live in memory so a dragged slider answers at once; the store is written a moment after the last change.
+    private val current = MutableStateFlow<EqSettings?>(null)
+    private val changes = Channel<(EqSettings) -> EqSettings>(Channel.UNLIMITED)
+    private val loaded: Flow<EqSettings> = current.filterNotNull()
+    val settings: StateFlow<EqSettings> = loaded.stateIn(scope, SharingStarted.Eagerly, EqSettings())
+
+    private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, loaded, output.route)
 
     init {
-        scope.launch { repo.dropRetiredKeys() }
+        scope.launch {
+            repo.dropRetiredKeys()
+            current.value = repo.settings.first()
+            // One coroutine applies the changes in the order they were made.
+            launch { for (change in changes) current.update { it?.let(change) } }
+            loaded.drop(1).debounce(SAVE_DELAY_MS).collect { repo.saveSettings(it) }
+        }
     }
 
     fun attach(session: Int, packageName: String, done: () -> Unit) = eq.attach(session, packageName, done)
@@ -48,11 +68,12 @@ class SludgeRuntime private constructor(context: Context) {
     fun detach(session: Int, done: () -> Unit) = eq.detach(session, done)
 
     fun update(transform: (EqSettings) -> EqSettings) {
-        scope.launch { repo.updateSettings(transform) }
+        changes.trySend(transform)
     }
 
     companion object {
         private const val TAG = "Sludge"
+        private const val SAVE_DELAY_MS = 300L
 
         @Volatile private var instance: SludgeRuntime? = null
 

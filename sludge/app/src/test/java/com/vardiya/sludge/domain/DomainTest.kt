@@ -127,6 +127,11 @@ class HeadphonesTest {
         assertEquals(0f, p.correctionAt(1_000f, 0f), 0f)
     }
 
+    @Test fun `the precomputed correction curve equals the pointwise one`() {
+        val curve = p.correctionCurve(0.6f)
+        listOf(25f, 105f, 1_000f, 3_500f, 12_000f).forEach { assertEquals(p.correctionAt(it, 0.6f), curve(it), 0.0001f) }
+    }
+
     @Test fun `it tames the 3 kHz peak this headphone measures and lifts the treble it lacks`() {
         assertTrue(p.correctionAt(3_500f) < p.correctionAt(1_000f) - 2f)
         assertTrue(p.correctionAt(14_000f) > p.correctionAt(1_000f) + 2f)

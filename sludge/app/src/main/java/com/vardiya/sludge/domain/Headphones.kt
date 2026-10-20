@@ -32,6 +32,12 @@ data class HeadphoneProfile(
     /** The correction with its headroom, which is what the sound gets at [hz]. */
     fun correctionAt(hz: Float, strength: Float = 1f): Float = appliedAt(hz, strength) + preampDb(strength)
 
+    /** The same, as a function whose headroom is worked out once: use it to draw many points. */
+    fun correctionCurve(strength: Float = 1f): (Float) -> Float {
+        val preamp = preampDb(strength)
+        return { hz -> appliedAt(hz, strength) + preamp }
+    }
+
     companion object {
         const val DEFAULT_MAX_BOOST_DB = 3f
     }

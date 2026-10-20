@@ -50,6 +50,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -291,13 +292,15 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                     Text("Her çıkışta uygula", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
                 val strength = settings.headphoneStrength / PERCENT_FULL
+                val preamp = remember(profile, strength) { profile.preampDb(strength) }
                 Text(
                     "Düzeltme gücü: %${settings.headphoneStrength} · ses yaklaşık " +
-                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", -profile.preampDb(strength))} dB kısılır",
+                        "${String.format(java.util.Locale.forLanguageTag("tr-TR"), "%.1f", -preamp)} dB kısılır",
                     style = MaterialTheme.typography.titleSmall,
                 )
                 PillSlider("Düzeltme gücü", settings.headphoneStrength, PERCENT_MAX, actions::setHeadphoneStrength)
-                ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = { profile.correctionAt(it, strength) })
+                val correction = remember(profile, strength) { profile.correctionCurve(strength) }
+                ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = correction)
                 Text(
                     "Çizgi, düzeltmenin hangi frekansı ne kadar değiştirdiğini gösterir (kısılma payı dahil). " +
                         "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır: 3,5 kHz civarındaki sivrilik " +

@@ -25,8 +25,8 @@ class SettingsRepository(context: Context) {
 
     val settings: Flow<EqSettings> = store.data.map { it.toSettings() }
 
-    suspend fun updateSettings(transform: (EqSettings) -> EqSettings) {
-        store.edit { prefs -> prefs.write(transform(prefs.toSettings())) }
+    suspend fun saveSettings(settings: EqSettings) {
+        store.edit { prefs -> prefs.write(settings) }
     }
 
     /** Earlier versions kept keys, a listening log and tuning notes here; nothing uses them now, so they are wiped. */
