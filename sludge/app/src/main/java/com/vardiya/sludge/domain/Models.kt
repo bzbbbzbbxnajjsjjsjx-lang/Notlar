@@ -24,4 +24,7 @@ data class EqSettings(
     val headphoneAlways: Boolean = false,
     /** The parametric filters the sound is shaped by. */
     val filters: List<ParametricFilter> = emptyList(),
+    /** The person's own general bass and treble trim in dB, on top of any preset (see [Trim]). */
+    val trimBassDb: Float = 0f,
+    val trimTrebleDb: Float = 0f,
 )

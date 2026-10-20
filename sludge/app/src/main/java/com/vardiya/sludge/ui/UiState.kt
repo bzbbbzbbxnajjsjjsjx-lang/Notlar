@@ -5,6 +5,8 @@ import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.OutputRoute
+import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.ToneState
 import com.vardiya.sludge.domain.ParametricFilter
 
 enum class Tab(val title: String) {
@@ -20,6 +22,7 @@ data class UiState(
     val route: OutputRoute = OutputRoute.UNKNOWN,
     val sessions: List<AttachedSession> = emptyList(),
     val globalMixWorks: Boolean? = null,
+    val tone: ToneState = ToneState(),
 )
 
 /** What the screens can ask for. Every member has a default so previews and screenshot tests pass [NoActions]. */
@@ -34,6 +37,10 @@ interface SludgeActions {
     fun setHeadphone(id: String?) = Unit
     fun setHeadphoneAlways(always: Boolean) = Unit
     fun applyPreset(genre: Genre) = Unit
+    fun setTrimBass(db: Float) = Unit
+    fun setTrimTreble(db: Float) = Unit
+    fun startTone(kind: SweepKind) = Unit
+    fun stopTone() = Unit
     fun openAppInfo() = Unit
     fun openBatterySettings() = Unit
 }

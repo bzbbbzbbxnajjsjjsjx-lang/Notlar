@@ -19,7 +19,12 @@ Material 3 Expressive **parametrik ekolayzır**. Her şeyi sen ayarlarsın; uygu
   hangi ön ayarı seçersen seç ses bozulmaz ve seviye tutarlı kalır; seviyeyi "Ses yükseltici" geri getirir. Ekranda düzeltmenin eğrisi çizilir. Yalnızca o kulaklık bağlıyken
   (Bluetooth adından anlaşılır) uygulanır; hoparlörde ve başka kulaklıklarda uygulanmaz, ad okunamıyorsa "Her çıkışta uygula" ile
   zorlanır. Tür ön ayarı düzeltmenin üstüne eklenir. Ayrıntı ve kaynaklar: `docs/eq-research.md`.
-- **Kurulum**: pil ayarı ve hangi çalarların bağlandığı.
+- **Genel ince ayar**: genel bas ve tiz için ±3 dB'lik iki kaydırıcı. Aynı model kulaklıklar 1–2 dB farklı çıkabilir; kendi çiftindeki farkı
+  kulağınla telafi edersin. Ön ayar seçince değişmez, her müziğe uygulanır.
+- **Test tonu** (Kurulum sekmesi): kulaklığın alt basta zorlanıp zorlanmadığını duymak için yavaş bir ses taraması (alt bas 20–200 Hz ya da
+  20 Hz–20 kHz). Ton müzikle aynı filtrelerden geçer ve çok kısıktır (yaklaşık −24 dBFS). Çıtırtı ya da vızırtı duyduğun frekansta
+  yükseltmeyi azalt.
+- **Kurulum**: pil ayarı, hangi çalarların bağlandığı ve test tonu.
 
 Harsh noise ön ayarı kulak ve hoparlör için tizi kısar ve ses yükseltiyi kapalı tutar.
 

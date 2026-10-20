@@ -4,10 +4,13 @@ import android.content.Context
 import android.util.Log
 import com.vardiya.sludge.audio.EffectEngine
 import com.vardiya.sludge.audio.OutputMonitor
+import com.vardiya.sludge.audio.TonePlayer
 import com.vardiya.sludge.data.SettingsRepository
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.OutputRoute
+import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.ToneState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +55,8 @@ class SludgeRuntime private constructor(context: Context) {
     val settings: StateFlow<EqSettings> = loaded.stateIn(scope, SharingStarted.Eagerly, EqSettings())
 
     private val eq = EqController(scope, Dispatchers.IO.limitedParallelism(1), engine, loaded, output.route)
+    private val tone = TonePlayer(context, scope, { session, done -> eq.attach(session, TONE_LABEL, done) }, { eq.detach(it) {} })
+    val toneState: StateFlow<ToneState> = tone.state
 
     init {
         scope.launch {
@@ -67,12 +72,17 @@ class SludgeRuntime private constructor(context: Context) {
 
     fun detach(session: Int, done: () -> Unit) = eq.detach(session, done)
 
+    fun startTone(kind: SweepKind) = tone.start(kind)
+
+    fun stopTone() = tone.stop()
+
     fun update(transform: (EqSettings) -> EqSettings) {
         changes.trySend(transform)
     }
 
     companion object {
         private const val TAG = "Sludge"
+        private const val TONE_LABEL = "Test tonu"
         private const val SAVE_DELAY_MS = 300L
 
         @Volatile private var instance: SludgeRuntime? = null

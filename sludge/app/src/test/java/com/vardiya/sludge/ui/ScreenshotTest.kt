@@ -11,6 +11,8 @@ import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.OutputKind
 import com.vardiya.sludge.domain.OutputRoute
+import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.ToneState
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.ui.theme.SludgeTheme
 import org.junit.Rule
@@ -88,6 +90,11 @@ class ScreenshotTest {
 
     @Test fun equalizerOff() = capture("equalizer_off") {
         Screen(playing.copy(settings = playing.settings.copy(enabled = false)), Tab.EQUALIZER)
+    }
+
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
+    fun setupTone() = capture("setup_tone_dark") {
+        Screen(playing.copy(tone = ToneState(SweepKind.BASS, 85f)), Tab.SETUP)
     }
 
     @Test fun setupFresh() = capture("setup_fresh") { Screen(fresh, Tab.SETUP) }

@@ -6,6 +6,8 @@
 - Bas güçlendirici, sanallaştırıcı ve bozulmadan ses yükseltici.
 - JBL Tune 520BT için Harman hedefli kulaklık düzeltmesi (AutoEq verisi) ve otomatik ses payı: hangi ayarı seçersen seç ses bozulmaz, seviye tutarlı kalır.
 - Harsh noise için kulak koruması. Uygulama hiçbir izin istemez: internet ve bildirim erişimi yok.
-- Kurulum sekmesi: pil ayarı ve bağlanan çalarlar.
+- Genel ince ayar: genel bas ve tiz için ±3 dB, kendi kulaklığının farkını telafi etmek için.
+- Test tonu: kulaklığın alt basta zorlandığını duymak için yavaş ses taraması.
+- Kurulum sekmesi: pil ayarı, bağlanan çalarlar ve test tonu.
 
 Kurulum: APK'yı yükle ve çalarında harici ekolayzır desteğini aç (Spotify, Poweramp, VLC...).

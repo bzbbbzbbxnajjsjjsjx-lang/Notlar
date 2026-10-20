@@ -23,7 +23,8 @@ object Bass {
 
 /** The curve before any headroom: the person's filters, the bass shelf and the headphone correction, read at [hz]. */
 private fun EqSettings.shapeAt(route: OutputRoute, hz: List<Float>): List<Float> {
-    val user = Parametric.sample(filters + listOfNotNull(Bass.filter(bassBoost)), hz)
+    val all = filters + listOfNotNull(Bass.filter(bassBoost)) + Trim.filters(trimBassDb, trimTrebleDb)
+    val user = Parametric.sample(all, hz)
     val profile = Headphones.byId(headphoneId)?.takeIf { correctionActive(route) }
     return hz.indices.map { i -> user[i] + (profile?.appliedAt(hz[i]) ?: 0f) }
 }

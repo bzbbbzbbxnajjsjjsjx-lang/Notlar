@@ -9,6 +9,8 @@ import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Parametric
+import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.Trim
 import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.applying
@@ -23,8 +25,10 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     private val runtime = SludgeRuntime.get(app)
     private val system = SystemSettings(app)
 
-    val state: StateFlow<UiState> = combine(runtime.settings, runtime.engineState, runtime.route) { settings, engine, route ->
-        UiState(settings = settings, route = route, sessions = engine.sessions, globalMixWorks = engine.globalMixWorks)
+    val state: StateFlow<UiState> = combine(
+        runtime.settings, runtime.engineState, runtime.route, runtime.toneState,
+    ) { settings, engine, route, tone ->
+        UiState(settings = settings, route = route, sessions = engine.sessions, globalMixWorks = engine.globalMixWorks, tone = tone)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState())
 
     private fun manual(transform: (EqSettings) -> EqSettings) = runtime.update { transform(it).copy(source = TuneSource.MANUAL) }
@@ -52,6 +56,19 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
     override fun setHeadphoneAlways(always: Boolean) = runtime.update { it.copy(headphoneAlways = always) }
 
     override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre) }
+
+    override fun setTrimBass(db: Float) = runtime.update { it.copy(trimBassDb = Trim.clamp(db)) }
+
+    override fun setTrimTreble(db: Float) = runtime.update { it.copy(trimTrebleDb = Trim.clamp(db)) }
+
+    override fun startTone(kind: SweepKind) = runtime.startTone(kind)
+
+    override fun stopTone() = runtime.stopTone()
+
+    override fun onCleared() {
+        runtime.stopTone()
+        super.onCleared()
+    }
 
     override fun openAppInfo() = system.openAppInfo()
 

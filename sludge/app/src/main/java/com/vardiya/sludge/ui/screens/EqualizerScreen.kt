@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import com.vardiya.sludge.ui.components.ParametricEditor
 import com.vardiya.sludge.ui.components.ResponseChart
+import com.vardiya.sludge.ui.components.TrimCard
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -126,6 +127,8 @@ fun EqualizerScreen(
         }
 
         HeadphoneCard(s, state.route, actions)
+
+        TrimCard(s, actions)
 
         PresetRow(state, actions)
 

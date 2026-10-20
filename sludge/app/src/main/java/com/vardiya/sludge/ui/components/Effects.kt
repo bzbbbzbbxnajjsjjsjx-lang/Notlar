@@ -207,6 +207,8 @@ fun PillSlider(
     onChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    /** What a screen reader says for a position; a percentage unless the slider is in other units. */
+    describe: (Int) -> String = { "%${it * PERCENT / max}" },
 ) {
     val scheme = MaterialTheme.colorScheme
     val haptics = rememberHaptics()
@@ -240,7 +242,7 @@ fun PillSlider(
             }
             .semantics {
                 contentDescription = label
-                stateDescription = "%${value * PERCENT / max}"
+                stateDescription = describe(value)
                 progressBarRangeInfo = ProgressBarRangeInfo(value.toFloat(), 0f..max.toFloat(), STEP_COUNT)
                 if (enabled) {
                     setProgress { v ->

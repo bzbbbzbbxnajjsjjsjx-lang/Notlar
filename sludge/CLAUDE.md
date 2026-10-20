@@ -31,7 +31,8 @@ imports nothing from Android and holds every rule, so every rule has a unit test
     bass/virtualizer/loudness), `Tuning.kt` (`applying(genre)`), `CurveMath.kt` (millibels and loudness headroom).
   - `Parametric.kt` — `ParametricFilter` (peak, low and high shelf), `Biquad` (RBJ cookbook magnitude response), `Parametric`
     (summed response, `ENGINE_HZ` 31 third-octave bands), `FilterScale` (slider ↔ value maps).
-  - `Status.kt` — the line the home screen leads with.
+  - `Status.kt` — the line the home screen leads with. `Sweep.kt` — the test-tone sweep maths (`Sweep`, `SweepKind`, `ToneState`) and
+    the general bass/treble `Trim`.
   - `Headphones.kt` — headphone correction profiles (published parametric filters, boost cap). `OutputRoute.kt` — where the sound goes
     (speaker, wired, Bluetooth with names) and whether a profile applies to it. `Shaping.kt` — `curveAt(route, hz)`: the curve the
     sound really gets (the person's filters plus the bass shelf plus the headphone correction, minus the automatic headroom),
@@ -40,6 +41,7 @@ imports nothing from Android and holds every rule, so every rule has a unit test
 - `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with 31 bands read from `curveAt` and a limiter whose
   make-up gain is the loudness boost; the classic Equalizer and LoudnessEnhancer when a phone refuses it; the Virtualizer
   separately; BassBoost is not used),
+  `TonePlayer` (plays the sweep on its own audio session with the equalizer attached first, so it is heard through the same filters),
   `AudioSessionReceiver` (players
   announce their audio session through the audio-effect broadcast), `OutputMonitor` (which output devices are connected).
 - `app/` — `SludgeRuntime` is the composition root and the one object the UI and the Android entry points talk to.
@@ -79,6 +81,8 @@ stay out of `domain/`; the UI reads `UiState` and calls `SludgeActions` only (it
   bass knob is a +4.5 dB low shelf filter (`Bass.filter`) and the loudness setting is the limiter's make-up gain, which
   boosts without clipping. The Kurulum screen shows, per audio session, which path is working. That the DynamicsProcessing
   path sounds right has been checked on no real device from here; if a phone refuses it, the classic path takes over.
+- Trim: `trimBassDb`/`trimTrebleDb` (±3 dB) are two shelves added to the curve, after presets; a preset never resets them. The
+  test tone is 24 dB below full scale with half-second fades; stop it when the view model goes.
 - Presets never boost more than +8 dB anywhere (tested); harsh noise keeps the treble down and the loudness gain off.
 
 ## Conventions

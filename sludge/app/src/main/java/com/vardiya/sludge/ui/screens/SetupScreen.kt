@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
@@ -21,7 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlin.math.roundToInt
 import androidx.compose.ui.unit.dp
+import com.vardiya.sludge.domain.SweepKind
+import com.vardiya.sludge.domain.ToneState
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.CookieBadge
@@ -77,6 +81,32 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
                 },
                 style = MaterialTheme.typography.bodySmall,
             )
+        }
+
+        StepCard(
+            done = state.tone.kind != null,
+            title = "3. Test tonu",
+            body = "Kulaklığın alt basta zorlanıp zorlanmadığını kendi kulağınla duymak için yavaş bir ses taraması çalar. Ton, " +
+                "müzikle aynı filtrelerden geçer. Sesi kısık başlat. Bir frekansta çıtırtı, vızırtı ya da sertleşme duyarsan " +
+                "kulaklık orada zorlanıyor demektir; o bölgedeki yükseltmeyi azalt. Alt bas taraması en bilgilendirici olandır.",
+        ) {
+            ToneButtons(state.tone, actions)
+        }
+    }
+}
+
+@Composable
+private fun ToneButtons(tone: ToneState, actions: SludgeActions) {
+    val playing = tone.kind
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SweepKind.entries.forEach { kind ->
+            OutlinedButton(onClick = { actions.startTone(kind) }, enabled = playing != kind, shapes = ButtonDefaults.shapes()) {
+                Text(kind.label)
+            }
+        }
+        if (playing != null) {
+            Text("Çalıyor: ${tone.hz.roundToInt()} Hz", style = MaterialTheme.typography.titleMedium)
+            Button(onClick = actions::stopTone, shapes = ButtonDefaults.shapes()) { Text("Durdur") }
         }
     }
 }

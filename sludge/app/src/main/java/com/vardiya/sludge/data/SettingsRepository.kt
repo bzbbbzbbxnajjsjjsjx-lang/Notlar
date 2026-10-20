@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -11,6 +12,7 @@ import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
 import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.ParametricFilter
+import com.vardiya.sludge.domain.Trim
 import com.vardiya.sludge.domain.TuneSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -45,6 +47,8 @@ class SettingsRepository(context: Context) {
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.
             headphoneId = Headphones.fromStored(this[HEADPHONE]),
             headphoneAlways = this[HEADPHONE_ALWAYS] ?: false,
+            trimBassDb = Trim.clamp(this[TRIM_BASS] ?: 0f),
+            trimTrebleDb = Trim.clamp(this[TRIM_TREBLE] ?: 0f),
             filters = this[FILTERS]?.let { stored ->
                 runCatching { json.decodeFromString(FILTERS_SERIALIZER, stored) }.getOrNull()
             }?.filter { it.isFinite }?.map { it.clamped() }?.take(Parametric.MAX_FILTERS)
@@ -61,6 +65,8 @@ class SettingsRepository(context: Context) {
         this[SOURCE] = s.source.name
         this[HEADPHONE] = s.headphoneId.orEmpty()
         this[HEADPHONE_ALWAYS] = s.headphoneAlways
+        this[TRIM_BASS] = s.trimBassDb
+        this[TRIM_TREBLE] = s.trimTrebleDb
         this[FILTERS] = json.encodeToString(FILTERS_SERIALIZER, s.filters)
     }
 
@@ -72,6 +78,8 @@ class SettingsRepository(context: Context) {
         val GENRE = stringPreferencesKey("genre")
         val SOURCE = stringPreferencesKey("source")
         val HEADPHONE = stringPreferencesKey("headphone")
+        val TRIM_BASS = floatPreferencesKey("trim_bass")
+        val TRIM_TREBLE = floatPreferencesKey("trim_treble")
         val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
         val FILTERS = stringPreferencesKey("filters")
         val FILTERS_SERIALIZER = ListSerializer(ParametricFilter.serializer())
