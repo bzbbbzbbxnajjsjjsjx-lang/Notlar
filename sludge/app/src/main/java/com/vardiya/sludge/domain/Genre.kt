@@ -51,9 +51,6 @@ enum class Genre(
     ),
     FLAT("Düz", "Hiçbir şey eklenmez", emptyList(), 0, 0, 0),
     ;
-
-    /** The preset's curve read on the ten graphic bands, so the sliders show what the filters do. */
-    val bands: List<Float> = Parametric.sample(filters, BAND_HZ).map(CurveMath::snap)
 }
 
 private fun peak(hz: Float, gain: Float, q: Float = 1f) = ParametricFilter(FilterType.PEAK.key, hz, gain, q)
@@ -67,7 +64,6 @@ private const val SHELF_Q = 0.7f
 fun Genre.toTuning(explanation: String = blurb) = Tuning(
     genre = label,
     filters = filters,
-    bands = bands,
     bassBoost = bass,
     virtualizer = virtualizer,
     loudness = loudness,

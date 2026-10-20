@@ -27,17 +27,17 @@ imports nothing from Android and holds every rule, so every rule has a unit test
 
 - `domain/` — pure Kotlin.
   - `Models.kt` (`TrackInfo`, `EqSettings`, `Tuning`, `TuneSource`), `Genre.kt` (each preset is a list of parametric filters plus
-    bass/virtualizer/loudness; its `bands` are the filters read on the ten graphic bands), `GenreDetector.kt` (player genre tag,
-    then artist list, then album/title words), `CurveMath.kt` (log-frequency mapping onto the device's bands, headroom).
+    bass/virtualizer/loudness; the filters are what the equalizer is set to), `GenreDetector.kt` (player genre tag,
+    then artist list, then album/title words), `CurveMath.kt` (millibels and loudness headroom).
   - `Tuning.kt` — `localTuning(track)` (detected preset plus the sentence that says why) and `applying`.
   - `Parametric.kt` — `ParametricFilter` (peak, low and high shelf), `Biquad` (RBJ cookbook magnitude response), `Parametric`
     (summed response, `ENGINE_HZ` 31 third-octave bands), `FilterScale` (slider ↔ value maps).
   - `NowPlaying.kt` — which media session to follow (`pickCurrent`). `Status.kt` — the line the home screen leads with.
   - `ListenStats.kt` — the listening log and the charts' numbers.
-  - `Headphones.kt` — headphone correction profiles (ten band gains and a preamp). `OutputRoute.kt` — where the sound goes
+  - `Headphones.kt` — headphone correction profiles (published parametric filters, boost cap, preamp). `OutputRoute.kt` — where the sound goes
     (speaker, wired, Bluetooth with names) and whether a profile applies to it. `Shaping.kt` — `curveAt(route, hz)`: the curve the
-    sound really gets (graphic bands or parametric filters, plus headphone correction and the bass shelf, never above +12 dB),
-    the bass knob as a low shelf (`Bass`), the band edges and the limiter gain.
+    sound really gets (the person's filters plus the bass shelf plus the headphone correction, never above +12 dB),
+    the bass knob as a low shelf filter (`Bass`) and the limiter gain.
 - `data/` — `SettingsRepository` (everything in one Preferences DataStore; it wipes the keys older versions stored).
 - `audio/` — Android adapters: `EffectEngine` (per audio session: DynamicsProcessing first, with 31 bands read from `curveAt` and a limiter whose
   make-up gain is the loudness boost; the classic Equalizer and LoudnessEnhancer when a phone refuses it; the Virtualizer
@@ -49,7 +49,7 @@ imports nothing from Android and holds every rule, so every rule has a unit test
   never overtake its open). `TuneCoordinator` follows the player through one pipeline (a newer request replaces an
   older one; the genre preset is applied and the listen logged), behind the `TuneEnvironment` port so `TuneCoordinatorTest` runs it on virtual time with fakes.
 - `ui/` — `SludgeViewModel` (state in, `SludgeActions` out), `SystemSettings` (the system screens it opens),
-  `SludgeApp` (tabs: Ekolayzır, Dinleme, Kurulum), `screens/`, `components/` (band columns, effect cards,
+  `SludgeApp` (tabs: Ekolayzır, Dinleme, Kurulum), `screens/`, `components/` (parametric editor and response chart, effect cards,
   common pieces), `theme/Theme.kt`.
 
 Rules that keep it sound: a new rule goes in `domain/` with a test, not in a composable or a service; Android types
@@ -68,19 +68,19 @@ while it was being worked out; a manual edit stays until the next track's preset
   another scene such as pop or house is skipped; a bare "noise" or "ambient" tag counts only as a whole tag), then the artist
   list, then words in the album and title. A track nothing recognises gets the flat preset, and the screen says so. The
   listening log files each play under the detected genre.
-- Headphone correction: the curve the person or the AI chose is kept; the profile's correction and preamp are added on top
-  when the equalizer is applied (`effectiveBands(route)`), but only while that headphone is the output (matched by its
-  Bluetooth name, spelling-insensitive; a Bluetooth name that cannot be read counts as a match; speaker, wired and other
-  Bluetooth devices never get it). "Her çıkışta uygula" forces it. Boosts in a profile are capped (+3 dB; the end bands
-  are where a small headphone cannot deliver and where a boost eats the most headroom) and the headroom is the boost that
-  is really applied, so the correction costs about 3 dB, not the tool's 6.1; "Düzeltme gücü" scales it down further. The 520BT numbers are AutoEq's fixed-band result (Harman over-ear 2018
-  target, Rtings B&K 5128 measurement); another headphone needs its own measured profile, never a guessed one.
+- Headphone correction: a `HeadphoneProfile` is the filter set a measurement tool published (the 520BT's are AutoEq's
+  ten ParametricEQ filters, checked in a test against AutoEq's own curve). `curveAt` adds the profile's correction on top of
+  the person's filters, but only while that headphone is the output (matched by its Bluetooth name, spelling-insensitive; a
+  Bluetooth name that cannot be read counts as a match; speaker, wired and other Bluetooth devices never get it). "Her
+  çıkışta uygula" forces it. The correction's boost is capped (+3 dB; the +6.4 dB at 20 Hz is where this headphone measures
+  -6 dB and cannot play) and the headroom is the largest boost really applied, so it costs about 3 dB, not AutoEq's 6.4;
+  "Düzeltme gücü" scales both. Another headphone needs its own published filters, never guessed ones. The reasoning and
+  sources are in `docs/eq-research.md`; the genre presets are engineering judgement, not measurements, and the doc says so.
 - Parametric EQ only: the sound is shaped by `EqSettings.filters` (up to ten); the engine reads `curveAt` on 31 third-octave
-  bands. Presets set the filters (and `bands`, the same curve on ten bands, which the headphone correction still builds on).
-  Manual edits keep the source MANUAL. A shelf reaches its gain well below its corner (half at the corner), so the presets
+  bands. Presets set the filters. Manual edits keep the source MANUAL. A shelf reaches its gain well below its corner (half at the corner), so the presets
   put their shelves higher than the band they are meant for.
 - Bass and loudness: Android's BassBoost and LoudnessEnhancer are optional and on many phones do nothing audible, so the
-  bass knob is a +4 dB low shelf on the bands (`Bass.shelf`) and the loudness setting is the limiter's make-up gain, which
+  bass knob is a +4.5 dB low shelf filter (`Bass.filter`) and the loudness setting is the limiter's make-up gain, which
   boosts without clipping. The setup screen shows, per audio session, which path is working. That the DynamicsProcessing
   path sounds right has been checked on no real device from here; if a phone refuses it, the classic path takes over.
 - Tuning: the detected genre's preset, applied once per track when auto-tune is on. Harsh noise keeps the treble down and

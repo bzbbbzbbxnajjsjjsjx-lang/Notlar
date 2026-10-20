@@ -43,7 +43,6 @@ class ScreenshotTest {
 
     private val playing = UiState(
         settings = EqSettings(
-            bands = Genre.STONER.bands,
             filters = Genre.STONER.filters,
             bassBoost = Genre.STONER.bass,
             virtualizer = Genre.STONER.virtualizer,

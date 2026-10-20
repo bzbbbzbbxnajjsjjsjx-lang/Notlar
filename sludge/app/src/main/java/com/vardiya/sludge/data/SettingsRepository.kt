@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
 import com.vardiya.sludge.domain.ListenEntry
@@ -53,10 +52,8 @@ class SettingsRepository(context: Context) {
     }.getOrDefault(emptyList())
 
     private fun Preferences.toSettings(): EqSettings {
-        val bands = this[BANDS]?.split(',')?.mapNotNull { it.toFloatOrNull() }?.takeIf { it.size == BAND_COUNT }
         return EqSettings(
             enabled = this[ENABLED] ?: true,
-            bands = bands ?: EqSettings.FLAT_BANDS,
             bassBoost = this[BASS] ?: 0,
             virtualizer = this[VIRTUALIZER] ?: 0,
             loudnessMb = this[LOUDNESS] ?: 0,
@@ -71,13 +68,12 @@ class SettingsRepository(context: Context) {
             filters = this[FILTERS]?.let { stored ->
                 runCatching { json.decodeFromString(FILTERS_SERIALIZER, stored) }.getOrNull()
             }?.filter { it.isFinite }?.map { it.clamped() }?.take(Parametric.MAX_FILTERS)
-                ?: Parametric.fromBands(bands ?: EqSettings.FLAT_BANDS),
+                ?: emptyList(),
         )
     }
 
     private fun androidx.datastore.preferences.core.MutablePreferences.write(s: EqSettings) {
         this[ENABLED] = s.enabled
-        this[BANDS] = s.bands.joinToString(",")
         this[BASS] = s.bassBoost
         this[VIRTUALIZER] = s.virtualizer
         this[LOUDNESS] = s.loudnessMb
@@ -93,7 +89,6 @@ class SettingsRepository(context: Context) {
 
     private companion object {
         val ENABLED = booleanPreferencesKey("enabled")
-        val BANDS = stringPreferencesKey("bands")
         val BASS = intPreferencesKey("bass")
         val VIRTUALIZER = intPreferencesKey("virtualizer")
         val LOUDNESS = intPreferencesKey("loudness")
@@ -108,7 +103,7 @@ class SettingsRepository(context: Context) {
         val FILTERS_SERIALIZER = ListSerializer(ParametricFilter.serializer())
         const val FULL_STRENGTH = 100
         val HISTORY = stringPreferencesKey("history")
-        val RETIRED_KEYS = listOf("ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode")
+        val RETIRED_KEYS = listOf("ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode", "bands")
         val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
         val HISTORY_SERIALIZER = ListSerializer(ListenEntry.serializer())
     }

@@ -36,7 +36,3 @@ fun HeadphoneProfile.appliesTo(route: OutputRoute): Boolean = when (route.kind) 
 /** Whether the correction really shapes the sound now: the right headphone is connected, or the person forced it. */
 fun EqSettings.correctionActive(route: OutputRoute): Boolean =
     Headphones.byId(headphoneId)?.let { headphoneAlways || it.appliesTo(route) } ?: false
-
-/** What the equalizer is actually set to: the chosen curve through the headphone correction while it is active. */
-fun EqSettings.effectiveBands(route: OutputRoute = OutputRoute.UNKNOWN): List<Float> =
-    if (correctionActive(route)) Headphones.byId(headphoneId)!!.applyTo(bands, headphoneStrength / PERCENT_FULL) else bands

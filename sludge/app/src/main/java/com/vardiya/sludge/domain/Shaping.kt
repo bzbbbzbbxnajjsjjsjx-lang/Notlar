@@ -1,60 +1,39 @@
-// The file holds the bass shelf with the band maths that goes with it (edges, final bands, limiter gain).
+// The file holds the bass shelf with the curve maths that goes with it (final curve, limiter gain).
 @file:Suppress("MatchingDeclarationName")
 
 package com.vardiya.sludge.domain
 
-import kotlin.math.sqrt
-
 /**
- * The bass knob as a low shelf on the equalizer's own bands. Android's BassBoost effect is optional and on many phones
- * does nothing at all, while the equalizer always works, so the bass knob is built from the bands instead.
+ * The bass knob as a low shelf filter. Android's BassBoost effect is optional and on many phones does nothing at all,
+ * while the equalizer always works, so the bass knob is built from a filter instead. A shelf's gain is reached well
+ * below its corner, so the corner sits above the bass it is meant to lift.
  */
 object Bass {
-    /** The shelf's gain at the lowest bands when the knob is all the way up (dB). */
-    const val MAX_SHELF_DB = 4f
+    /** The shelf's gain when the knob is all the way up (dB). */
+    const val MAX_SHELF_DB = 4.5f
+    const val CORNER_HZ = 150f
+    private const val SHELF_Q = 0.7f
 
-    // How much of the shelf each band gets: full at 31 and 62 Hz, tapering out by 500 Hz.
-    private val weights = listOf(1f, 1f, 0.7f, 0.35f, 0.1f, 0f, 0f, 0f, 0f, 0f)
-
-    /** The shelf for a knob position (0 up to [MAX_EFFECT]), one gain per band. */
-    fun shelf(strength: Int): List<Float> {
+    /** The shelf for a knob position (0 up to [MAX_EFFECT]); null when the knob is down. */
+    fun filter(strength: Int): ParametricFilter? {
         val amount = strength.coerceIn(0, MAX_EFFECT) / MAX_EFFECT.toFloat() * MAX_SHELF_DB
-        return weights.map { it * amount }
+        return if (amount <= 0f) null else ParametricFilter(FilterType.LOW_SHELF.key, CORNER_HZ, amount, SHELF_Q)
     }
-}
-
-/** The upper edge of each of the ten bands (Hz): halfway between neighbours on a log axis, the last one at 20 kHz. */
-val BAND_EDGES_HZ: List<Float> = BAND_HZ.mapIndexed { i, hz ->
-    if (i == BAND_HZ.lastIndex) TOP_HZ else sqrt(hz * BAND_HZ[i + 1])
-}
-
-private const val TOP_HZ = 20_000f
-
-/** What is added to the person's curve on the ten bands: the headphone correction (with its headroom) and the bass shelf. */
-fun EqSettings.extraBands(route: OutputRoute = OutputRoute.UNKNOWN): List<Float> {
-    val correction = if (correctionActive(route)) {
-        Headphones.byId(headphoneId)!!.applyTo(EqSettings.FLAT_BANDS, headphoneStrength / PERCENT_FULL)
-    } else {
-        EqSettings.FLAT_BANDS
-    }
-    val shelf = Bass.shelf(bassBoost)
-    return correction.mapIndexed { i, gain -> gain + shelf[i] }
-}
-
-/** The gain on every graphic band the sound really gets: the headphone-corrected curve plus the bass shelf, never above +12 dB. */
-fun EqSettings.finalBands(route: OutputRoute = OutputRoute.UNKNOWN): List<Float> {
-    val shelf = Bass.shelf(bassBoost)
-    return effectiveBands(route).mapIndexed { i, gain -> (gain + shelf[i]).coerceAtMost(MAX_GAIN_DB) }
 }
 
 /**
- * The curve the sound really gets, read at [hz]: the parametric filters' combined response plus the headphone
- * correction and the bass shelf. Never above +12 dB.
+ * The curve the sound really gets, read at [hz]: the person's parametric filters plus the bass shelf, plus the headphone
+ * correction (with its headroom) while it is active. Never above +12 dB.
  */
 fun EqSettings.curveAt(route: OutputRoute, hz: List<Float>): List<Float> {
-    val extra = CurveMath.resample(extraBands(route), BAND_HZ, hz)
-    val user = Parametric.sample(filters, hz)
-    return hz.indices.map { (user[it] + extra[it]).coerceAtMost(MAX_GAIN_DB) }
+    val user = Parametric.sample(filters + listOfNotNull(Bass.filter(bassBoost)), hz)
+    val profile = Headphones.byId(headphoneId)?.takeIf { correctionActive(route) }
+    val strength = headphoneStrength / PERCENT_FULL
+    val preamp = profile?.preampDb(strength) ?: 0f
+    return hz.indices.map { i ->
+        val correction = if (profile == null) 0f else profile.appliedAt(hz[i], strength) + preamp
+        (user[i] + correction).coerceAtMost(MAX_GAIN_DB)
+    }
 }
 
 /** The make-up gain the limiter applies after the bands, in dB, from the loudness setting. */

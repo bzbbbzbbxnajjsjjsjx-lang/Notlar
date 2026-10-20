@@ -8,37 +8,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CurveMathTest {
-    @Test fun `device bands at the canonical frequencies read the canonical gains`() {
-        val bands = listOf(5f, 4f, 3f, 1f, -1f, -1f, 0f, 1f, 2f, -1f)
-        assertEquals(bands, CurveMath.mapToDevice(bands, BAND_HZ))
-    }
-
-    @Test fun `in between frequencies interpolate on a log axis`() {
-        val bands = listOf(0f, 10f, 10f, 10f, 10f, 10f, 10f, 10f, 10f, 10f)
-        val mid = CurveMath.mapToDevice(bands, listOf(Math.sqrt(31.0 * 62.0).toFloat())).single()
-        assertEquals(5f, mid, 0.05f)
-    }
-
-    @Test fun `frequencies outside the range hold the end values`() {
-        val bands = listOf(4f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -6f)
-        assertEquals(listOf(4f, -6f), CurveMath.mapToDevice(bands, listOf(20f, 20_000f)))
-    }
-
-    @Test fun `a three band device still gets a sensible curve`() {
-        val out = CurveMath.mapToDevice(Genre.DOOM.bands, listOf(100f, 1_000f, 10_000f))
-        assertTrue(out[0] > out[1] && out[0] > out[2])
-    }
-
     @Test fun `millibels are clamped to the device range`() {
         assertEquals(1200, CurveMath.toMillibels(12f, -1500, 1500))
         assertEquals(1500, CurveMath.toMillibels(20f, -1500, 1500))
         assertEquals(-1500, CurveMath.toMillibels(-20f, -1500, 1500))
         assertEquals(350, CurveMath.toMillibels(3.5f, -1500, 1500))
-    }
-
-    @Test fun `snap rounds to half decibels`() {
-        assertEquals(2.5f, CurveMath.snap(2.4f), 0f)
-        assertEquals(-3f, CurveMath.snap(-3.1f), 0f)
     }
 
     @Test fun `loudness gives way to a hot curve`() {
@@ -95,14 +69,15 @@ class GenreDetectorTest {
 
     @Test fun `harsh noise never boosts the harsh range or the loudness`() {
         val preset = Genre.HARSH_NOISE
-        assertTrue(preset.bands[6] <= 0 && preset.bands[7] < 0 && preset.bands[8] < 0 && preset.bands[9] < 0)
+        val upper = Parametric.sample(preset.filters, listOf(2_000f, 4_000f, 8_000f, 16_000f))
+        assertTrue(upper.all { it <= 0f })
+        assertTrue(upper[1] < -2f)
         assertEquals(0, preset.loudness)
     }
 
     @Test fun `every preset stays inside the safe limits`() {
         for (genre in Genre.entries) {
-            assertEquals(BAND_COUNT, genre.bands.size)
-            assertTrue(genre.bands.all { it in -MAX_GAIN_DB..8f })
+            assertTrue(Parametric.sample(genre.filters, Parametric.ENGINE_HZ).all { it in -MAX_GAIN_DB..8f })
             assertTrue(genre.bass in 0..MAX_EFFECT && genre.virtualizer in 0..MAX_EFFECT && genre.loudness in 0..MAX_LOUDNESS_MB)
         }
     }
@@ -111,7 +86,6 @@ class GenreDetectorTest {
 class TuningTest {
     @Test fun `local tuning explains itself`() {
         val t = localTuning(TrackInfo(title = "x", artist = "Sleep"))
-        assertEquals(Genre.STONER.bands, t.bands)
         assertEquals(Genre.STONER.filters, t.filters)
         assertTrue(t.explanation.contains("Stoner"))
     }
@@ -126,7 +100,6 @@ class TuningTest {
         val s = EqSettings(enabled = false, autoTune = false).applying(Genre.DOOM.toTuning(), TuneSource.LOCAL)
         assertFalse(s.enabled)
         assertFalse(s.autoTune)
-        assertEquals(Genre.DOOM.bands, s.bands)
         assertEquals(Genre.DOOM.filters, s.filters)
         assertEquals(TuneSource.LOCAL, s.source)
     }
@@ -184,16 +157,13 @@ class ListenStatsTest {
 }
 
 class PresetTest {
-    @Test fun `a preset's bands are its filters read on the ten bands`() {
-        assertEquals(BAND_COUNT, Genre.DOOM.bands.size)
-        assertEquals(CurveMath.snap(Parametric.responseDb(Genre.DOOM.filters, BAND_HZ[1])), Genre.DOOM.bands[1], 0f)
-        // The doom low shelf lifts the bottom well above the treble, which is cut.
-        assertTrue(Genre.DOOM.bands[1] > 5f)
-        assertTrue(Genre.DOOM.bands.last() < 0f)
+    @Test fun `the doom preset lifts the bottom and cuts the top`() {
+        val curve = Parametric.sample(Genre.DOOM.filters, listOf(62f, 8_000f, 16_000f))
+        assertTrue(curve[0] > 5f)
+        assertTrue(curve[1] < -1f && curve[2] < -1f)
     }
 
-    @Test fun `flat stays flat`() {
-        assertEquals(List(BAND_COUNT) { 0f }, Genre.FLAT.bands)
+    @Test fun `flat has no filters`() {
         assertTrue(Genre.FLAT.filters.isEmpty())
     }
 
@@ -211,9 +181,9 @@ class PresetTest {
         assertEquals(0, Genre.HARSH_NOISE.loudness)
     }
 
-    @Test fun `every preset has a distinct curve`() {
-        val curves = Genre.entries.map { it.bands }
-        assertEquals(curves.size, curves.toSet().size)
+    @Test fun `every preset has a distinct filter set`() {
+        val sets = Genre.entries.map { it.filters }
+        assertEquals(sets.size, sets.toSet().size)
     }
 }
 
@@ -230,71 +200,81 @@ class StatusTest {
 class HeadphonesTest {
     private val p = Headphones.JBL_TUNE_520BT
 
-    @Test fun `the 520BT profile keeps AutoEq's ten fixed-band gains as measured`() {
-        assertEquals(BAND_COUNT, p.correction.size)
-        assertEquals(listOf(6.6f, -2.9f, -0.3f, -0.4f, 0.6f, -1.5f, 2.1f, -1.9f, 2.8f, 5.2f), p.correction)
+    @Test fun `the 520BT profile keeps AutoEq's ten parametric filters as published`() {
+        assertEquals(10, p.filters.size)
+        val first = p.filters.first()
+        assertEquals(FilterType.LOW_SHELF, first.kind)
+        assertEquals(105f, first.freqHz, 0f)
+        assertEquals(8f, first.gainDb, 0f)
+        assertEquals(0.7f, first.q, 0f)
+        assertEquals(listOf(105f, 62f, 3_532f, 2_056f, 4_892f, 10_000f, 944f, 173f, 48f, 60f), p.filters.map { it.freqHz })
+        assertTrue(p.filters.all { it == it.clamped() })
+    }
+
+    @Test fun `the filters reproduce the curve AutoEq published for this headphone`() {
+        // Values from the parametric_eq column of AutoEq's JBL Tune 520BT.csv.
+        val published = mapOf(
+            20f to 6.40f, 31f to 4.29f, 62f to -0.34f, 125f to -0.51f,
+            1_000f to -1.14f, 3_150f to -2.33f, 8_000f to 2.18f, 16_000f to 3.02f,
+        )
+        published.forEach { (hz, db) -> assertEquals("$hz Hz", db, p.rawAt(hz), 0.25f) }
     }
 
     @Test fun `boosts are capped but cuts are not`() {
-        val applied = p.appliedCorrection()
-        assertEquals(3f, applied[0], 0f)
-        assertEquals(3f, applied[9], 0f)
-        assertEquals(-2.9f, applied[1], 0f)
-        assertEquals(2.1f, applied[6], 0f)
-        assertTrue(applied.all { it <= HeadphoneProfile.DEFAULT_MAX_BOOST_DB })
+        assertEquals(3f, p.appliedAt(20f), 0f)
+        assertEquals(3f, p.appliedAt(16_000f), 0.05f)
+        assertTrue(p.appliedAt(3_500f) < -3f)
+        assertTrue(Parametric.GRID_HZ.all { p.appliedAt(it) <= HeadphoneProfile.DEFAULT_MAX_BOOST_DB })
     }
 
     @Test fun `the headroom is the boost that is really applied`() {
-        assertEquals(-3f, p.preampDb(), 0f)
-        assertEquals(-1.5f, p.preampDb(0.5f), 0.001f)
+        assertEquals(-3f, p.preampDb(), 0.01f)
+        assertEquals(-1.5f, p.preampDb(0.5f), 0.01f)
         assertEquals(0f, p.preampDb(0f), 0f)
     }
 
-    @Test fun `a flat curve through the profile is the capped correction plus the headroom, never above zero`() {
-        val out = p.applyTo(EqSettings.FLAT_BANDS)
-        assertEquals(0f, out[0], 0.001f)
-        assertEquals(-2.9f - 3f, out[1], 0.001f)
-        assertEquals(0f, out[9], 0.001f)
-        assertTrue(out.all { it <= 0.001f })
+    @Test fun `the corrected curve never goes above zero`() {
+        assertTrue(Parametric.GRID_HZ.all { p.correctionAt(it) <= 0.001f })
     }
 
-    @Test fun `the person's curve is kept and the correction added on top`() {
-        val bands = Genre.STONER.bands
-        val out = p.applyTo(bands)
-        bands.indices.forEach { assertEquals(bands[it] + p.appliedCorrection()[it] + p.preampDb(), out[it], 0.001f) }
-    }
-
-    @Test fun `a strength of zero leaves the curve alone and a lower strength costs less loudness`() {
-        assertEquals(Genre.DOOM.bands, p.applyTo(Genre.DOOM.bands, 0f))
+    @Test fun `a lower strength scales the correction and costs less loudness`() {
+        assertEquals(p.appliedAt(3_500f) / 2f, p.appliedAt(3_500f, 0.5f), 0.001f)
         assertTrue(p.preampDb(0.5f) > p.preampDb(1f))
-        assertEquals(p.appliedCorrection()[1] / 2f, p.appliedCorrection(0.5f)[1], 0.001f)
+        assertEquals(0f, p.correctionAt(1_000f, 0f), 0f)
     }
 
-    @Test fun `without a headphone the bands are used as they are`() {
-        val s = EqSettings(bands = Genre.DOOM.bands, headphoneId = null)
-        assertEquals(Genre.DOOM.bands, s.effectiveBands())
-    }
-
-    @Test fun `the strength setting scales what the equalizer is set to`() {
-        val full = EqSettings(bands = Genre.DOOM.bands).effectiveBands()
-        val half = EqSettings(bands = Genre.DOOM.bands, headphoneStrength = 50).effectiveBands()
-        val none = EqSettings(bands = Genre.DOOM.bands, headphoneStrength = 0).effectiveBands()
-        assertEquals(Genre.DOOM.bands, none)
-        assertTrue(half[1] > full[1])
+    @Test fun `it tames the 3 kHz peak this headphone measures and lifts the treble it lacks`() {
+        assertTrue(p.correctionAt(3_500f) < p.correctionAt(1_000f) - 2f)
+        assertTrue(p.correctionAt(14_000f) > p.correctionAt(1_000f) + 2f)
     }
 
     @Test fun `a fresh install starts with the default profile and an unknown id means none`() {
         assertEquals(Headphones.DEFAULT_ID, EqSettings().headphoneId)
         assertNotNull(Headphones.byId(Headphones.DEFAULT_ID))
         assertNull(Headphones.byId("nope"))
-        assertEquals(EqSettings.FLAT_BANDS, EqSettings(headphoneId = "nope").effectiveBands())
     }
 
-    @Test fun `a boosted curve through the profile still maps to the device bands`() {
-        val effective = EqSettings(bands = Genre.STONER.bands).effectiveBands()
-        val device = CurveMath.mapToDevice(effective, listOf(60f, 230f, 910f, 3_600f, 14_000f))
-        assertEquals(5, device.size)
-        assertTrue(device.all { it.isFinite() })
+    @Test fun `without a headphone the curve is only the filters`() {
+        val s = EqSettings(filters = Genre.DOOM.filters, headphoneId = null)
+        val hz = listOf(62f, 1_000f)
+        assertEquals(Parametric.sample(Genre.DOOM.filters, hz), s.curveAt(OutputRoute.UNKNOWN, hz))
+        assertEquals(listOf(0f, 0f), EqSettings(headphoneId = "nope").curveAt(OutputRoute.UNKNOWN, hz))
+    }
+
+    @Test fun `the correction is added on top of the person's filters`() {
+        val hz = listOf(62f, 1_000f, 3_500f)
+        val with = EqSettings(filters = Genre.DOOM.filters).curveAt(OutputRoute.UNKNOWN, hz)
+        val without = EqSettings(filters = Genre.DOOM.filters, headphoneId = null).curveAt(OutputRoute.UNKNOWN, hz)
+        hz.indices.forEach { assertEquals(without[it] + p.correctionAt(hz[it]), with[it], 0.001f) }
+    }
+
+    @Test fun `the strength setting scales what the equalizer is set to`() {
+        val hz = listOf(3_500f)
+        val full = EqSettings().curveAt(OutputRoute.UNKNOWN, hz).single()
+        val half = EqSettings(headphoneStrength = 50).curveAt(OutputRoute.UNKNOWN, hz).single()
+        val none = EqSettings(headphoneStrength = 0).curveAt(OutputRoute.UNKNOWN, hz).single()
+        assertEquals(0f, none, 0f)
+        assertTrue(full < half && half < none)
     }
 }
 
@@ -327,21 +307,26 @@ class OutputRouteTest {
         assertTrue(profile.appliesTo(OutputRoute.UNKNOWN))
     }
 
-    @Test fun `the bands pass through unchanged when the correction is not active`() {
-        val s = EqSettings(bands = Genre.DOOM.bands)
-        assertEquals(Genre.DOOM.bands, s.effectiveBands(OutputRoute(OutputKind.SPEAKER)))
-        assertFalse(s.correctionActive(OutputRoute(OutputKind.SPEAKER)))
+    private val hz = listOf(62f, 1_000f, 3_500f)
+
+    @Test fun `the curve is only the filters when the correction is not active`() {
+        val s = EqSettings(filters = Genre.DOOM.filters)
+        val speaker = OutputRoute(OutputKind.SPEAKER)
+        assertEquals(Parametric.sample(Genre.DOOM.filters, hz), s.curveAt(speaker, hz))
+        assertFalse(s.correctionActive(speaker))
     }
 
     @Test fun `the correction is added when the headphone is connected`() {
-        val s = EqSettings(bands = Genre.DOOM.bands)
+        val s = EqSettings(filters = Genre.DOOM.filters)
         assertTrue(s.correctionActive(bt("JBL Tune 520BT")))
-        assertEquals(profile.applyTo(Genre.DOOM.bands), s.effectiveBands(bt("JBL Tune 520BT")))
+        val expected = Parametric.sample(Genre.DOOM.filters, hz).mapIndexed { i, db -> db + profile.correctionAt(hz[i]) }
+        assertEquals(expected, s.curveAt(bt("JBL Tune 520BT"), hz))
     }
 
     @Test fun `forcing the correction applies it on any output`() {
-        val s = EqSettings(bands = Genre.DOOM.bands, headphoneAlways = true)
-        assertEquals(profile.applyTo(Genre.DOOM.bands), s.effectiveBands(OutputRoute(OutputKind.SPEAKER)))
+        val s = EqSettings(filters = Genre.DOOM.filters, headphoneAlways = true)
+        val expected = Parametric.sample(Genre.DOOM.filters, hz).mapIndexed { i, db -> db + profile.correctionAt(hz[i]) }
+        assertEquals(expected, s.curveAt(OutputRoute(OutputKind.SPEAKER), hz))
     }
 
     @Test fun `without a chosen headphone nothing is active however the route looks`() {
@@ -394,50 +379,32 @@ class GenreEvidenceTest {
 }
 
 class ShapingTest {
-    @Test fun `the bass shelf is empty at zero and full at the lowest bands at the top`() {
-        assertEquals(List(BAND_COUNT) { 0f }, Bass.shelf(0))
-        val full = Bass.shelf(MAX_EFFECT)
-        assertEquals(Bass.MAX_SHELF_DB, full[0], 0.001f)
-        assertEquals(Bass.MAX_SHELF_DB, full[1], 0.001f)
-        assertEquals(0f, full[5], 0f)
-        assertEquals(0f, full[9], 0f)
-    }
-
-    @Test fun `the shelf tapers from the lowest band upward and never goes negative`() {
-        val shelf = Bass.shelf(600)
-        for (i in 1 until shelf.size) assertTrue(shelf[i] <= shelf[i - 1])
-        assertTrue(shelf.all { it >= 0f })
+    @Test fun `the bass shelf is absent at zero and full below its corner at the top`() {
+        assertNull(Bass.filter(0))
+        val full = Bass.filter(MAX_EFFECT)!!
+        assertEquals(FilterType.LOW_SHELF, full.kind)
+        assertEquals(Bass.MAX_SHELF_DB, full.gainDb, 0f)
+        assertEquals(Bass.MAX_SHELF_DB, Biquad.responseDb(full, 40f), 0.2f)
+        assertEquals(0f, Biquad.responseDb(full, 2_000f), 0.2f)
     }
 
     @Test fun `the shelf scales with the knob and ignores out of range values`() {
-        assertEquals(Bass.shelf(MAX_EFFECT)[0] / 2f, Bass.shelf(MAX_EFFECT / 2)[0], 0.001f)
-        assertEquals(Bass.shelf(MAX_EFFECT), Bass.shelf(5_000))
-        assertEquals(Bass.shelf(0), Bass.shelf(-50))
+        assertEquals(Bass.MAX_SHELF_DB / 2f, Bass.filter(MAX_EFFECT / 2)!!.gainDb, 0.001f)
+        assertEquals(Bass.filter(MAX_EFFECT), Bass.filter(5_000))
+        assertNull(Bass.filter(-50))
     }
 
-    @Test fun `the band edges sit between neighbours and end at 20 kHz`() {
-        assertEquals(BAND_COUNT, BAND_EDGES_HZ.size)
-        assertEquals(20_000f, BAND_EDGES_HZ.last(), 0f)
-        for (i in 0 until BAND_COUNT - 1) assertTrue(BAND_EDGES_HZ[i] > BAND_HZ[i] && BAND_EDGES_HZ[i] < BAND_HZ[i + 1])
-        assertEquals(Math.sqrt(31.0 * 62.0).toFloat(), BAND_EDGES_HZ[0], 0.01f)
-        assertEquals(BAND_EDGES_HZ.sorted(), BAND_EDGES_HZ)
+    @Test fun `the bass knob lifts the low end of the curve and leaves the top alone`() {
+        val off = EqSettings(headphoneId = null).curveAt(OutputRoute.UNKNOWN, listOf(50f, 5_000f))
+        val on = EqSettings(headphoneId = null, bassBoost = 500).curveAt(OutputRoute.UNKNOWN, listOf(50f, 5_000f))
+        assertTrue(on[0] > off[0] + 1.5f)
+        assertEquals(off[1], on[1], 0.1f)
     }
 
-    @Test fun `the final bands add the shelf to the headphone-corrected curve`() {
-        val s = EqSettings(bands = Genre.DOOM.bands, bassBoost = 500, headphoneId = null)
-        val shelf = Bass.shelf(500)
-        val final = s.finalBands()
-        Genre.DOOM.bands.indices.forEach { assertEquals(Genre.DOOM.bands[it] + shelf[it], final[it], 0.001f) }
-    }
-
-    @Test fun `with the bass knob down the final bands are the effective bands`() {
-        val s = EqSettings(bands = Genre.STONER.bands, bassBoost = 0)
-        assertEquals(s.effectiveBands(), s.finalBands())
-    }
-
-    @Test fun `a bass boost on an already boosted curve is capped at the top of the range`() {
-        val s = EqSettings(bands = List(BAND_COUNT) { MAX_GAIN_DB }, bassBoost = MAX_EFFECT, headphoneId = null)
-        assertTrue(s.finalBands().all { it <= MAX_GAIN_DB })
+    @Test fun `a boosted curve with the bass knob up is capped at the top of the range`() {
+        val hot = List(5) { ParametricFilter(FilterType.PEAK.key, 100f, MAX_GAIN_DB, 1f) }
+        val s = EqSettings(filters = hot, bassBoost = MAX_EFFECT, headphoneId = null)
+        assertTrue(s.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ).all { it <= MAX_GAIN_DB })
     }
 
     @Test fun `the limiter's make-up gain is the loudness setting in decibels`() {

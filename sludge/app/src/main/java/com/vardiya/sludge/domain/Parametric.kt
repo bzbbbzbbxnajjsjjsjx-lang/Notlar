@@ -3,7 +3,6 @@ package com.vardiya.sludge.domain
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.ln
 import kotlin.math.log10
@@ -122,9 +121,9 @@ object Parametric {
 
     fun sample(filters: List<ParametricFilter>, hz: List<Float>): List<Float> = hz.map { responseDb(filters, it) }
 
-    /** The ten graphic bands written as ten peaking filters, so a curve can be taken over into the parametric list. */
-    fun fromBands(bands: List<Float>): List<ParametricFilter> = bands.mapIndexedNotNull { i, gain ->
-        if (abs(gain) < MIN_AUDIBLE_DB) null else ParametricFilter(FilterType.PEAK.key, BAND_HZ[i], gain, BAND_Q).clamped()
+    /** A fine log-spaced grid over the audible range, for finding where a curve peaks. */
+    val GRID_HZ: List<Float> = List(GRID_POINTS) { i ->
+        ParametricFilter.MIN_HZ * (ParametricFilter.MAX_HZ / ParametricFilter.MIN_HZ).pow(i / (GRID_POINTS - 1f))
     }
 
     /** Where the engine samples the curve: the 31 third-octave centres from 20 Hz to 20 kHz. */
@@ -138,8 +137,7 @@ object Parametric {
         if (i == ENGINE_HZ.lastIndex) TOP_EDGE_HZ else sqrt(hz * ENGINE_HZ[i + 1])
     }
 
-    private const val MIN_AUDIBLE_DB = 0.25f
-    private const val BAND_Q = 1.4f
+    private const val GRID_POINTS = 160
     private const val TOP_EDGE_HZ = 21_000f
 }
 

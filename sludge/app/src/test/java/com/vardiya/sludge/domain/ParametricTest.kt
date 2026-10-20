@@ -72,18 +72,9 @@ class ParametricTest {
         assertTrue(s.curveAt(OutputRoute.UNKNOWN, Parametric.ENGINE_HZ).all { it <= 12f })
     }
 
-    @Test fun `bands become peak filters and flat bands none`() {
-        assertTrue(Parametric.fromBands(EqSettings.FLAT_BANDS).isEmpty())
-        val filters = Parametric.fromBands(List(BAND_COUNT) { if (it == 2) 4f else 0f })
-        assertEquals(1, filters.size)
-        assertEquals(BAND_HZ[2], filters[0].freqHz, 0f)
-        assertEquals(4f, filters[0].gainDb, 0f)
-    }
-
-    @Test fun `applying a preset puts its filters and bands in the settings`() {
+    @Test fun `applying a preset puts its filters in the settings`() {
         val s = EqSettings().applying(Genre.DOOM.toTuning(), TuneSource.PRESET)
         assertEquals(Genre.DOOM.filters, s.filters)
-        assertEquals(Genre.DOOM.bands, s.bands)
     }
 
     @Test fun `a preset in parametric mode shapes the sound through its filters`() {

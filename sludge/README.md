@@ -12,11 +12,13 @@ setini kendisi uygular. İnternet izni yoktur; hiçbir şey cihazından çıkmaz
   Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz. Bas güçlendirici, sanallaştırıcı ve ses yükseltici de ön ayarla gelir.
 - **Otomatik tür tanıma**: şarkı değişince çaların verdiği tür etiketine, sanatçı listesine, sonra albüm ve şarkı adındaki
   anahtar kelimelere bakar; bulduğu türün ön ayarını uygular ve nedenini yazar. Tanıyamazsa Düz kalır; ön ayar çiplerinden kendin seçersin. Otomatik ayar anahtarla kapatılabilir.
-- **Kulaklık düzeltmesi**: JBL Tune 520BT için Harman over-ear 2018 hedefine göre auto-EQ. Sayılar AutoEq'in Rtings ölçümünden
-  ürettiği 10 bantlık düzeltmedir; seçtiğin eğrinin üstüne eklenir. Uçlardaki (31 Hz, 16 kHz) büyük artışlar +3 dB ile
-  sınırlıdır ve ön kazanç gerçekte uygulanan artışa göre hesaplanır (yaklaşık −3 dB); "Düzeltme gücü" ile daha da azaltabilirsin.
-  Düzeltme yalnızca o kulaklık bağlıyken (Bluetooth adından anlaşılır) uygulanır; telefon hoparlöründe ve başka kulaklıklarda
-  uygulanmaz. Ad okunamıyorsa "Her çıkışta uygula" ile zorlanır.
+- **JBL Tune 520BT otomatik EQ**: AutoEq'in Rtings (B&K 5128) ölçümünden Harman over-ear 2018 hedefine ürettiği 10 filtrelik
+  parametrik düzeltme, yayımlandığı haliyle uygulanır (filtre toplamı AutoEq'in eğrisiyle 0,25 dB içinde uyuşur, testle
+  doğrulanır). Bu kulaklık 3–4 kHz'de +10 dB'lik keskin bir tepe verir ve 10 kHz üstü ile alt bas zayıftır; düzeltme tepeyi alır,
+  üstü ve basın altını yükseltir. Çalamayan 35 Hz altı için artış +3 dB ile sınırlıdır, böylece ses AutoEq'in −6,4 dB'si yerine
+  yaklaşık −3 dB kısılır. Ekranda düzeltmenin eğrisi çizilir; "Düzeltme gücü" ile azaltabilirsin. Yalnızca o kulaklık bağlıyken
+  (Bluetooth adından anlaşılır) uygulanır; hoparlörde ve başka kulaklıklarda uygulanmaz, ad okunamıyorsa "Her çıkışta uygula" ile
+  zorlanır. Tür ön ayarı düzeltmenin üstüne eklenir. Ayrıntı ve kaynaklar: `docs/eq-research.md`.
 - **Dinleme**: son 30 günde hangi türleri dinlediğini halka grafikte gösterir; kayıt yalnızca telefonunda kalır.
 - **Kurulum**: bildirim erişimi, kısıtlanmış ayar yardımı, pil, yakalanan ses oturumları.
 
@@ -40,7 +42,7 @@ bildirim metinlerini okumaz, yalnızca medya oturumlarına bakar.
 ## Ses nasıl işleniyor
 
 Önce Android'in **DynamicsProcessing** efekti denenir: 31 üçte-bir oktav bant (20 Hz–20 kHz) ve bir sınırlayıcı. Parametrik
-filtrelerin (ya da grafik eğrinin) toplam yanıtı bu bantlarda örneklenir; ses yükseltme sınırlayıcının kazancıdır, bu yüzden
+filtrelerin (kulaklık düzeltmesi ve bas rafı dahil) toplam yanıtı bu bantlarda örneklenir; ses yükseltme sınırlayıcının kazancıdır, bu yüzden
 bozulmadan yükseltir. Bas düğmesi alt bantlara raf ekler. Telefon DynamicsProcessing'i kabul etmezse klasik ekolayzır ve ses
 yükseltici kullanılır; eğri o ekolayzırın kendi bantlarında okunur. Hangisinin çalıştığı Kurulum sekmesinde her çalar için yazar.
 

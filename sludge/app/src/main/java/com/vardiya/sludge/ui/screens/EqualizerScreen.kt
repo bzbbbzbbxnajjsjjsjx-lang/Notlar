@@ -33,6 +33,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import com.vardiya.sludge.ui.components.ParametricEditor
+import com.vardiya.sludge.ui.components.ResponseChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -62,8 +63,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.app.TuneStatus
-import com.vardiya.sludge.domain.BAND_COUNT
-import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
@@ -75,7 +74,6 @@ import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.chartLabel
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.correctionActive
-import com.vardiya.sludge.domain.finalBands
 import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
@@ -327,10 +325,13 @@ private fun HeadphoneCard(settings: EqSettings, route: OutputRoute, actions: Slu
                     style = MaterialTheme.typography.titleSmall,
                 )
                 PillSlider("Düzeltme gücü", settings.headphoneStrength, PERCENT_MAX, actions::setHeadphoneStrength)
+                ResponseChart(emptyList(), Modifier.fillMaxWidth().height(96.dp), curve = { profile.correctionAt(it, strength) })
                 Text(
-                    "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır. Uçlardaki (31 Hz, 16 kHz) büyük " +
+                    "Çizgi, düzeltmenin hangi frekansı ne kadar değiştirdiğini gösterir (kısılma payı dahil). " +
+                        "Sesin bu kulaklığın ölçülmüş yanıtına göre Harman hedefine yaklaştırılır: 3,5 kHz civarındaki sivrilik " +
+                        "alınır, 10 kHz üstü ve alt bas yükseltilir. Çok alçak bas (35 Hz altı) bu kulaklıkta çalmadığı için " +
                         "artışlar ${profile.maxBoostDb.toInt()} dB ile sınırlıdır; böylece ses gereğinden fazla kısılmaz. " +
-                        "Daha az kısılsın istersen gücü düşür. Kaynak: ${profile.source}.",
+                        "Kaynak: ${profile.source}.",
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                 )
@@ -347,7 +348,7 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
         SectionTitle("Ön ayar", Modifier.padding(start = 8.dp))
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Genre.entries.forEach { genre ->
-                val selected = CurveMath.sameCurve(s.bands, genre.bands) && s.bassBoost == genre.bass && s.virtualizer == genre.virtualizer
+                val selected = s.filters == genre.filters && s.bassBoost == genre.bass && s.virtualizer == genre.virtualizer
                 FilterChip(
                     selected = selected,
                     onClick = { actions.applyPreset(genre) },

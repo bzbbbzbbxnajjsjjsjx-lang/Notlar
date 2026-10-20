@@ -49,11 +49,15 @@ private const val CHART_POINTS = 96
 private val TURKISH: java.util.Locale = java.util.Locale.forLanguageTag("tr-TR")
 private val DECADES = listOf(100f, 1_000f, 10_000f)
 
-/** The filters' combined response on a log frequency axis, ±12 dB, with a dashed 0 dB guide and a dot per filter. */
+/**
+ * A response on a log frequency axis, ±12 dB, with a dashed 0 dB guide and a dot per filter. By default it draws the
+ * filters' combined response; [curve] draws any other.
+ */
 @Composable
 fun ResponseChart(
     filters: List<ParametricFilter>,
     modifier: Modifier = Modifier,
+    curve: (Float) -> Float = { Parametric.responseDb(filters, it) },
     lineColor: Color = MaterialTheme.colorScheme.primary,
     guideColor: Color = MaterialTheme.colorScheme.outlineVariant,
     dotColor: Color = MaterialTheme.colorScheme.tertiary,
@@ -73,9 +77,9 @@ fun ResponseChart(
         drawLine(guideColor, Offset(0f, mid), Offset(size.width, mid), strokeWidth = 2f, pathEffect = dashes)
         val ratio = ParametricFilter.MAX_HZ / ParametricFilter.MIN_HZ
         val hz = List(CHART_POINTS) { i -> ParametricFilter.MIN_HZ * ratio.pow(i / (CHART_POINTS - 1f)) }
-        val curve = Parametric.sample(filters, hz)
+        val values = hz.map(curve)
         val path = Path().apply {
-            hz.indices.forEach { i -> if (i == 0) moveTo(x(hz[i]), y(curve[i])) else lineTo(x(hz[i]), y(curve[i])) }
+            hz.indices.forEach { i -> if (i == 0) moveTo(x(hz[i]), y(values[i])) else lineTo(x(hz[i]), y(values[i])) }
         }
         drawPath(path, lineColor, style = Stroke(width = 4f))
         filters.forEach { drawCircle(dotColor, radius = 7f, center = Offset(x(it.freqHz), y(it.gainDb))) }

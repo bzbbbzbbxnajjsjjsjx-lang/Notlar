@@ -2,7 +2,6 @@ package com.vardiya.sludge.domain
 
 /** Applies a tuning to the settings; the user's on/off and auto-tune choices are kept. */
 fun EqSettings.applying(tuning: Tuning, source: TuneSource): EqSettings = copy(
-    bands = tuning.bands,
     filters = tuning.filters,
     bassBoost = tuning.bassBoost,
     virtualizer = tuning.virtualizer,

@@ -1,9 +1,5 @@
 package com.vardiya.sludge.domain
 
-/** Center frequencies of the ten octave bands every curve is written in (Hz). */
-val BAND_HZ: List<Float> = listOf(31f, 62f, 125f, 250f, 500f, 1_000f, 2_000f, 4_000f, 8_000f, 16_000f)
-
-const val BAND_COUNT = 10
 const val MAX_GAIN_DB = 12f
 const val MAX_EFFECT = 1000
 const val MAX_LOUDNESS_MB = 1000
@@ -25,7 +21,6 @@ data class TrackInfo(
 data class Tuning(
     val genre: String,
     val filters: List<ParametricFilter>,
-    val bands: List<Float>,
     val bassBoost: Int = 0,
     val virtualizer: Int = 0,
     val loudness: Int = 0,
@@ -42,7 +37,6 @@ enum class TuneSource(val label: String) {
 /** Everything the equalizer needs to sound the way it does. */
 data class EqSettings(
     val enabled: Boolean = true,
-    val bands: List<Float> = FLAT_BANDS,
     val bassBoost: Int = 0,
     val virtualizer: Int = 0,
     val loudnessMb: Int = 0,
@@ -56,10 +50,6 @@ data class EqSettings(
     val headphoneAlways: Boolean = false,
     /** How much of the correction is applied, in percent: less of it costs less loudness. */
     val headphoneStrength: Int = 100,
-    /** The parametric filters the sound is shaped by; the bands beside them are the same curve read on ten bands. */
+    /** The parametric filters the sound is shaped by. */
     val filters: List<ParametricFilter> = emptyList(),
-) {
-    companion object {
-        val FLAT_BANDS: List<Float> = List(BAND_COUNT) { 0f }
-    }
-}
+)
