@@ -19,12 +19,6 @@ object CurveMath {
     fun resample(values: List<Float>, valuesHz: List<Float>, targetHz: List<Float>): List<Float> =
         targetHz.map { hz -> interpolate(values, valuesHz, hz) }
 
-    /** Spreads the five-point shape of a preset over the ten bands, rounded to half decibels. */
-    fun expand(anchors: List<Float>): List<Float> = resample(anchors, ANCHOR_HZ, BAND_HZ).map(::snap)
-
-    /** Where the presets' five anchor values sit (Hz). */
-    val ANCHOR_HZ: List<Float> = listOf(60f, 230f, 910f, 3_600f, 14_000f)
-
     private fun interpolate(values: List<Float>, valuesHz: List<Float>, hz: Float): Float {
         if (hz <= valuesHz.first()) return values.first()
         if (hz >= valuesHz.last()) return values.last()

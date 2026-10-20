@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
@@ -27,6 +28,11 @@ import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import com.vardiya.sludge.ui.components.ParametricEditor
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -74,9 +80,6 @@ import com.vardiya.sludge.domain.label
 import com.vardiya.sludge.domain.statusOf
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
-import com.vardiya.sludge.ui.components.BandColumn
-import com.vardiya.sludge.ui.components.BandScale
-import com.vardiya.sludge.ui.components.CurvePreview
 import com.vardiya.sludge.ui.components.EffectCard
 import com.vardiya.sludge.ui.components.PillSlider
 import com.vardiya.sludge.ui.components.RotaryKnob
@@ -84,8 +87,6 @@ import com.vardiya.sludge.ui.components.SectionTitle
 import com.vardiya.sludge.ui.components.SwitchRow
 import com.vardiya.sludge.ui.components.WavyLevel
 
-private val BAND_LABELS = listOf("31", "62", "125", "250", "500", "1k", "2k", "4k", "8k", "16k")
-private val BAND_NAMES = listOf("31 Hz", "62 Hz", "125 Hz", "250 Hz", "500 Hz", "1 kHz", "2 kHz", "4 kHz", "8 kHz", "16 kHz")
 private const val DEFAULT_EFFECT = 500
 private const val DEFAULT_LOUDNESS = 400
 private const val PERCENT_FULL = 100f
@@ -123,12 +124,18 @@ fun EqualizerScreen(
             icon = Icons.Filled.Tune,
             label = "Ayar (${s.source.label})",
             value = if (s.genre.isBlank()) "Henüz seçilmedi" else s.genre,
-            detail = state.tags.takeIf { it.isNotEmpty() }?.let { "Last.fm: ${it.joinToString(", ")}" },
             pill = if (s.genre.isBlank()) null else "${s.bassBoost / PERCENT_STEP}% bas",
             pillContainer = MaterialTheme.colorScheme.tertiary,
             pillContent = MaterialTheme.colorScheme.onTertiary,
         )
         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+            SwitchRow(s.enabled, actions::setEnabled, Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                Icon(Icons.Filled.Equalizer, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                    Text("Ekolayzır", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (s.enabled) "Açık" else "Kapalı", style = MaterialTheme.typography.titleMedium)
+                }
+            }
             SwitchRow(s.autoTune, actions::setAutoTune, Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                 Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Column(Modifier.weight(1f).padding(start = 16.dp)) {
@@ -142,29 +149,10 @@ fun EqualizerScreen(
 
         PresetRow(state, actions)
 
-        ActionRow(state, actions)
-
         ElevatedCard {
             Column(Modifier.padding(16.dp)) {
-                SectionTitle("Bantlar (Hz)")
-                CurvePreview(
-                    s.bands,
-                    Modifier.fillMaxWidth().height(72.dp).padding(vertical = 8.dp),
-                    overlay = s.finalBands(state.route).takeIf { it != s.bands },
-                )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
-                    // The scale sits beside the columns; the empty text above keeps it level with the bars.
-                    Column {
-                        Text("", style = MaterialTheme.typography.labelLarge)
-                        BandScale()
-                    }
-                    for (i in 0 until BAND_COUNT) {
-                        BandColumn(BAND_LABELS[i], BAND_NAMES[i], s.bands[i], { actions.setBand(i, it) }, Modifier.weight(1f), enabled = s.enabled)
-                    }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = actions::resetBands, enabled = s.enabled) { Text("Sıfırla") }
-                }
+                SectionTitle("Parametrik ekolayzır")
+                ParametricEditor(s.filters, s.enabled, actions, Modifier.padding(top = 12.dp))
             }
         }
 
@@ -376,82 +364,4 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
     }
 }
 
-/** The two big actions: a round one that tunes with AI, and a square one that stops or starts the equalizer. */
-@Composable
-private fun ActionRow(state: UiState, actions: SludgeActions) {
-    val scheme = MaterialTheme.colorScheme
-    val on = state.settings.enabled
-    val working = state.status == TuneStatus.Working
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
-            BigAction(
-                label = if (working) "Ayarlanıyor" else "Yapay zekâyla ayarla",
-                onClick = actions::tuneNow,
-                enabled = state.track != null && !working && on,
-                shape = CircleShape,
-                container = scheme.secondary,
-                content = scheme.onSecondary,
-            ) {
-                if (working) {
-                    LoadingIndicator(Modifier.size(40.dp))
-                } else {
-                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, Modifier.size(36.dp))
-                }
-            }
-            BigAction(
-                label = if (on) "Kapat" else "Aç",
-                onClick = { actions.setEnabled(!on) },
-                enabled = true,
-                shape = RoundedCornerShape(BIG_ACTION_CORNER),
-                container = if (on) scheme.errorContainer else scheme.tertiary,
-                content = if (on) scheme.onErrorContainer else scheme.onTertiary,
-            ) {
-                Icon(if (on) Icons.Filled.Stop else Icons.Filled.PlayArrow, contentDescription = null, Modifier.size(36.dp))
-            }
-        }
-        val aiHint = when {
-            !on -> "Ekolayzır kapalı"
-            state.track == null -> "Yapay zekâ için bir şarkı çalmalı"
-            else -> null
-        }
-        aiHint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant) }
-        (state.status as? TuneStatus.Failed)?.let {
-            Text(
-                "Yapay zekâ yanıt vermedi: ${it.message}. Yerel ayar kullanıldı.",
-                color = scheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
-private val BIG_ACTION_SIZE = 88.dp
-private val BIG_ACTION_CORNER = 28.dp
-
-@Composable
-private fun BigAction(
-    label: String,
-    onClick: () -> Unit,
-    enabled: Boolean,
-    shape: Shape,
-    container: Color,
-    content: Color,
-    icon: @Composable () -> Unit,
-) {
-    Column(
-        Modifier.width(BIG_ACTION_SIZE + 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        FilledIconButton(
-            onClick = onClick,
-            enabled = enabled,
-            shape = shape,
-            colors = IconButtonDefaults.filledIconButtonColors(containerColor = container, contentColor = content),
-            modifier = Modifier.size(BIG_ACTION_SIZE),
-        ) { icon() }
-        Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
-    }
-}
 

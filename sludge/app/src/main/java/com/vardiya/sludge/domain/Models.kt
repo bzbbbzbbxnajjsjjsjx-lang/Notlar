@@ -1,8 +1,5 @@
 package com.vardiya.sludge.domain
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
 /** Center frequencies of the ten octave bands every curve is written in (Hz). */
 val BAND_HZ: List<Float> = listOf(31f, 62f, 125f, 250f, 500f, 1_000f, 2_000f, 4_000f, 8_000f, 16_000f)
 
@@ -24,34 +21,12 @@ data class TrackInfo(
     val isBlank: Boolean get() = title.isBlank() && artist.isBlank()
 }
 
-/** Which service answers the AI tuning request. */
-enum class AiProvider(val label: String, val defaultModel: String, val defaultBaseUrl: String) {
-    CLAUDE("Claude", "claude-haiku-5-5", "https://api.anthropic.com"),
-    OPENAI("OpenAI", "gpt-4o-mini", "https://api.openai.com/v1"),
-    // One key for many models; model names look like "provider/model" (see openrouter.ai/models).
-    OPENROUTER("OpenRouter", "openai/gpt-4o-mini", "https://openrouter.ai/api/v1"),
-}
-
-/** Connection settings. [toString] never prints the key. */
-data class AiConfig(
-    val provider: AiProvider = AiProvider.CLAUDE,
-    val model: String = AiProvider.CLAUDE.defaultModel,
-    val baseUrl: String = AiProvider.CLAUDE.defaultBaseUrl,
-    val apiKey: String = "",
-) {
-    val isUsable: Boolean
-        get() = apiKey.isNotBlank() && apiKey.none { it.isISOControl() || it.isWhitespace() } && model.isNotBlank() &&
-            UrlRules.isAcceptable(baseUrl)
-
-    override fun toString() = "AiConfig(provider=$provider, model=$model, baseUrl=$baseUrl, apiKey=<hidden>)"
-}
-
-/** What the tuner decided for one track. */
-@Serializable
-data class AiProfile(
-    val genre: String = "",
+/** What the tuner decided for one track: a preset's parametric filters and effect levels, with a line saying why. */
+data class Tuning(
+    val genre: String,
+    val filters: List<ParametricFilter>,
     val bands: List<Float>,
-    @SerialName("bass_boost") val bassBoost: Int = 0,
+    val bassBoost: Int = 0,
     val virtualizer: Int = 0,
     val loudness: Int = 0,
     val explanation: String = "",
@@ -61,8 +36,7 @@ data class AiProfile(
 enum class TuneSource(val label: String) {
     MANUAL("Elle"),
     PRESET("Ön ayar"),
-    LOCAL("Yerel tür tanıma"),
-    AI("Yapay zekâ"),
+    LOCAL("Tür tanıma"),
 }
 
 /** Everything the equalizer needs to sound the way it does. */
@@ -82,6 +56,8 @@ data class EqSettings(
     val headphoneAlways: Boolean = false,
     /** How much of the correction is applied, in percent: less of it costs less loudness. */
     val headphoneStrength: Int = 100,
+    /** The parametric filters the sound is shaped by; the bands beside them are the same curve read on ten bands. */
+    val filters: List<ParametricFilter> = emptyList(),
 ) {
     companion object {
         val FLAT_BANDS: List<Float> = List(BAND_COUNT) { 0f }

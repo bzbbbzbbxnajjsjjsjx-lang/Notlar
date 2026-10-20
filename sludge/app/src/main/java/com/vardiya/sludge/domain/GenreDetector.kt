@@ -2,7 +2,7 @@ package com.vardiya.sludge.domain
 
 import java.util.Locale
 
-/** Offline genre guess from the track's metadata; the fallback when no AI is configured or reachable. */
+/** Genre guess from the track's own metadata (the player's genre tag, the artist, the album and title); fully offline. */
 object GenreDetector {
     data class Guess(val genre: Genre, val confident: Boolean)
 
@@ -63,7 +63,7 @@ object GenreDetector {
     )
 
     /**
-     * The evidence, best first: the tags (Last.fm's most popular first, so the first tag that names a genre decides),
+     * The evidence, best first: the player's genre tags (the first tag that names a genre decides),
      * then the artist list, then words in the album and title.
      */
     fun detect(track: TrackInfo): Guess {

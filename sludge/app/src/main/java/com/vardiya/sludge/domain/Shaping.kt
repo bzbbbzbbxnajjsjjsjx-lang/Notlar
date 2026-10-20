@@ -30,10 +30,31 @@ val BAND_EDGES_HZ: List<Float> = BAND_HZ.mapIndexed { i, hz ->
 
 private const val TOP_HZ = 20_000f
 
-/** The gain on every band the sound really gets: the headphone-corrected curve plus the bass shelf, never above +12 dB. */
+/** What is added to the person's curve on the ten bands: the headphone correction (with its headroom) and the bass shelf. */
+fun EqSettings.extraBands(route: OutputRoute = OutputRoute.UNKNOWN): List<Float> {
+    val correction = if (correctionActive(route)) {
+        Headphones.byId(headphoneId)!!.applyTo(EqSettings.FLAT_BANDS, headphoneStrength / PERCENT_FULL)
+    } else {
+        EqSettings.FLAT_BANDS
+    }
+    val shelf = Bass.shelf(bassBoost)
+    return correction.mapIndexed { i, gain -> gain + shelf[i] }
+}
+
+/** The gain on every graphic band the sound really gets: the headphone-corrected curve plus the bass shelf, never above +12 dB. */
 fun EqSettings.finalBands(route: OutputRoute = OutputRoute.UNKNOWN): List<Float> {
     val shelf = Bass.shelf(bassBoost)
     return effectiveBands(route).mapIndexed { i, gain -> (gain + shelf[i]).coerceAtMost(MAX_GAIN_DB) }
+}
+
+/**
+ * The curve the sound really gets, read at [hz]: the parametric filters' combined response plus the headphone
+ * correction and the bass shelf. Never above +12 dB.
+ */
+fun EqSettings.curveAt(route: OutputRoute, hz: List<Float>): List<Float> {
+    val extra = CurveMath.resample(extraBands(route), BAND_HZ, hz)
+    val user = Parametric.sample(filters, hz)
+    return hz.indices.map { (user[it] + extra[it]).coerceAtMost(MAX_GAIN_DB) }
 }
 
 /** The make-up gain the limiter applies after the bands, in dB, from the loudness setting. */

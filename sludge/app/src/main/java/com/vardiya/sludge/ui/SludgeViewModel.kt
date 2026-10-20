@@ -4,19 +4,17 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vardiya.sludge.app.SludgeRuntime
-import com.vardiya.sludge.domain.AiConfig
-import com.vardiya.sludge.domain.AiProfile
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
-import com.vardiya.sludge.domain.LastFmConfig
-import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
+import com.vardiya.sludge.domain.Parametric
+import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.applying
-import com.vardiya.sludge.domain.toProfile
+import com.vardiya.sludge.domain.toTuning
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +22,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.ZoneId
 
+// Every member is one entry of SludgeActions; the logic itself lives in the runtime and in domain/.
+@Suppress("TooManyFunctions")
 class SludgeViewModel(private val app: Application) : AndroidViewModel(app), SludgeActions {
     private val runtime = SludgeRuntime.get(app)
     private val system = SystemSettings(app)
@@ -31,10 +31,8 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     val accessGranted: Boolean get() = access.value
 
-    private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.ai) { settings, playing, status, ai ->
-        UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, ai = ai)
-    }.combine(combine(runtime.lastFmConfig, runtime.tags, runtime.route, ::Triple)) { ui, (lastFm, tags, route) ->
-        ui.copy(lastFm = lastFm, tags = tags, route = route)
+    private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.route) { settings, playing, status, route ->
+        UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, route = route)
     }
 
     val state: StateFlow<UiState> = combine(core, runtime.engineState, access, runtime.history) { ui, engine, granted, history ->
@@ -55,11 +53,15 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun setEnabled(enabled: Boolean) = runtime.update { it.copy(enabled = enabled) }
 
-    override fun setBand(index: Int, db: Float) = manual { s ->
-        s.copy(bands = s.bands.mapIndexed { i, old -> if (i == index) db else old })
+    override fun addFilter() = manual { s ->
+        if (s.filters.size >= Parametric.MAX_FILTERS) s else s.copy(filters = s.filters + ParametricFilter(gainDb = 3f))
     }
 
-    override fun resetBands() = manual { it.copy(bands = EqSettings.FLAT_BANDS) }
+    override fun updateFilter(index: Int, filter: ParametricFilter) = manual { s ->
+        s.copy(filters = s.filters.mapIndexed { i, old -> if (i == index) filter.clamped() else old })
+    }
+
+    override fun removeFilter(index: Int) = manual { s -> s.copy(filters = s.filters.filterIndexed { i, _ -> i != index }) }
 
     override fun setBass(value: Int) = manual { it.copy(bassBoost = value.coerceIn(0, MAX_EFFECT)) }
 
@@ -75,19 +77,7 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun setHeadphoneStrength(percent: Int) = runtime.update { it.copy(headphoneStrength = percent.coerceIn(0, MAX_PERCENT)) }
 
-    override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toProfile(), TuneSource.PRESET) }
-
-    override fun tuneNow() = runtime.tuneNow()
-
-    override fun saveAi(config: AiConfig) = runtime.saveAi(config)
-
-    override fun saveLastFm(config: LastFmConfig) = runtime.saveLastFm(config)
-
-    override suspend fun loadModels(baseUrl: String): Result<List<ModelOption>> = runtime.loadModels(baseUrl)
-
-    override suspend fun testLastFm(config: LastFmConfig): Result<List<String>> = runtime.testLastFm(config)
-
-    override suspend fun testAi(config: AiConfig): Result<AiProfile> = runtime.testConnection(config)
+    override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toTuning(), TuneSource.PRESET) }
 
     override fun clearHistory() = runtime.clearHistory()
 

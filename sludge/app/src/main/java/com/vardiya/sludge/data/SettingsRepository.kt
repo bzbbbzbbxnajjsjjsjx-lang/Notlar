@@ -7,22 +7,18 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.vardiya.sludge.domain.AiConfig
-import com.vardiya.sludge.domain.AiProfile
-import com.vardiya.sludge.domain.AiProtocol
-import com.vardiya.sludge.domain.AiProvider
 import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
-import com.vardiya.sludge.domain.LastFmConfig
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.ListenStats
+import com.vardiya.sludge.domain.Parametric
+import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.TuneSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 
 private val Context.store by preferencesDataStore(name = "sludge")
 
@@ -31,46 +27,20 @@ class SettingsRepository(context: Context) {
     private val store = context.applicationContext.store
 
     val settings: Flow<EqSettings> = store.data.map { it.toSettings() }
-    val ai: Flow<AiConfig> = store.data.map { it.toAiConfig() }
-    val cache: Flow<Map<String, AiProfile>> = store.data.map { it.toCache() }
     val history: Flow<List<ListenEntry>> = store.data.map { it.toHistory() }
-    val lastFm: Flow<LastFmConfig> = store.data.map { LastFmConfig(KeyCipher.decrypt(it[LASTFM_KEY].orEmpty())) }
-    val tagCache: Flow<Map<String, List<String>>> = store.data.map { it.toTagCache() }
 
     suspend fun updateSettings(transform: (EqSettings) -> EqSettings) {
         store.edit { prefs -> prefs.write(transform(prefs.toSettings())) }
     }
 
-    suspend fun saveAi(config: AiConfig) {
-        store.edit { prefs ->
-            prefs[AI_PROVIDER] = config.provider.name
-            prefs[AI_MODEL] = config.model.trim()
-            prefs[AI_URL] = config.baseUrl.trim()
-            prefs[AI_KEY] = KeyCipher.encrypt(config.apiKey.trim())
-        }
-    }
-
-    suspend fun saveLastFm(config: LastFmConfig) {
-        store.edit { it[LASTFM_KEY] = KeyCipher.encrypt(config.apiKey.trim()) }
-    }
-
-    suspend fun updateTagCache(transform: (Map<String, List<String>>) -> Map<String, List<String>>) {
-        store.edit { prefs -> prefs[TAG_CACHE] = AiProtocol.json.encodeToString(TAG_SERIALIZER, transform(prefs.toTagCache())) }
-    }
-
-    private fun Preferences.toTagCache(): Map<String, List<String>> = runCatching {
-        AiProtocol.json.decodeFromString(TAG_SERIALIZER, this[TAG_CACHE].orEmpty())
-    }.getOrDefault(emptyMap())
-
-    suspend fun updateCache(transform: (Map<String, AiProfile>) -> Map<String, AiProfile>) {
-        store.edit { prefs ->
-            prefs[CACHE] = AiProtocol.json.encodeToString(CACHE_SERIALIZER, transform(prefs.toCache()))
-        }
+    /** Earlier versions kept an AI key and a Last.fm key here; nothing uses them now, so they are wiped. */
+    suspend fun dropRetiredKeys() {
+        store.edit { prefs -> RETIRED_KEYS.forEach { prefs.remove(stringPreferencesKey(it)) } }
     }
 
     suspend fun addListen(entry: ListenEntry) {
         store.edit { prefs ->
-            prefs[HISTORY] = AiProtocol.json.encodeToString(HISTORY_SERIALIZER, ListenStats.append(prefs.toHistory(), entry))
+            prefs[HISTORY] = json.encodeToString(HISTORY_SERIALIZER, ListenStats.append(prefs.toHistory(), entry))
         }
     }
 
@@ -79,7 +49,7 @@ class SettingsRepository(context: Context) {
     }
 
     private fun Preferences.toHistory(): List<ListenEntry> = runCatching {
-        AiProtocol.json.decodeFromString(HISTORY_SERIALIZER, this[HISTORY].orEmpty())
+        json.decodeFromString(HISTORY_SERIALIZER, this[HISTORY].orEmpty())
     }.getOrDefault(emptyList())
 
     private fun Preferences.toSettings(): EqSettings {
@@ -98,23 +68,12 @@ class SettingsRepository(context: Context) {
             headphoneId = Headphones.fromStored(this[HEADPHONE]),
             headphoneAlways = this[HEADPHONE_ALWAYS] ?: false,
             headphoneStrength = (this[HEADPHONE_STRENGTH] ?: FULL_STRENGTH).coerceIn(0, FULL_STRENGTH),
+            filters = this[FILTERS]?.let { stored ->
+                runCatching { json.decodeFromString(FILTERS_SERIALIZER, stored) }.getOrNull()
+            }?.filter { it.isFinite }?.map { it.clamped() }?.take(Parametric.MAX_FILTERS)
+                ?: Parametric.fromBands(bands ?: EqSettings.FLAT_BANDS),
         )
     }
-
-    private fun Preferences.toAiConfig(): AiConfig {
-        val provider = runCatching { AiProvider.valueOf(this[AI_PROVIDER].orEmpty()) }.getOrDefault(AiProvider.CLAUDE)
-        return AiConfig(
-            provider = provider,
-            model = this[AI_MODEL] ?: provider.defaultModel,
-            baseUrl = this[AI_URL] ?: provider.defaultBaseUrl,
-            apiKey = KeyCipher.decrypt(this[AI_KEY].orEmpty()),
-        )
-    }
-
-    // Entries written when the equalizer had five bands no longer fit and are dropped.
-    private fun Preferences.toCache(): Map<String, AiProfile> = runCatching {
-        AiProtocol.json.decodeFromString(CACHE_SERIALIZER, this[CACHE].orEmpty()).filterValues { it.bands.size == BAND_COUNT }
-    }.getOrDefault(emptyMap())
 
     private fun androidx.datastore.preferences.core.MutablePreferences.write(s: EqSettings) {
         this[ENABLED] = s.enabled
@@ -129,6 +88,7 @@ class SettingsRepository(context: Context) {
         this[HEADPHONE] = s.headphoneId.orEmpty()
         this[HEADPHONE_ALWAYS] = s.headphoneAlways
         this[HEADPHONE_STRENGTH] = s.headphoneStrength
+        this[FILTERS] = json.encodeToString(FILTERS_SERIALIZER, s.filters)
     }
 
     private companion object {
@@ -144,17 +104,12 @@ class SettingsRepository(context: Context) {
         val HEADPHONE = stringPreferencesKey("headphone")
         val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
         val HEADPHONE_STRENGTH = intPreferencesKey("headphone_strength")
+        val FILTERS = stringPreferencesKey("filters")
+        val FILTERS_SERIALIZER = ListSerializer(ParametricFilter.serializer())
         const val FULL_STRENGTH = 100
-        val AI_PROVIDER = stringPreferencesKey("ai_provider")
-        val AI_MODEL = stringPreferencesKey("ai_model")
-        val AI_URL = stringPreferencesKey("ai_url")
-        val AI_KEY = stringPreferencesKey("ai_key")
-        val CACHE = stringPreferencesKey("tune_cache")
         val HISTORY = stringPreferencesKey("history")
-        val LASTFM_KEY = stringPreferencesKey("lastfm_key")
-        val TAG_CACHE = stringPreferencesKey("tag_cache")
-        val TAG_SERIALIZER = MapSerializer(String.serializer(), ListSerializer(String.serializer()))
+        val RETIRED_KEYS = listOf("ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode")
+        val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
         val HISTORY_SERIALIZER = ListSerializer(ListenEntry.serializer())
-        val CACHE_SERIALIZER = MapSerializer(String.serializer(), AiProfile.serializer())
     }
 }

@@ -11,13 +11,12 @@ import android.media.audiofx.Virtualizer
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.vardiya.sludge.domain.AttachedSession
-import com.vardiya.sludge.domain.BAND_COUNT
-import com.vardiya.sludge.domain.BAND_EDGES_HZ
+import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EngineState
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.OutputRoute
-import com.vardiya.sludge.domain.finalBands
+import com.vardiya.sludge.domain.curveAt
 import com.vardiya.sludge.domain.limiterGainDb
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +26,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * Puts the sound of every audio session a player announces through the best effect the phone has, and keeps it in
  * step with the settings.
  *
- * First choice is DynamicsProcessing (Android 9+): ten real bands, and a limiter whose make-up gain is the loudness
+ * First choice is DynamicsProcessing (Android 9+): 31 real bands (a graphic curve or parametric filters sampled on
+ * them), and a limiter whose make-up gain is the loudness
  * boost without clipping. If a phone refuses it, the classic Equalizer and LoudnessEnhancer are used. The bass knob is a
  * low shelf on the bands in both cases. The Virtualizer is separate and optional. Calls are serialised by the caller.
  */
@@ -47,7 +47,7 @@ class EffectEngine {
         }
 
         fun effects(): List<String> = buildList {
-            if (dp != null) add("10 bantlı ekolayzır")
+            if (dp != null) add("${Parametric.ENGINE_HZ.size} bantlı ekolayzır")
             if (dp != null) add("sınırlayıcı (ses yükseltici)")
             if (eq != null) add("${eq?.numberOfBands} bantlı ekolayzır")
             if (loud != null) add("ses yükseltici")
@@ -109,7 +109,8 @@ class EffectEngine {
 
     private fun apply(chain: Chain, s: EqSettings) {
         val on = s.enabled
-        val bands = s.finalBands(route)
+        // The curve is read at the engine's 31 bands; the classic equalizer reads it again at its own centres.
+        val bands = s.curveAt(route, Parametric.ENGINE_HZ)
         // A phone that accepts DynamicsProcessing but then refuses its settings falls back to the classic effects.
         val dp = chain.dp
         if (dp != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !applyDynamics(dp, s, bands)) {
@@ -121,7 +122,7 @@ class EffectEngine {
             runCatching {
                 val range = eq.bandLevelRange
                 val centers = (0 until eq.numberOfBands).map { eq.getCenterFreq(it.toShort()) / MILLI_HZ }
-                CurveMath.mapToDevice(bands, centers).forEachIndexed { band, db ->
+                s.curveAt(route, centers).forEachIndexed { band, db ->
                     eq.setBandLevel(band.toShort(), CurveMath.toMillibels(db, range[0].toInt(), range[1].toInt()).toShort())
                 }
                 eq.enabled = on
@@ -142,11 +143,11 @@ class EffectEngine {
         }
     }
 
-    /** Ten bands before the limiter, whose make-up gain is the loudness boost. False when the phone refuses it. */
+    /** 31 bands before the limiter, whose make-up gain is the loudness boost. False when the phone refuses it. */
     @RequiresApi(Build.VERSION_CODES.P)
     private fun applyDynamics(dp: DynamicsProcessing, s: EqSettings, bands: List<Float>): Boolean = try {
         bands.forEachIndexed { i, db ->
-            dp.setPreEqBandAllChannelsTo(i, DynamicsProcessing.EqBand(true, BAND_EDGES_HZ[i], db))
+            dp.setPreEqBandAllChannelsTo(i, DynamicsProcessing.EqBand(true, Parametric.ENGINE_EDGES_HZ[i], db))
         }
         dp.setLimiterAllChannelsTo(
             DynamicsProcessing.Limiter(true, true, LIMITER_LINK_GROUP, ATTACK_MS, RELEASE_MS, RATIO, THRESHOLD_DB, s.limiterGainDb()),
@@ -162,7 +163,7 @@ class EffectEngine {
         return create {
             val config = DynamicsProcessing.Config.Builder(
                 DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION, CHANNELS,
-                true, BAND_COUNT, // pre-EQ
+                true, Parametric.ENGINE_HZ.size, // pre-EQ
                 false, 0, // multiband compressor
                 false, 0, // post-EQ
                 true, // limiter

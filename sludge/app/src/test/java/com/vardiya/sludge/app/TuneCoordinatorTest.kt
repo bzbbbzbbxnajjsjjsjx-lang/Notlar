@@ -1,23 +1,17 @@
 package com.vardiya.sludge.app
 
-import com.vardiya.sludge.domain.AiConfig
-import com.vardiya.sludge.domain.AiProfile
-import com.vardiya.sludge.domain.AutoTuner
-import com.vardiya.sludge.domain.BAND_COUNT
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.ListenEntry
 import com.vardiya.sludge.domain.NowPlaying
-import com.vardiya.sludge.domain.Genre
-import com.vardiya.sludge.domain.ProfileSource
-import com.vardiya.sludge.domain.TagSource
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
-import com.vardiya.sludge.domain.TuneStore
+import com.vardiya.sludge.domain.Tuning
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -25,19 +19,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
-private class Env(var settings: EqSettings = EqSettings(autoTune = true), var ai: AiConfig = AiConfig(apiKey = "sk-test")) : TuneEnvironment {
-    val applied = mutableListOf<Pair<AiProfile, TuneSource>>()
+private class Env(var settings: EqSettings = EqSettings(autoTune = true), private val applyMillis: Long = 0) : TuneEnvironment {
+    val applied = mutableListOf<Pair<Tuning, TuneSource>>()
     val listens = mutableListOf<ListenEntry>()
     var failRecordOnce = false
     var failApplyOnce = false
     override suspend fun settings() = settings
-    override suspend fun aiConfig() = ai
-    override suspend fun apply(profile: AiProfile, source: TuneSource) {
+    override suspend fun apply(tuning: Tuning, source: TuneSource) {
+        delay(applyMillis)
         if (failApplyOnce) {
             failApplyOnce = false
             throw IOException("disk")
         }
-        applied += profile to source
+        applied += tuning to source
     }
     override suspend fun record(entry: ListenEntry) {
         if (failRecordOnce) {
@@ -45,25 +39,6 @@ private class Env(var settings: EqSettings = EqSettings(autoTune = true), var ai
             throw IOException("disk")
         }
         listens += entry
-    }
-}
-
-private class SlowAi(private val millis: Long, private val answer: Result<AiProfile>) : ProfileSource {
-    var calls = 0
-    var lastTrack: TrackInfo? = null
-    override suspend fun tune(config: AiConfig, track: TrackInfo): Result<AiProfile> {
-        calls++
-        lastTrack = track
-        delay(millis)
-        return answer
-    }
-}
-
-private class MemoryStore : TuneStore {
-    val data = mutableMapOf<String, AiProfile>()
-    override suspend fun cached(key: String) = data[key]
-    override suspend fun remember(key: String, profile: AiProfile) {
-        data[key] = profile
     }
 }
 
@@ -80,41 +55,40 @@ private suspend fun TestScope.pass(millis: Long) {
 class TuneCoordinatorTest {
     private val a = TrackInfo(title = "Dopesmoker", artist = "Sleep")
     private val b = TrackInfo(title = "Sleeping Giant", artist = "Earth")
-    private val profile = AiProfile(genre = "Stoner", bands = List(BAND_COUNT) { 2f }, explanation = "ok")
     private val settle = 100L
 
     private fun playing(track: TrackInfo) = NowPlaying(track, playing = true)
 
-    @Test fun `a playing track is tuned once and logged once`() = runTest {
+    @Test fun `a playing track gets its genre's preset once and is logged once`() = runTest {
         val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
         val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), settleMillis = settle) { 1L }
+        val c = TuneCoordinator(backgroundScope, now, env, settleMillis = settle) { 1L }
         now.value = playing(a)
         advanceTimeBy(settle + 50)
         pass(PASS_MS)
-        assertEquals(1, ai.calls)
-        assertEquals(1, env.applied.size)
+        val (tuning, source) = env.applied.single()
+        assertEquals(Genre.STONER.filters, tuning.filters)
+        assertEquals(TuneSource.LOCAL, source)
         assertEquals(listOf("Dopesmoker"), env.listens.map { it.title })
+        assertEquals(Genre.STONER.name, env.listens.single().genre)
         assertEquals(TuneStatus.Idle, c.status.value)
     }
 
     @Test fun `a paused track is neither tuned nor logged`() = runTest {
         val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
         val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), settleMillis = settle)
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
         now.value = NowPlaying(a, playing = false)
         advanceTimeBy(settle * 5)
         pass(PASS_MS)
-        assertEquals(0, ai.calls)
+        assertTrue(env.applied.isEmpty())
         assertTrue(env.listens.isEmpty())
     }
 
     @Test fun `metadata that fills in later does not count the same track twice`() = runTest {
         val env = Env()
         val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))), settleMillis = settle)
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
         now.value = playing(a)
         advanceTimeBy(settle + 50)
         pass(PASS_MS)
@@ -126,35 +100,29 @@ class TuneCoordinatorTest {
 
     @Test fun `with auto-tune off the listen is logged but nothing is tuned`() = runTest {
         val env = Env(settings = EqSettings(autoTune = false))
-        val ai = SlowAi(10, Result.success(profile))
         val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), settleMillis = settle)
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
         now.value = playing(a)
         advanceTimeBy(settle + 50)
         pass(PASS_MS)
-        assertEquals(0, ai.calls)
+        assertTrue(env.applied.isEmpty())
         assertEquals(1, env.listens.size)
     }
 
-    @Test fun `the AI button tunes even with auto-tune off and asks again despite a remembered answer`() = runTest {
-        val env = Env(settings = EqSettings(autoTune = false))
-        val ai = SlowAi(10, Result.success(profile))
-        val store = MemoryStore()
-        val c = TuneCoordinator(backgroundScope, MutableStateFlow(NowPlaying()), env, AutoTuner(store, ai), settleMillis = settle)
-        c.tuneNow(a)
+    @Test fun `an unknown artist gets the flat preset but is still logged`() = runTest {
+        val env = Env()
+        val now = MutableStateFlow(NowPlaying())
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
+        now.value = playing(TrackInfo(title = "Unknown", artist = "Nobody"))
         pass(PASS_MS)
-        c.tuneNow(a)
-        pass(PASS_MS)
-        assertEquals(2, ai.calls)
-        assertEquals(2, env.applied.size)
-        assertTrue(env.listens.isEmpty())
+        assertTrue(env.applied.single().first.filters.isEmpty())
+        assertEquals(Genre.FLAT.name, env.listens.single().genre)
     }
 
     @Test fun `a newer track replaces the one being tuned but the first listen is still logged`() = runTest {
-        val env = Env()
-        val ai = SlowAi(1_000, Result.success(profile))
+        val env = Env(applyMillis = 1_000)
         val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), settleMillis = settle) { 1L }
+        val c = TuneCoordinator(backgroundScope, now, env, settleMillis = settle) { 1L }
         now.value = playing(a)
         advanceTimeBy(settle + 50)
         runCurrent()
@@ -167,25 +135,10 @@ class TuneCoordinatorTest {
         assertEquals(TuneStatus.Idle, c.status.value)
     }
 
-    @Test fun `a manual request replaces an automatic one in flight and the status ends idle`() = runTest {
-        val env = Env()
-        val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(1_000, Result.success(profile))), settleMillis = settle)
-        now.value = playing(a)
-        advanceTimeBy(settle + 50)
-        runCurrent()
-        assertEquals(TuneStatus.Working, c.status.value)
-        c.tuneNow(b)
-        pass(PASS_MS)
-        assertEquals(TuneStatus.Idle, c.status.value)
-        assertEquals(1, env.applied.size)
-        assertEquals(listOf("Dopesmoker"), env.listens.map { it.title })
-    }
-
     @Test fun `a failed log write does not stop the next track from being tuned and counted`() = runTest {
         val env = Env().apply { failRecordOnce = true }
         val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))), settleMillis = settle)
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
         now.value = playing(a)
         pass(PASS_MS)
         now.value = playing(b)
@@ -194,138 +147,15 @@ class TuneCoordinatorTest {
         assertEquals(listOf("Sleeping Giant"), env.listens.map { it.title })
     }
 
-    @Test fun `a storage failure after the AI button says so and the pipeline keeps working`() = runTest {
+    @Test fun `a storage failure on one track does not stop the next from being tuned`() = runTest {
         val env = Env().apply { failApplyOnce = true }
-        val tuner = AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile)))
-        val c = TuneCoordinator(backgroundScope, MutableStateFlow(NowPlaying()), env, tuner, settleMillis = settle)
-        c.tuneNow(a)
-        pass(PASS_MS)
-        assertTrue(c.status.value is TuneStatus.Failed)
-        c.tuneNow(b)
-        pass(PASS_MS)
-        assertEquals(TuneStatus.Idle, c.status.value)
-        assertEquals(1, env.applied.size)
-    }
-
-    @Test fun `a slider moved while the AI thinks is not undone by the automatic result`() = runTest {
-        val env = Env()
-        val ai = SlowAi(1_000, Result.success(profile))
         val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), settleMillis = settle)
-        now.value = playing(a)
-        advanceTimeBy(settle + 50)
-        runCurrent()
-        env.settings = env.settings.copy(bands = List(BAND_COUNT) { -3f })
-        pass(PASS_MS)
-        assertTrue(env.applied.isEmpty())
-        assertEquals(1, env.listens.size)
-    }
-
-    @Test fun `a manual AI request applies even if the sliders moved meanwhile`() = runTest {
-        val env = Env()
-        val tuner = AutoTuner(MemoryStore(), SlowAi(1_000, Result.success(profile)))
-        val c = TuneCoordinator(backgroundScope, MutableStateFlow(NowPlaying()), env, tuner, settleMillis = settle)
-        c.tuneNow(a)
-        runCurrent()
-        env.settings = env.settings.copy(bands = List(BAND_COUNT) { -3f })
-        pass(PASS_MS)
-        assertEquals(1, env.applied.size)
-    }
-
-    @Test fun `an AI failure shows only for the AI button`() = runTest {
-        val env = Env()
-        val failing = SlowAi(10, Result.failure(IOException("429")))
-        val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), failing), settleMillis = settle)
-        now.value = playing(a)
-        advanceTimeBy(settle + 50)
-        pass(PASS_MS)
-        assertEquals(TuneStatus.Idle, c.status.value)
-        assertEquals(TuneSource.LOCAL, env.applied.single().second)
-        c.tuneNow(b)
-        pass(PASS_MS)
-        assertEquals(TuneStatus.Failed("429"), c.status.value)
-    }
-
-    @Test fun `Last_fm tags go to the tuner after the player's own tag`() = runTest {
-        val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
-        val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(
-            backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { listOf("doom metal", "sludge") }, settle,
-        )
-        now.value = playing(a.copy(genreTag = "Rock"))
-        pass(PASS_MS)
-        assertEquals("Rock, doom metal, sludge", ai.lastTrack?.genreTag)
-        assertEquals(listOf("doom metal", "sludge"), c.tags.value)
-    }
-
-    @Test fun `the listen is filed by the Last_fm tags even when nothing is tuned`() = runTest {
-        val env = Env(settings = EqSettings(autoTune = false))
-        val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(
-            backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))),
-            TagSource { listOf("doom metal") }, settle,
-        )
-        now.value = playing(TrackInfo(title = "Unknown", artist = "Nobody"))
-        pass(PASS_MS)
-        assertEquals(Genre.DOOM.name, env.listens.single().genre)
-    }
-
-    @Test fun `no tags found means the track goes on unchanged`() = runTest {
-        val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
-        val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { emptyList() }, settle)
+        TuneCoordinator(backgroundScope, now, env, settleMillis = settle)
         now.value = playing(a)
         pass(PASS_MS)
-        assertEquals(a, ai.lastTrack)
-        assertTrue(c.tags.value.isEmpty())
-    }
-
-    @Test fun `a hanging tag source does not hold back the tuning`() = runTest {
-        val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
-        val now = MutableStateFlow(NowPlaying())
-        val c = TuneCoordinator(
-            backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { delay(600_000); listOf("late") }, settle,
-        )
-        now.value = playing(a)
-        pass(10_000)
-        assertEquals(1, ai.calls)
-        assertEquals(a, ai.lastTrack)
-        assertTrue(c.tags.value.isEmpty())
-        assertEquals(1, env.listens.size)
-    }
-
-    @Test fun `a failing tag source does not stop the tuning`() = runTest {
-        val env = Env()
-        val ai = SlowAi(10, Result.success(profile))
-        val now = MutableStateFlow(NowPlaying())
-        TuneCoordinator(backgroundScope, now, env, AutoTuner(MemoryStore(), ai), TagSource { throw IOException("disk") }, settle)
-        now.value = playing(a)
-        pass(PASS_MS)
-        assertEquals(1, ai.calls)
-        assertEquals(1, env.applied.size)
-    }
-
-    @Test fun `the previous track's tags are cleared while the next track's are fetched`() = runTest {
-        val env = Env()
-        val now = MutableStateFlow(NowPlaying())
-        var slow = false
-        val c = TuneCoordinator(
-            backgroundScope, now, env, AutoTuner(MemoryStore(), SlowAi(10, Result.success(profile))),
-            TagSource { if (slow) { delay(3_000); listOf("second") } else listOf("first") }, settle,
-        )
-        now.value = playing(a)
-        pass(PASS_MS)
-        assertEquals(listOf("first"), c.tags.value)
-        slow = true
         now.value = playing(b)
-        advanceTimeBy(settle + 50)
-        runCurrent()
-        assertTrue(c.tags.value.isEmpty())
         pass(PASS_MS)
-        assertEquals(listOf("second"), c.tags.value)
+        assertEquals(1, env.applied.size)
+        assertEquals(2, env.listens.size)
     }
 }

@@ -28,13 +28,6 @@ object ListenStats {
     const val TOP_ARTISTS = 5
     const val MAX_ENTRIES = 1_000
 
-    /** Files a track under one of the presets: the model's genre text first, then the offline guess. */
-    fun bucket(genreText: String, track: TrackInfo): Genre {
-        val fromText = GenreDetector.detect(TrackInfo(genreTag = genreText))
-        if (fromText.confident) return fromText.genre
-        return GenreDetector.detect(track).genre
-    }
-
     fun summarize(entries: List<ListenEntry>, now: Long, zone: ZoneId, windowDays: Int = WINDOW_DAYS): ListenSummary {
         val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
         val since = today.minusDays(windowDays - 1L)

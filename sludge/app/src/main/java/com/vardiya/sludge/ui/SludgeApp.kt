@@ -6,11 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Equalizer
 import androidx.compose.material.icons.outlined.Settings
@@ -36,7 +34,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.vardiya.sludge.ui.screens.AiScreen
 import com.vardiya.sludge.ui.screens.EqualizerScreen
 import com.vardiya.sludge.ui.screens.SetupScreen
 import com.vardiya.sludge.ui.screens.StatsScreen
@@ -75,14 +72,13 @@ fun SludgeScreen(state: UiState, tab: Tab, onTabChange: (Tab) -> Unit, actions: 
             when (current) {
                 Tab.EQUALIZER -> EqualizerScreen(state, actions, padding, onOpenSetup = { onTabChange(Tab.SETUP) })
                 Tab.STATS -> StatsScreen(state, actions, padding)
-                Tab.AI -> AiScreen(state, actions, padding)
                 Tab.SETUP -> SetupScreen(state, actions, padding)
             }
         }
     }
 }
 
-/** The tall four-item bar: labels always visible, 80dp high. */
+/** The tall three-item bar: labels always visible, 80dp high. */
 @Composable
 private fun SludgeNavigationBar(selected: Tab, onSelect: (Tab) -> Unit) {
     val haptic = LocalHapticFeedback.current
@@ -107,7 +103,6 @@ private val Tab.icon: ImageVector
     get() = when (this) {
         Tab.EQUALIZER -> Icons.Outlined.Equalizer
         Tab.STATS -> Icons.Outlined.BarChart
-        Tab.AI -> Icons.Outlined.AutoAwesome
         Tab.SETUP -> Icons.Outlined.Settings
     }
 
@@ -115,6 +110,5 @@ private val Tab.selectedIcon: ImageVector
     get() = when (this) {
         Tab.EQUALIZER -> Icons.Filled.Equalizer
         Tab.STATS -> Icons.Filled.BarChart
-        Tab.AI -> Icons.Filled.AutoAwesome
         Tab.SETUP -> Icons.Filled.Settings
     }

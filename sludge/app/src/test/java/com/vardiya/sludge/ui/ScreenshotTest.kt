@@ -7,21 +7,16 @@ import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.vardiya.sludge.domain.AttachedSession
 import com.vardiya.sludge.app.TuneStatus
-import com.vardiya.sludge.domain.AiConfig
-import com.vardiya.sludge.domain.AiProvider
 import com.vardiya.sludge.domain.EqSettings
+import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.DayCount
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.GenreShare
-import com.vardiya.sludge.domain.LastFmConfig
-import com.vardiya.sludge.domain.ModelOption
 import com.vardiya.sludge.domain.OutputKind
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.ListenSummary
 import com.vardiya.sludge.domain.TrackInfo
 import com.vardiya.sludge.domain.TuneSource
-import com.vardiya.sludge.ui.screens.ModelListState
-import com.vardiya.sludge.ui.screens.ModelPickerContent
 import com.vardiya.sludge.ui.theme.SludgeTheme
 import org.junit.Rule
 import org.junit.Test
@@ -49,24 +44,22 @@ class ScreenshotTest {
     private val playing = UiState(
         settings = EqSettings(
             bands = Genre.STONER.bands,
+            filters = Genre.STONER.filters,
             bassBoost = Genre.STONER.bass,
             virtualizer = Genre.STONER.virtualizer,
             loudnessMb = Genre.STONER.loudness,
             genre = "Stoner Rock",
-            explanation = "Sleep'in kalın fuzz sesi alt ve alt-orta bölgede yaşıyor; tizi biraz kısıp sıcaklığı korudum.",
-            source = TuneSource.AI,
+            explanation = "Stoner Rock olarak tanındı. Kalın, sıcak fuzz; alt orta dolgun, tizler yumuşak.",
+            source = TuneSource.LOCAL,
         ),
         track = track,
         playing = true,
         accessGranted = true,
         sessions = listOf(AttachedSession(
                 1042, "com.spotify.music", failed = false, path = "DynamicsProcessing",
-                effects = listOf("10 bantlı ekolayzır", "sınırlayıcı (ses yükseltici)", "sanallaştırıcı"),
+                effects = listOf("31 bantlı ekolayzır", "sınırlayıcı (ses yükseltici)", "sanallaştırıcı"),
             )),
         globalMixWorks = false,
-        ai = AiConfig(apiKey = "sk-ant-demo-key"),
-        lastFm = LastFmConfig("0123456789abcdef0123456789abcdef"),
-        tags = listOf("stoner rock", "doom metal", "sludge"),
         route = OutputRoute(OutputKind.BLUETOOTH, listOf("JBL Tune 520BT")),
     )
 
@@ -103,6 +96,17 @@ class ScreenshotTest {
     @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
     fun equalizerTallDark() = capture("equalizer_tall_dark") { Screen(tuned, Tab.EQUALIZER) }
 
+    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
+    fun equalizerParametricTallDark() = capture("equalizer_parametric_tall_dark") {
+        val filters = listOf(
+            ParametricFilter("lowshelf", 90f, 4f, 0.7f),
+            ParametricFilter("peak", 320f, -3.5f, 1.4f),
+            ParametricFilter("peak", 3_400f, -5f, 4f),
+            ParametricFilter("highshelf", 9_000f, -2f, 0.7f),
+        )
+        Screen(tuned.copy(settings = tuned.settings.copy(filters = filters)), Tab.EQUALIZER)
+    }
+
     @Test @Config(qualifiers = "+night")
     fun equalizerSpeaker() = capture("equalizer_speaker_dark") { Screen(playing.copy(route = OutputRoute(OutputKind.SPEAKER)), Tab.EQUALIZER) }
 
@@ -124,38 +128,6 @@ class ScreenshotTest {
     fun statsDark() = capture("stats_dark") { Screen(withHistory, Tab.STATS) }
 
     @Test fun statsEmpty() = capture("stats_empty") { Screen(fresh, Tab.STATS) }
-
-    @Test fun ai() = capture("ai") { Screen(playing, Tab.AI) }
-
-    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
-    fun aiOpenRouter() = capture("ai_openrouter_dark") {
-        val config = AiConfig(AiProvider.OPENROUTER, "openai/gpt-4o-mini", "https://openrouter.ai/api/v1", "sk-or-demo")
-        Screen(playing.copy(ai = config), Tab.AI)
-    }
-
-    @Test @Config(qualifiers = "+night")
-    fun modelPicker() = capture("model_picker_dark") {
-        ModelPickerContent(
-            state = ModelListState.Loaded(
-                listOf(
-                    ModelOption("anthropic/claude-sonnet", "Anthropic: Claude Sonnet", 3.0, 15.0, 200_000),
-                    ModelOption("openai/gpt-4o-mini", "OpenAI: GPT-4o mini", 0.15, 0.6, 128_000),
-                    ModelOption("meta-llama/llama-3.3-70b-instruct:free", "Meta: Llama 3.3 70B Instruct (free)", 0.0, 0.0, 131_072),
-                    ModelOption("openrouter/auto", "Auto Router", null, null, null),
-                ),
-            ),
-            selectedId = "openai/gpt-4o-mini",
-            onPick = {},
-            onRetry = {},
-        )
-    }
-
-    // A tall screen, so the Last.fm card below the provider card is in the picture too.
-    @Test @Config(qualifiers = "w411dp-h2300dp-night-xxhdpi")
-    fun aiTallDark() = capture("ai_tall_dark") { Screen(playing, Tab.AI) }
-
-    @Test @Config(qualifiers = "+night")
-    fun aiDark() = capture("ai_dark") { Screen(playing, Tab.AI) }
 
     @Test fun setupFresh() = capture("setup_fresh") { Screen(fresh, Tab.SETUP) }
 
