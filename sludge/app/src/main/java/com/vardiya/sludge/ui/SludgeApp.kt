@@ -6,10 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Equalizer
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -30,22 +28,17 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vardiya.sludge.ui.screens.EqualizerScreen
 import com.vardiya.sludge.ui.screens.SetupScreen
-import com.vardiya.sludge.ui.screens.StatsScreen
 
 // The one stateful entry point: it hands the view model on as the actions interface and nothing else.
 @Suppress("ViewModelForwarding")
 @Composable
 fun SludgeApp(viewModel: SludgeViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    // First launch lands on the setup page; once notification access is on, the equalizer comes first.
-    var tab by rememberSaveable { mutableStateOf(if (viewModel.accessGranted) Tab.EQUALIZER else Tab.SETUP) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshAccess() }
+    var tab by rememberSaveable { mutableStateOf(Tab.EQUALIZER) }
     SludgeScreen(state = state, tab = tab, onTabChange = { tab = it }, actions = viewModel)
 }
 
@@ -71,14 +64,13 @@ fun SludgeScreen(state: UiState, tab: Tab, onTabChange: (Tab) -> Unit, actions: 
         ) { current ->
             when (current) {
                 Tab.EQUALIZER -> EqualizerScreen(state, actions, padding, onOpenSetup = { onTabChange(Tab.SETUP) })
-                Tab.STATS -> StatsScreen(state, actions, padding)
                 Tab.SETUP -> SetupScreen(state, actions, padding)
             }
         }
     }
 }
 
-/** The tall three-item bar: labels always visible, 80dp high. */
+/** The tall bar: labels always visible, 80dp high. */
 @Composable
 private fun SludgeNavigationBar(selected: Tab, onSelect: (Tab) -> Unit) {
     val haptic = LocalHapticFeedback.current
@@ -102,13 +94,11 @@ private fun SludgeNavigationBar(selected: Tab, onSelect: (Tab) -> Unit) {
 private val Tab.icon: ImageVector
     get() = when (this) {
         Tab.EQUALIZER -> Icons.Outlined.Equalizer
-        Tab.STATS -> Icons.Outlined.BarChart
         Tab.SETUP -> Icons.Outlined.Settings
     }
 
 private val Tab.selectedIcon: ImageVector
     get() = when (this) {
         Tab.EQUALIZER -> Icons.Filled.Equalizer
-        Tab.STATS -> Icons.Filled.BarChart
         Tab.SETUP -> Icons.Filled.Settings
     }

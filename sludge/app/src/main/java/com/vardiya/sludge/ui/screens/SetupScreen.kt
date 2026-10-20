@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,15 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.vardiya.sludge.ui.SludgeActions
 import com.vardiya.sludge.ui.UiState
 import com.vardiya.sludge.ui.components.CookieBadge
 import com.vardiya.sludge.ui.components.SectionTitle
-
-const val PACKAGE_NAME = "com.vardiya.sludge"
-const val LISTENER_CLASS = "com.vardiya.sludge.audio.SludgeListenerService"
 
 @Composable
 fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, modifier: Modifier = Modifier) {
@@ -42,38 +36,18 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        StepCard(
-            done = state.accessGranted,
-            title = "1. Bildirim erişimi",
-            body = "Çalan şarkının adını, sanatçısını ve albümünü okumak için Android bu izni ister. Bildirim metinlerini okumayız; " +
-                "yalnızca medya oturumlarına bakarız. Android bu izni uygulama içinden veremez: ayarlarda \"Sludge EQ\" anahtarını sen açarsın.",
-        ) {
-            Button(onClick = actions::openNotificationAccess, shapes = ButtonDefaults.shapes()) {
-                Text(if (state.accessGranted) "Ayarları aç" else "Erişimi ver")
-            }
-        }
-
-        StepCard(
-            done = state.accessGranted,
-            title = "2. Anahtar gri ve açılmıyorsa",
-            body = "Android 13 ve sonrasında APK ile kurulan uygulamalarda bu anahtar \"Kısıtlanmış ayar\" yüzünden kilitli gelir. " +
-                "Uygulama bilgisi → sağ üst ⋮ menüsü → \"Kısıtlanmış ayarlara izin ver\", sonra 1. adıma dön.",
-        ) {
-            OutlinedButton(onClick = actions::openAppInfo, shapes = ButtonDefaults.shapes()) { Text("Uygulama bilgisini aç") }
-            Text("Bilgisayarın varsa aynı iş iki komutla da olur:", style = MaterialTheme.typography.bodySmall)
-            SelectionContainer {
-                Text(
-                    "adb shell appops set $PACKAGE_NAME ACCESS_RESTRICTED_SETTINGS allow\n" +
-                        "adb shell cmd notification allow_listener $PACKAGE_NAME/$LISTENER_CLASS",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
+        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            Text(
+                "Sludge EQ hiçbir izin istemez: bildirim erişimi yok, internet yok. Müzik uygulaman sesini ekolayzıra " +
+                    "kendisi bildirir; sen de ayarları elle yaparsın.",
+                Modifier.padding(20.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         StepCard(
             done = false,
-            title = "3. Arka planda açık kalsın",
+            title = "1. Arka planda açık kalsın",
             body = "Bazı telefonlar pil tasarrufu için uygulamayı kapatır; ekolayzır da susar. Pil ayarlarında Sludge EQ için " +
                 "\"Kısıtlama yok\" seç.",
         ) {
@@ -82,7 +56,7 @@ fun SetupScreen(state: UiState, actions: SludgeActions, padding: PaddingValues, 
 
         StepCard(
             done = state.sessions.isNotEmpty(),
-            title = "4. Ses oturumu",
+            title = "2. Ses oturumu",
             body = when {
                 state.sessions.isNotEmpty() -> state.sessions.joinToString("\n") { s ->
                     "• ${s.packageName.ifBlank { "bilinmeyen uygulama" }} (oturum ${s.id}): " + when {

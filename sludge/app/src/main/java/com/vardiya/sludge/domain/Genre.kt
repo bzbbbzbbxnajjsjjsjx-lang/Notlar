@@ -60,12 +60,3 @@ private fun lowShelf(hz: Float, gain: Float) = ParametricFilter(FilterType.LOW_S
 private fun highShelf(hz: Float, gain: Float) = ParametricFilter(FilterType.HIGH_SHELF.key, hz, gain, SHELF_Q)
 
 private const val SHELF_Q = 0.7f
-
-fun Genre.toTuning(explanation: String = blurb) = Tuning(
-    genre = label,
-    filters = filters,
-    bassBoost = bass,
-    virtualizer = virtualizer,
-    loudness = loudness,
-    explanation = explanation,
-)

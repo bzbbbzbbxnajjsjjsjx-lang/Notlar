@@ -4,50 +4,28 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vardiya.sludge.app.SludgeRuntime
-import com.vardiya.sludge.domain.CurveMath
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Genre
-import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.TuneSource
 import com.vardiya.sludge.domain.applying
-import com.vardiya.sludge.domain.toTuning
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.time.ZoneId
 
 // Every member is one entry of SludgeActions; the logic itself lives in the runtime and in domain/.
 @Suppress("TooManyFunctions")
 class SludgeViewModel(private val app: Application) : AndroidViewModel(app), SludgeActions {
     private val runtime = SludgeRuntime.get(app)
     private val system = SystemSettings(app)
-    private val access = MutableStateFlow(system.isNotificationAccessGranted())
 
-    val accessGranted: Boolean get() = access.value
-
-    private val core = combine(runtime.settings, runtime.nowPlaying, runtime.status, runtime.route) { settings, playing, status, route ->
-        UiState(settings = settings, track = playing.track, playing = playing.playing, status = status, route = route)
-    }
-
-    val state: StateFlow<UiState> = combine(core, runtime.engineState, access, runtime.history) { ui, engine, granted, history ->
-        ui.copy(
-            sessions = engine.sessions,
-            globalMixWorks = engine.globalMixWorks,
-            accessGranted = granted,
-            listens = ListenStats.summarize(history, System.currentTimeMillis(), ZoneId.systemDefault()),
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState(accessGranted = access.value))
-
-    /** Called when the app comes back to the front: the user may just have flipped the switch in system settings. */
-    fun refreshAccess() {
-        access.value = system.isNotificationAccessGranted()
-    }
+    val state: StateFlow<UiState> = combine(runtime.settings, runtime.engineState, runtime.route) { settings, engine, route ->
+        UiState(settings = settings, route = route, sessions = engine.sessions, globalMixWorks = engine.globalMixWorks)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), UiState())
 
     private fun manual(transform: (EqSettings) -> EqSettings) = runtime.update { transform(it).copy(source = TuneSource.MANUAL) }
 
@@ -69,19 +47,13 @@ class SludgeViewModel(private val app: Application) : AndroidViewModel(app), Slu
 
     override fun setLoudness(valueMb: Int) = manual { it.copy(loudnessMb = valueMb.coerceIn(0, MAX_LOUDNESS_MB)) }
 
-    override fun setAutoTune(enabled: Boolean) = runtime.update { it.copy(autoTune = enabled) }
-
     override fun setHeadphone(id: String?) = runtime.update { it.copy(headphoneId = id) }
 
     override fun setHeadphoneAlways(always: Boolean) = runtime.update { it.copy(headphoneAlways = always) }
 
     override fun setHeadphoneStrength(percent: Int) = runtime.update { it.copy(headphoneStrength = percent.coerceIn(0, MAX_PERCENT)) }
 
-    override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre.toTuning(), TuneSource.PRESET) }
-
-    override fun clearHistory() = runtime.clearHistory()
-
-    override fun openNotificationAccess() = system.openNotificationAccess()
+    override fun applyPreset(genre: Genre) = runtime.update { it.applying(genre) }
 
     override fun openAppInfo() = system.openAppInfo()
 

@@ -9,8 +9,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
-import com.vardiya.sludge.domain.ListenEntry
-import com.vardiya.sludge.domain.ListenStats
 import com.vardiya.sludge.domain.Parametric
 import com.vardiya.sludge.domain.ParametricFilter
 import com.vardiya.sludge.domain.TuneSource
@@ -26,30 +24,15 @@ class SettingsRepository(context: Context) {
     private val store = context.applicationContext.store
 
     val settings: Flow<EqSettings> = store.data.map { it.toSettings() }
-    val history: Flow<List<ListenEntry>> = store.data.map { it.toHistory() }
 
     suspend fun updateSettings(transform: (EqSettings) -> EqSettings) {
         store.edit { prefs -> prefs.write(transform(prefs.toSettings())) }
     }
 
-    /** Earlier versions kept an AI key and a Last.fm key here; nothing uses them now, so they are wiped. */
+    /** Earlier versions kept keys, a listening log and tuning notes here; nothing uses them now, so they are wiped. */
     suspend fun dropRetiredKeys() {
         store.edit { prefs -> RETIRED_KEYS.forEach { prefs.remove(stringPreferencesKey(it)) } }
     }
-
-    suspend fun addListen(entry: ListenEntry) {
-        store.edit { prefs ->
-            prefs[HISTORY] = json.encodeToString(HISTORY_SERIALIZER, ListenStats.append(prefs.toHistory(), entry))
-        }
-    }
-
-    suspend fun clearHistory() {
-        store.edit { it.remove(HISTORY) }
-    }
-
-    private fun Preferences.toHistory(): List<ListenEntry> = runCatching {
-        json.decodeFromString(HISTORY_SERIALIZER, this[HISTORY].orEmpty())
-    }.getOrDefault(emptyList())
 
     private fun Preferences.toSettings(): EqSettings {
         return EqSettings(
@@ -58,8 +41,6 @@ class SettingsRepository(context: Context) {
             virtualizer = this[VIRTUALIZER] ?: 0,
             loudnessMb = this[LOUDNESS] ?: 0,
             genre = this[GENRE].orEmpty(),
-            autoTune = this[AUTO_TUNE] ?: true,
-            explanation = this[EXPLANATION].orEmpty(),
             source = runCatching { TuneSource.valueOf(this[SOURCE].orEmpty()) }.getOrDefault(TuneSource.MANUAL),
             // Never chosen: the default profile. Chosen "none" is stored as an empty string.
             headphoneId = Headphones.fromStored(this[HEADPHONE]),
@@ -78,8 +59,6 @@ class SettingsRepository(context: Context) {
         this[VIRTUALIZER] = s.virtualizer
         this[LOUDNESS] = s.loudnessMb
         this[GENRE] = s.genre
-        this[AUTO_TUNE] = s.autoTune
-        this[EXPLANATION] = s.explanation
         this[SOURCE] = s.source.name
         this[HEADPHONE] = s.headphoneId.orEmpty()
         this[HEADPHONE_ALWAYS] = s.headphoneAlways
@@ -93,8 +72,6 @@ class SettingsRepository(context: Context) {
         val VIRTUALIZER = intPreferencesKey("virtualizer")
         val LOUDNESS = intPreferencesKey("loudness")
         val GENRE = stringPreferencesKey("genre")
-        val AUTO_TUNE = booleanPreferencesKey("auto_tune")
-        val EXPLANATION = stringPreferencesKey("explanation")
         val SOURCE = stringPreferencesKey("source")
         val HEADPHONE = stringPreferencesKey("headphone")
         val HEADPHONE_ALWAYS = booleanPreferencesKey("headphone_always")
@@ -102,9 +79,10 @@ class SettingsRepository(context: Context) {
         val FILTERS = stringPreferencesKey("filters")
         val FILTERS_SERIALIZER = ListSerializer(ParametricFilter.serializer())
         const val FULL_STRENGTH = 100
-        val HISTORY = stringPreferencesKey("history")
-        val RETIRED_KEYS = listOf("ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode", "bands")
+        val RETIRED_KEYS = listOf(
+            "ai_provider", "ai_model", "ai_url", "ai_key", "tune_cache", "lastfm_key", "tag_cache", "eq_mode", "bands",
+            "history", "auto_tune", "explanation",
+        )
         val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
-        val HISTORY_SERIALIZER = ListSerializer(ListenEntry.serializer())
     }
 }

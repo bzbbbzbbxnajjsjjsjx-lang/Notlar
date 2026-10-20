@@ -22,137 +22,23 @@ class CurveMathTest {
     }
 }
 
-class GenreDetectorTest {
-    private fun detect(artist: String = "", title: String = "", album: String = "", tag: String = "") =
-        GenreDetector.detect(TrackInfo(title = title, artist = artist, album = album, genreTag = tag))
-
-    @Test fun `known artists are recognised`() {
-        assertEquals(Genre.STONER, detect(artist = "Kyuss").genre)
-        assertEquals(Genre.DOOM, detect(artist = "Electric Wizard").genre)
-        assertEquals(Genre.DRONE, detect(artist = "Yellow Swans").genre)
-        assertEquals(Genre.HARSH_NOISE, detect(artist = "Merzbow").genre)
-        assertEquals(Genre.NOISE_ROCK, detect(artist = "The Jesus Lizard").genre)
-    }
-
-    @Test fun `upper case Turkish letters do not break the match`() {
-        assertEquals(Genre.STONER, detect(artist = "KYUSS").genre)
-        assertEquals(Genre.DOOM, detect(artist = "ELECTRIC WIZARD").genre)
-    }
-
-    @Test fun `an artist must match exactly, not by containing the name`() {
-        assertEquals(Genre.FLAT, detect(artist = "Earth Crisis").genre)
-        assertEquals(Genre.FLAT, detect(artist = "Tomorrow").genre)
-    }
-
-    @Test fun `credits with several artists are split`() {
-        assertEquals(Genre.DRONE, detect(artist = "Boris & Sunn O)))").genre)
-        assertEquals(Genre.STONER, detect(artist = "Clutch feat. Someone").genre)
-    }
-
-    @Test fun `the genre tag decides when the artist is unknown`() {
-        val guess = detect(artist = "Nobody", tag = "Stoner Rock")
-        assertEquals(Genre.STONER, guess.genre)
-        assertTrue(guess.confident)
-        assertEquals(Genre.HARSH_NOISE, detect(artist = "Nobody", tag = "Harsh Noise Wall").genre)
-        assertEquals(Genre.NOISE_ROCK, detect(artist = "Nobody", tag = "Noise Rock").genre)
-    }
-
-    @Test fun `words in the title or album give an unsure guess`() {
-        val guess = detect(artist = "Nobody", album = "Funeral Doom Rituals")
-        assertEquals(Genre.DOOM, guess.genre)
-        assertFalse(guess.confident)
-    }
-
-    @Test fun `nothing known falls back to flat`() {
-        assertEquals(Genre.FLAT, detect(artist = "Sezen Aksu", title = "Hadi Bakalım").genre)
-    }
-
-    @Test fun `harsh noise never boosts the harsh range or the loudness`() {
-        val preset = Genre.HARSH_NOISE
-        val upper = Parametric.sample(preset.filters, listOf(2_000f, 4_000f, 8_000f, 16_000f))
-        assertTrue(upper.all { it <= 0f })
-        assertTrue(upper[1] < -2f)
-        assertEquals(0, preset.loudness)
-    }
-
-    @Test fun `every preset stays inside the safe limits`() {
-        for (genre in Genre.entries) {
-            assertTrue(Parametric.sample(genre.filters, Parametric.ENGINE_HZ).all { it in -MAX_GAIN_DB..8f })
-            assertTrue(genre.bass in 0..MAX_EFFECT && genre.virtualizer in 0..MAX_EFFECT && genre.loudness in 0..MAX_LOUDNESS_MB)
-        }
-    }
-}
-
 class TuningTest {
-    @Test fun `local tuning explains itself`() {
-        val t = localTuning(TrackInfo(title = "x", artist = "Sleep"))
-        assertEquals(Genre.STONER.filters, t.filters)
-        assertTrue(t.explanation.contains("Stoner"))
-    }
-
-    @Test fun `an unknown track is flat and says so`() {
-        val t = localTuning(TrackInfo(title = "x", artist = "Nobody"))
-        assertEquals(Genre.FLAT.label, t.genre)
-        assertTrue(t.explanation.contains("belirlenemedi"))
-    }
-
-    @Test fun `applying a tuning keeps the switches`() {
-        val s = EqSettings(enabled = false, autoTune = false).applying(Genre.DOOM.toTuning(), TuneSource.LOCAL)
+    @Test fun `applying a preset sets filters, effects and name and keeps the switches`() {
+        val s = EqSettings(enabled = false, headphoneStrength = 40).applying(Genre.DOOM)
         assertFalse(s.enabled)
-        assertFalse(s.autoTune)
+        assertEquals(40, s.headphoneStrength)
         assertEquals(Genre.DOOM.filters, s.filters)
-        assertEquals(TuneSource.LOCAL, s.source)
-    }
-}
-
-class ListenStatsTest {
-    private val zone = java.time.ZoneOffset.UTC
-    private val now = java.time.LocalDate.of(2026, 10, 19).atTime(12, 0).toInstant(zone).toEpochMilli()
-    private val day = 24L * 60 * 60 * 1000
-
-    private fun entry(daysAgo: Int, artist: String, genre: Genre) = ListenEntry(now - daysAgo * day, artist, "t", genre.name)
-
-    @Test fun `plays are counted per genre, largest first`() {
-        val log = listOf(
-            entry(0, "Sleep", Genre.STONER), entry(1, "Sleep", Genre.STONER), entry(1, "Earth", Genre.DRONE),
-        )
-        val s = ListenStats.summarize(log, now, zone)
-        assertEquals(3, s.total)
-        assertEquals(listOf(Genre.STONER, Genre.DRONE), s.genres.map { it.genre })
-        assertEquals(2f / 3, s.genres.first().fraction, 0.001f)
-        assertEquals("Sleep" to 2, s.topArtists.first())
+        assertEquals(Genre.DOOM.bass, s.bassBoost)
+        assertEquals(Genre.DOOM.virtualizer, s.virtualizer)
+        assertEquals(Genre.DOOM.loudness, s.loudnessMb)
+        assertEquals(Genre.DOOM.label, s.genre)
+        assertEquals(TuneSource.PRESET, s.source)
     }
 
-    @Test fun `entries older than the window are left out`() {
-        val log = listOf(entry(0, "A", Genre.DOOM), entry(45, "B", Genre.DRONE))
-        assertEquals(1, ListenStats.summarize(log, now, zone).total)
-    }
-
-    @Test fun `the week has seven days ending today`() {
-        val s = ListenStats.summarize(listOf(entry(0, "A", Genre.DOOM), entry(0, "A", Genre.DOOM), entry(6, "A", Genre.DOOM)), now, zone)
-        assertEquals(7, s.days.size)
-        assertEquals(2, s.days.last().count)
-        assertEquals(1, s.days.first().count)
-        assertEquals(java.time.LocalDate.of(2026, 10, 19), s.days.last().date)
-    }
-
-    @Test fun `an empty log gives an empty summary`() {
-        val s = ListenStats.summarize(emptyList(), now, zone)
-        assertEquals(0, s.total)
-        assertTrue(s.genres.isEmpty())
-        assertEquals(7, s.days.size)
-    }
-
-    @Test fun `unknown genre names fall into other`() {
-        val s = ListenStats.summarize(listOf(ListenEntry(now, "A", "t", "NOPE")), now, zone)
-        assertEquals(Genre.FLAT, s.genres.single().genre)
-        assertEquals("Diğer", Genre.FLAT.chartLabel)
-    }
-
-    @Test fun `the log keeps only the newest entries`() {
-        var log = emptyList<ListenEntry>()
-        for (i in 1..5) log = ListenStats.append(log, ListenEntry(i.toLong(), "A", "t$i", Genre.DOOM.name), max = 3)
-        assertEquals(listOf(3L, 4L, 5L), log.map { it.at })
+    @Test fun `the flat preset clears the filters`() {
+        val s = EqSettings(filters = Genre.DOOM.filters, bassBoost = 700).applying(Genre.FLAT)
+        assertTrue(s.filters.isEmpty())
+        assertEquals(0, s.bassBoost)
     }
 }
 
@@ -189,11 +75,9 @@ class PresetTest {
 
 class StatusTest {
     @Test fun `the status follows what is really true`() {
-        assertEquals(Health.OFF, statusOf(enabled = false, accessGranted = true, sessions = 2).health)
-        assertEquals(Health.ACTIVE, statusOf(enabled = true, accessGranted = false, sessions = 1).health)
-        assertEquals(Health.ACTIVE, statusOf(enabled = true, accessGranted = true, sessions = 1).health)
-        assertEquals(Health.NEEDS_SETUP, statusOf(enabled = true, accessGranted = false, sessions = 0).health)
-        assertEquals(Health.WAITING, statusOf(enabled = true, accessGranted = true, sessions = 0).health)
+        assertEquals(Health.OFF, statusOf(enabled = false, sessions = 2).health)
+        assertEquals(Health.ACTIVE, statusOf(enabled = true, sessions = 1).health)
+        assertEquals(Health.WAITING, statusOf(enabled = true, sessions = 0).health)
     }
 }
 
@@ -344,37 +228,6 @@ class OutputRouteTest {
         assertEquals("telefon hoparlörü", OutputRoute(OutputKind.SPEAKER).label())
         assertEquals("JBL Tune 520BT", bt("JBL Tune 520BT").label())
         assertEquals("Bluetooth cihazı", bt("").label())
-    }
-}
-
-class GenreEvidenceTest {
-    private fun tags(vararg t: String, artist: String = "Nobody") = GenreDetector.detect(TrackInfo(artist = artist, genreTag = t.joinToString(", ")))
-
-    @Test fun `another scene's tag does not name a metal genre`() {
-        assertEquals(Genre.FLAT, tags("noise pop").genre)
-        assertEquals(Genre.FLAT, tags("ambient pop").genre)
-        assertEquals(Genre.FLAT, tags("psychedelic pop").genre)
-        assertEquals(Genre.FLAT, tags("ambient house", "dream pop").genre)
-    }
-
-    @Test fun `a whole noise or ambient tag still counts`() {
-        assertEquals(Genre.HARSH_NOISE, tags("noise").genre)
-        assertEquals(Genre.DRONE, tags("ambient", "experimental").genre)
-    }
-
-    @Test fun `a pop tag first does not hide a doom tag after it`() {
-        assertEquals(Genre.DOOM, tags("noise pop", "doom metal").genre)
-    }
-
-    @Test fun `the tags come before the artist list`() {
-        assertEquals(Genre.DOOM, tags("doom metal", artist = "Kyuss").genre)
-        assertEquals(Genre.STONER, GenreDetector.detect(TrackInfo(artist = "Kyuss", genreTag = "rock, seen live")).genre)
-    }
-
-    @Test fun `words in the album still help when there are no tags`() {
-        val g = GenreDetector.detect(TrackInfo(artist = "Nobody", album = "Funeral Doom Rituals"))
-        assertEquals(Genre.DOOM, g.genre)
-        assertFalse(g.confident)
     }
 }
 

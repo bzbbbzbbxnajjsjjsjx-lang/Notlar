@@ -1,17 +1,16 @@
 # Sludge EQ
 
 Stoner rock, doom/sludge, psychedelic rock, noise rock, harsh noise ve drone (Yellow Swans gibi) dinleyenler için
-Material 3 Expressive **parametrik ekolayzır**. Çalan şarkının meta verisinden türünü tanır ve o türe uygun filtre
-setini kendisi uygular. İnternet izni yoktur; hiçbir şey cihazından çıkmaz.
+Material 3 Expressive **parametrik ekolayzır**. Her şeyi sen ayarlarsın; uygulama kendi kendine bir şey değiştirmez.
+İzin istemez: bildirim erişimi yok, internet yok. Hiçbir şey cihazından çıkmaz.
 
 ## Ne yapar
 
 - **Parametrik ekolayzır**: en çok 10 filtre; her biri tepe, alçak raf ya da yüksek raf olabilir. Frekans (20 Hz–20 kHz),
   kazanç (±12 dB) ve Q (darlık) ayarlanır. Üstte filtrelerin toplam frekans eğrisi çizilir.
-- **Tür ön ayarları** (her biri gerçek bir filtre seti): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock,
-  Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz. Bas güçlendirici, sanallaştırıcı ve ses yükseltici de ön ayarla gelir.
-- **Otomatik tür tanıma**: şarkı değişince çaların verdiği tür etiketine, sanatçı listesine, sonra albüm ve şarkı adındaki
-  anahtar kelimelere bakar; bulduğu türün ön ayarını uygular ve nedenini yazar. Tanıyamazsa Düz kalır; ön ayar çiplerinden kendin seçersin. Otomatik ayar anahtarla kapatılabilir.
+- **Tür ön ayarları** (her biri gerçek bir filtre seti, elle seçilir): Stoner Rock, Doom / Sludge, Psychedelic Rock, Noise Rock,
+  Harsh Noise, Drone / Yellow Swans, Shoegaze, Düz. Bas güçlendirici, sanallaştırıcı ve ses yükseltici de ön ayarla gelir; seçtikten
+  sonra filtreleri istediğin gibi değiştirirsin.
 - **JBL Tune 520BT otomatik EQ**: AutoEq'in Rtings (B&K 5128) ölçümünden Harman over-ear 2018 hedefine ürettiği 10 filtrelik
   parametrik düzeltme, yayımlandığı haliyle uygulanır (filtre toplamı AutoEq'in eğrisiyle 0,25 dB içinde uyuşur, testle
   doğrulanır). Bu kulaklık 3–4 kHz'de +10 dB'lik keskin bir tepe verir ve 10 kHz üstü ile alt bas zayıftır; düzeltme tepeyi alır,
@@ -19,25 +18,9 @@ setini kendisi uygular. İnternet izni yoktur; hiçbir şey cihazından çıkmaz
   yaklaşık −3 dB kısılır. Ekranda düzeltmenin eğrisi çizilir; "Düzeltme gücü" ile azaltabilirsin. Yalnızca o kulaklık bağlıyken
   (Bluetooth adından anlaşılır) uygulanır; hoparlörde ve başka kulaklıklarda uygulanmaz, ad okunamıyorsa "Her çıkışta uygula" ile
   zorlanır. Tür ön ayarı düzeltmenin üstüne eklenir. Ayrıntı ve kaynaklar: `docs/eq-research.md`.
-- **Dinleme**: son 30 günde hangi türleri dinlediğini halka grafikte gösterir; kayıt yalnızca telefonunda kalır.
-- **Kurulum**: bildirim erişimi, kısıtlanmış ayar yardımı, pil, yakalanan ses oturumları.
+- **Kurulum**: pil ayarı ve hangi çalarların bağlandığı.
 
-Harsh noise ayarı kulak ve hoparlör için tizi kısar ve ses yükseltiyi kapalı tutar.
-
-## Bildirim erişimi neden gerekli, nasıl verilir
-
-Android, başka bir uygulamanın ne çaldığını yalnızca **bildirim erişimi** olan uygulamaya gösterir
-(`MediaSessionManager.getActiveSessions`). Bu izin uygulama içinden verilemez; kullanıcı ayarlarda açar. Uygulama
-bildirim metinlerini okumaz, yalnızca medya oturumlarına bakar.
-
-1. Kurulum sekmesi → **Erişimi ver** → "Sludge EQ" anahtarını aç.
-2. Anahtar gri ve açılmıyorsa (Android 13+, APK ile kurulum): Uygulama bilgisi → ⋮ → **Kısıtlanmış ayarlara izin ver**,
-   sonra 1. adıma dön.
-3. Bilgisayarla: 
-   ```
-   adb shell appops set com.vardiya.sludge ACCESS_RESTRICTED_SETTINGS allow
-   adb shell cmd notification allow_listener com.vardiya.sludge/com.vardiya.sludge.audio.SludgeListenerService
-   ```
+Harsh noise ön ayarı kulak ve hoparlör için tizi kısar ve ses yükseltiyi kapalı tutar.
 
 ## Ses nasıl işleniyor
 
@@ -53,8 +36,8 @@ ekolayzır sessiz kalır; bunu Android engeller, uygulama aşamaz.
 
 ## Gizlilik
 
-Uygulamanın internet izni yoktur. Tür tanıma tamamen cihazda yapılır; şarkı bilgisi hiçbir yere gönderilmez. Eski sürümlerde
-kaydedilmiş bir API anahtarı varsa açılışta silinir.
+Uygulamanın internet izni ve bildirim erişimi yoktur; hangi şarkının çaldığını bilmez ve hiçbir veri göndermez. Eski sürümlerde
+kaydedilmiş API anahtarı, dinleme geçmişi ya da ayar notları varsa açılışta silinir.
 
 ## Derleme
 

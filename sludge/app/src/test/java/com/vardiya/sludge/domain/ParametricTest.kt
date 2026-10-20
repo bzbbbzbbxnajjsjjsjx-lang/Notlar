@@ -73,12 +73,12 @@ class ParametricTest {
     }
 
     @Test fun `applying a preset puts its filters in the settings`() {
-        val s = EqSettings().applying(Genre.DOOM.toTuning(), TuneSource.PRESET)
+        val s = EqSettings().applying(Genre.DOOM)
         assertEquals(Genre.DOOM.filters, s.filters)
     }
 
     @Test fun `a preset in parametric mode shapes the sound through its filters`() {
-        val s = EqSettings(headphoneId = null).applying(Genre.DOOM.toTuning(), TuneSource.PRESET)
+        val s = EqSettings(headphoneId = null).applying(Genre.DOOM)
         val curve = s.curveAt(OutputRoute.UNKNOWN, listOf(90f, 8_000f))
         assertTrue(curve[0] > 4f)
         assertTrue(curve[1] < -1f)

@@ -81,11 +81,10 @@ hiç yükseltme yapmaz ve ses yükseltici kapalıdır.
 520BT düzeltmesiyle birlikte kullanıldığında ön ayarlar düzeltmenin **üstüne** eklenir: düzeltme kulaklığı nötr
 hedefe getirir, ön ayar türün tadını verir. Örneğin harsh noise + 520BT, 3,5 kHz'de yaklaşık −11 dB'dir (ön ayarın −4,5 dB'si artı düzeltmenin −7 dB'si); bu kasıtlıdır, çünkü 520BT bu bölgede zaten +10 dB tepe verir.
 
-## 4. Tür tanıma neye bakar
+## 4. Neden otomatik ayar yok
 
-Çalardan gelen tür etiketi (ilk tür adı veren etiket kazanır), sonra sanatçı listesi, sonra albüm ve şarkı adındaki
-anahtar kelimeler. Hepsi telefonda; ağ yok. Tanınmayan sanatçı Düz alır ve ön ayarı elle seçersin. Bu, kapsamın
-sanatçı listesiyle sınırlı olduğu anlamına gelir; liste `domain/GenreDetector.kt` içinde.
+Uygulama hangi şarkının çaldığını bilmez: bunu okumak bildirim erişimi ister ve ürün bunu bilerek istemez. Ön ayarı sen seçersin,
+sonra filtreleri düzenlersin.
 
 ## Kaynaklar
 

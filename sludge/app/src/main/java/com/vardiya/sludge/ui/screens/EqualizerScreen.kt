@@ -62,7 +62,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.vardiya.sludge.app.TuneStatus
 import com.vardiya.sludge.domain.Genre
 import com.vardiya.sludge.domain.EqSettings
 import com.vardiya.sludge.domain.Headphones
@@ -71,7 +70,6 @@ import com.vardiya.sludge.domain.MAX_EFFECT
 import com.vardiya.sludge.domain.MAX_LOUDNESS_MB
 import com.vardiya.sludge.domain.Status
 import com.vardiya.sludge.domain.TuneSource
-import com.vardiya.sludge.domain.chartLabel
 import com.vardiya.sludge.domain.OutputRoute
 import com.vardiya.sludge.domain.correctionActive
 import com.vardiya.sludge.domain.label
@@ -99,7 +97,7 @@ fun EqualizerScreen(
     modifier: Modifier = Modifier,
 ) {
     val s = state.settings
-    val status = statusOf(s.enabled, state.accessGranted, state.sessions.size)
+    val status = statusOf(s.enabled, state.sessions.size)
     Column(
         modifier
             .verticalScroll(rememberScrollState())
@@ -109,15 +107,6 @@ fun EqualizerScreen(
     ) {
         StatusHeader(status, onOpenSetup)
 
-        val track = state.track
-        StatCard(
-            icon = Icons.Filled.MusicNote,
-            label = if (state.playing || track == null) "Çalan" else "Duraklatıldı",
-            value = track?.let { "${it.title.ifBlank { "Adsız parça" }} · ${it.artist.ifBlank { "Bilinmeyen sanatçı" }}" } ?: "Çalan parça yok",
-            pill = track?.source?.takeIf { it.isNotBlank() },
-            pillContainer = MaterialTheme.colorScheme.secondary,
-            pillContent = MaterialTheme.colorScheme.onSecondary,
-        )
         StatCard(
             icon = Icons.Filled.Tune,
             label = "Ayar (${s.source.label})",
@@ -132,13 +121,6 @@ fun EqualizerScreen(
                 Column(Modifier.weight(1f).padding(start = 16.dp)) {
                     Text("Ekolayzır", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(if (s.enabled) "Açık" else "Kapalı", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-            SwitchRow(s.autoTune, actions::setAutoTune, Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Column(Modifier.weight(1f).padding(start = 16.dp)) {
-                    Text("Otomatik ayar", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Şarkı değişince kendisi ayarlar", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -188,15 +170,6 @@ fun EqualizerScreen(
             onValue = actions::setLoudness,
             defaultOn = DEFAULT_LOUDNESS,
         ) { WavyLevel("Ses yükseltici", s.loudnessMb, MAX_LOUDNESS_MB, actions::setLoudness, enabled = s.enabled) }
-
-        if (s.explanation.isNotBlank() && s.source != TuneSource.MANUAL) {
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    SectionTitle("Neden bu ayar? (${s.source.label})")
-                    Text(s.explanation, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                }
-            }
-        }
     }
 }
 
@@ -209,7 +182,6 @@ private fun StatusHeader(status: Status, onOpenSetup: () -> Unit) {
     val strip = when (status.health) {
         Health.ACTIVE -> scheme.tertiary
         Health.WAITING -> scheme.secondary
-        Health.NEEDS_SETUP -> scheme.error
         Health.OFF -> scheme.outline
     }
     Card(colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLowest)) {
@@ -225,7 +197,7 @@ private fun StatusHeader(status: Status, onOpenSetup: () -> Unit) {
                     color = scheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
-                if (status.health == Health.NEEDS_SETUP) {
+                if (status.health == Health.WAITING) {
                     FilledTonalButton(onClick = onOpenSetup, shapes = ButtonDefaults.shapes(), modifier = Modifier.padding(top = 12.dp)) {
                         Text("Kuruluma git")
                     }
@@ -352,7 +324,7 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
                 FilterChip(
                     selected = selected,
                     onClick = { actions.applyPreset(genre) },
-                    label = { Text(genre.chartLabel) },
+                    label = { Text(genre.label) },
                     leadingIcon = if (selected) {
                         { Icon(Icons.Filled.Check, contentDescription = null, Modifier.size(FilterChipDefaults.IconSize)) }
                     } else {
@@ -361,6 +333,14 @@ private fun PresetRow(state: UiState, actions: SludgeActions) {
                     shape = CircleShape,
                 )
             }
+        }
+        Genre.entries.firstOrNull { it.filters == s.filters && it.bass == s.bassBoost && it.virtualizer == s.virtualizer }?.let {
+            Text(
+                it.blurb,
+                Modifier.padding(start = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
