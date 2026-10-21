@@ -30,6 +30,23 @@ Gradle (Maven Central rate-limits the proxy).
    - Flag clipped or overlapping text, controls that blend into their background, and
      touch targets smaller than 48dp.
 4. `./gradlew assembleRelease`.
+5. Read the diff (`git diff` against the base) and flag only what you are more than 80% sure is a
+   real defect, each with file and line and a one-line fix:
+   - Security: new `exported` components or permissions, secrets or user data in logs, cleartext
+     network traffic.
+   - Silent failures: empty `catch`, errors turned into `null` or an empty list without a
+     visible signal, swallowed `CancellationException`, `runCatching` whose failure is dropped.
+   - Coroutines and state: `GlobalScope`, blocking work on the main thread, flows collected
+     without lifecycle awareness (`collectAsStateWithLifecycle`), mutable collections in state.
+   - Compose: side effects outside effect handlers, lazy list items without a stable `key`,
+     lambdas captured by a long-lived effect without `rememberUpdatedState`.
+   - Domain purity: Android imports in `domain/`, logic that belongs in `NoteRules` left in a
+     composable or the ViewModel.
+
+## Stop conditions
+
+If the same check fails three times with the same error, or a fix would need an architectural
+change or a new dependency, stop and report it instead of trying again.
 
 ## Report
 
