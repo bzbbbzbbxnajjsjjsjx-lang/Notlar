@@ -1,0 +1,612 @@
+{
+ "title": "Gemini Sohbet Aktarıcı",
+ "brief": "Herkese açık bir Gemini paylaşım linkindeki soru-cevap turlarını çekip Markdown veya JSON olarak dışa aktarır.",
+ "frame": "phone",
+ "platform": "android",
+ "paletteKey": "amber",
+ "theme": {
+  "dark": false,
+  "bothModes": true,
+  "contrast": "standard",
+  "shape": "rounded",
+  "font": "roboto",
+  "emphasized": true,
+  "motion": "expressive"
+ },
+ "frames": [
+  {
+   "id": "idle",
+   "name": "1 Boş (Idle)",
+   "x": 0,
+   "y": 0,
+   "note": "HomeScreen boş hâli. Kullanıcı linki yapıştırır ya da Android paylaş menüsünden gönderir; paylaşılan link alana otomatik dolar. Açık ve koyu temada çalışır (Notlar amber şeması, tüm renkler tema rollerinden)."
+  },
+  {
+   "id": "loading",
+   "name": "2 Yükleniyor",
+   "x": 492,
+   "y": 0,
+   "note": "Gizli WebView sayfayı tarar; en fazla 4 deneme yapılır (içerik geç yüklenebildiği için). Alan ve butonlar bu sırada devre dışıdır."
+  },
+  {
+   "id": "success",
+   "name": "3 Başarılı",
+   "x": 984,
+   "y": 0,
+   "note": "Tarama sonucu önizlemesi: kullanıcı turları sağa hizalı ve ikincil kapsayıcı renginde, Gemini turları sola hizalı ve yüzey kapsayıcı renginde; rol etiketi chip'i ile de ayrışır (renk tek başına anlam taşımaz).",
+   "length": 1100
+  },
+  {
+   "id": "error",
+   "name": "4 Hata",
+   "x": 1476,
+   "y": 0,
+   "note": "Tarama 4 denemede sonuç vermedi veya ağ/sayfa hatası oldu."
+  },
+  {
+   "id": "invalid",
+   "name": "4b Hata: Geçersiz link",
+   "x": 1968,
+   "y": 0,
+   "note": "Link doğrulaması başarısız: gemini.google.com/share/ ile başlamıyor. WebView hiç açılmaz."
+  }
+ ],
+ "groups": [
+  {
+   "id": "g1",
+   "x": 0,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Gemini Sohbet Aktarıcı",
+     "icon": null,
+     "variant": "filled",
+     "icon2": null,
+     "note": "Büyük esnek (large flexible) uygulama çubuğu; kaydırınca küçülür. Tek ekranlı uygulama, alt çubuk yok.",
+     "id": "i1"
+    }
+   ]
+  },
+  {
+   "id": "g2",
+   "x": 16,
+   "y": 130,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Gemini paylaşım linki",
+     "variant": "outlined",
+     "icon": "link",
+     "supporting": "https://gemini.google.com/share/...",
+     "size": 380,
+     "note": "Yalnızca https://gemini.google.com/share/ ile başlayan linkler kabul edilir. Boşken İçeriği Çek devre dışıdır.",
+     "id": "i2"
+    }
+   ]
+  },
+  {
+   "id": "g4",
+   "x": 16,
+   "y": 202,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Yapıştır",
+     "icon": "content_paste",
+     "variant": "tonal",
+     "size": 182,
+     "note": "Panodaki metni alana yapıştırır; alt 48dp dokunma hedefi.",
+     "id": "i3"
+    },
+    {
+     "kind": "button",
+     "label": "Temizle",
+     "icon": "close",
+     "variant": "outlined",
+     "size": 182,
+     "note": "Alanı ve önceki sonucu temizler.",
+     "id": "i4"
+    }
+   ]
+  },
+  {
+   "id": "g5",
+   "x": 16,
+   "y": 282,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "İçeriği Çek",
+     "icon": "download",
+     "variant": "filled",
+     "size": 380,
+     "note": "Linki doğrular, gizli WebView'i açar ve soru-cevap turlarını tarar. Geçersizse Hata (geçersiz link) hâline gider.",
+     "id": "i5"
+    }
+   ]
+  },
+  {
+   "id": "g6",
+   "x": 16,
+   "y": 380,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "listItem",
+     "label": "Desteklenen link biçimi",
+     "supporting": "https://gemini.google.com/share/... şeklinde herkese açık paylaşım linki. Gemini'de Paylaş ile de gönderebilirsiniz.",
+     "icon": "info",
+     "variant": "filled",
+     "size2": 96,
+     "id": "i6"
+    }
+   ]
+  },
+  {
+   "id": "g7",
+   "x": 492,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Gemini Sohbet Aktarıcı",
+     "icon": null,
+     "variant": "filled",
+     "icon2": null,
+     "note": "Büyük esnek (large flexible) uygulama çubuğu; kaydırınca küçülür. Tek ekranlı uygulama, alt çubuk yok.",
+     "id": "i7"
+    }
+   ]
+  },
+  {
+   "id": "g8",
+   "x": 508,
+   "y": 130,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Gemini paylaşım linki",
+     "variant": "outlined",
+     "icon": "link",
+     "supporting": "https://gemini.google.com/share/...",
+     "size": 380,
+     "id": "i8"
+    }
+   ]
+  },
+  {
+   "id": "g9",
+   "x": 508,
+   "y": 230,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "linearProgress",
+     "label": "",
+     "wavy": true,
+     "trackThickness": 8,
+     "size": 380,
+     "note": "Belirsiz (indeterminate) dalgalı ilerleme çubuğu, M3 Expressive.",
+     "id": "i9",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g10",
+   "x": 508,
+   "y": 276,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "Sayfa taranıyor...",
+     "size": 20,
+     "bold": true,
+     "id": "i10",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g11",
+   "x": 508,
+   "y": 316,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Deneme 2/4",
+     "icon": "refresh",
+     "variant": "filled",
+     "note": "Her başarısız taramada sayaç artar; 4/4 sonunda içerik yoksa Hata hâline geçilir.",
+     "id": "i11"
+    }
+   ]
+  },
+  {
+   "id": "g12",
+   "x": 508,
+   "y": 372,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "İptal",
+     "icon": "close",
+     "variant": "outlined",
+     "size": 380,
+     "note": "Taramayı durdurur, Boş hâle döner.",
+     "id": "i12"
+    }
+   ]
+  },
+  {
+   "id": "g13",
+   "x": 984,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Gemini Sohbet Aktarıcı",
+     "icon": null,
+     "variant": "filled",
+     "icon2": "close",
+     "note": "Büyük esnek (large flexible) uygulama çubuğu; kaydırınca küçülür. Tek ekranlı uygulama, alt çubuk yok.",
+     "id": "i13"
+    }
+   ]
+  },
+  {
+   "id": "g14",
+   "x": 1000,
+   "y": 100,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "6 tur · 3 soru, 3 yanıt",
+     "size": 16,
+     "bold": true,
+     "note": "Tur sayısı; başlık olarak işaretlenir.",
+     "id": "i14",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g15",
+   "x": 1040,
+   "y": 136,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Sen",
+     "icon": "person",
+     "variant": "filled",
+     "checked": true,
+     "note": "Rol etiketi: Sen / Gemini.",
+     "id": "i15"
+    }
+   ]
+  },
+  {
+   "id": "g16",
+   "x": 1040,
+   "y": 172,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "Flutter ile Kotlin arasındaki temel fark nedir?",
+     "supporting": "",
+     "variant": "filled",
+     "noImage": true,
+     "size": 340,
+     "size2": 72,
+     "fill": "secondaryContainer",
+     "id": "i16",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "g17",
+   "x": 1000,
+   "y": 260,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Gemini",
+     "icon": "auto_awesome",
+     "variant": "filled",
+     "checked": false,
+     "note": "Rol etiketi: Sen / Gemini.",
+     "id": "i17"
+    }
+   ]
+  },
+  {
+   "id": "g18",
+   "x": 1000,
+   "y": 296,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "Flutter çok platformlu bir UI çerçevesidir, Kotlin ise bir dildir...",
+     "supporting": "",
+     "variant": "filled",
+     "noImage": true,
+     "size": 340,
+     "size2": 72,
+     "fill": "surfaceContainerHigh",
+     "id": "i18",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "g19",
+   "x": 1040,
+   "y": 384,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "chip",
+     "label": "Sen",
+     "icon": "person",
+     "variant": "filled",
+     "checked": true,
+     "note": "Rol etiketi: Sen / Gemini.",
+     "id": "i19"
+    }
+   ]
+  },
+  {
+   "id": "g20",
+   "x": 1040,
+   "y": 420,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "Compose ile kıyaslarsan?",
+     "supporting": "",
+     "variant": "filled",
+     "noImage": true,
+     "size": 340,
+     "size2": 72,
+     "fill": "secondaryContainer",
+     "id": "i20",
+     "icon": null
+    }
+   ]
+  },
+  {
+   "id": "g21",
+   "x": 1000,
+   "y": 512,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "text",
+     "label": "Dışa aktar",
+     "size": 16,
+     "bold": true,
+     "id": "i21",
+     "icon": null,
+     "variant": "filled"
+    }
+   ]
+  },
+  {
+   "id": "g22",
+   "x": 1000,
+   "y": 544,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Markdown Olarak Kopyala",
+     "icon": "content_copy",
+     "variant": "filled",
+     "size": 380,
+     "note": "Markdown'ı panoya kopyalar; geri bildirim snackbar ile verilir.",
+     "id": "i22"
+    }
+   ]
+  },
+  {
+   "id": "g23",
+   "x": 1000,
+   "y": 606,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Markdown (.md) Kaydet/Paylaş",
+     "icon": "share",
+     "variant": "tonal",
+     "size": 380,
+     "note": "Android paylaşım/kaydet penceresini açar (.md dosyası).",
+     "id": "i23"
+    }
+   ]
+  },
+  {
+   "id": "g24",
+   "x": 1000,
+   "y": 668,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "JSON (.json) İndir",
+     "icon": "download",
+     "variant": "outlined",
+     "size": 380,
+     "note": "Turları JSON dosyası olarak kaydeder. Tüm butonlar >= 48dp (56dp).",
+     "id": "i24"
+    }
+   ]
+  },
+  {
+   "id": "g25",
+   "x": 1476,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Gemini Sohbet Aktarıcı",
+     "icon": null,
+     "variant": "filled",
+     "icon2": null,
+     "note": "Büyük esnek (large flexible) uygulama çubuğu; kaydırınca küçülür. Tek ekranlı uygulama, alt çubuk yok.",
+     "id": "i25"
+    }
+   ]
+  },
+  {
+   "id": "g26",
+   "x": 1492,
+   "y": 130,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Gemini paylaşım linki",
+     "variant": "outlined",
+     "icon": "link",
+     "supporting": "https://gemini.google.com/share/...",
+     "size": 380,
+     "id": "i26"
+    }
+   ]
+  },
+  {
+   "id": "g27",
+   "x": 1492,
+   "y": 214,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "İçerik alınamadı",
+     "supporting": "Sayfa 4 denemede de taranamadı. İnternet bağlantınızı kontrol edin ya da linkin hâlâ herkese açık olduğundan emin olun.",
+     "icon": "error",
+     "variant": "filled",
+     "noImage": true,
+     "size": 380,
+     "size2": 140,
+     "fill": "tertiaryContainer",
+     "note": "Hata kapsayıcı rolü; ikon ve metinle de anlatılır.",
+     "id": "i27"
+    }
+   ]
+  },
+  {
+   "id": "g28",
+   "x": 1492,
+   "y": 374,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Yeniden Dene",
+     "icon": "refresh",
+     "variant": "filled",
+     "size": 380,
+     "note": "Aynı linkle taramayı baştan başlatır, sayaç 1/4'e döner.",
+     "id": "i28"
+    }
+   ]
+  },
+  {
+   "id": "g29",
+   "x": 1968,
+   "y": 0,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "topAppBar",
+     "label": "Gemini Sohbet Aktarıcı",
+     "icon": null,
+     "variant": "filled",
+     "icon2": null,
+     "note": "Büyük esnek (large flexible) uygulama çubuğu; kaydırınca küçülür. Tek ekranlı uygulama, alt çubuk yok.",
+     "id": "i29"
+    }
+   ]
+  },
+  {
+   "id": "g30",
+   "x": 1984,
+   "y": 130,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "textField",
+     "label": "Gemini paylaşım linki",
+     "variant": "outlined",
+     "icon": "link",
+     "supporting": "Geçersiz link. https://gemini.google.com/share/... biçiminde olmalı.",
+     "size": 380,
+     "note": "Hata durumu: alan çerçevesi ve yardımcı metin hata renginde.",
+     "id": "i30"
+    }
+   ]
+  },
+  {
+   "id": "g31",
+   "x": 1984,
+   "y": 214,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "card",
+     "label": "Bu bir Gemini paylaşım linki değil",
+     "supporting": "Örnek: https://gemini.google.com/share/a1b2c3d4e5",
+     "icon": "link_off",
+     "variant": "filled",
+     "noImage": true,
+     "size": 380,
+     "size2": 110,
+     "fill": "tertiaryContainer",
+     "id": "i31"
+    }
+   ]
+  },
+  {
+   "id": "g32",
+   "x": 1984,
+   "y": 344,
+   "axis": "x",
+   "items": [
+    {
+     "kind": "button",
+     "label": "Yeniden Dene",
+     "icon": "refresh",
+     "variant": "filled",
+     "size": 380,
+     "note": "Alanı odaklar ve klavyeyi açar; link düzeltilince hata kalkar.",
+     "id": "i32"
+    }
+   ]
+  }
+ ]
+}
