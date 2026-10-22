@@ -1,0 +1,2 @@
+- Gemini Sohbet Aktarıcı: herkese açık Gemini sohbet linkini Markdown ya da JSON olarak kaydet
+- Paylaşım menüsünden link gönderilebilir

@@ -2,4 +2,6 @@
 <paths>
     <!-- Pictures the camera writes before they are copied into the app: cache/camera/. -->
     <cache-path name="camera" path="camera/" />
+    <!-- Exported Gemini chats handed to the share sheet: cache/exports/. -->
+    <cache-path name="exports" path="exports/" />
 </paths>

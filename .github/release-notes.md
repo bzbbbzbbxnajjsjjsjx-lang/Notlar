@@ -4,6 +4,9 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.11.0)
+- **Gemini Sohbet Aktarıcı:** Ayrı bir simgeyle açılır. Gemini'de herkese açık bir sohbet linkini yapıştır ya da paylaşım menüsünden bu uygulamayı seç; sohbetteki tüm soru ve cevaplar listelenir. Markdown olarak kopyalanır, `.md` olarak paylaşılır ya da `.json` olarak kaydedilir. Yalnızca `gemini.google.com/share/...` linkleri açılır; sayfa sunucuya gitmeden telefonda ayrıştırılır. Bunun için uygulamaya internet izni eklendi.
+
 ### Yenilikler (1.10.0)
 - **Not başına kilit:** Yazma ekranında ⋮ > *Notu kilitle*. Kilitli notun kartında içerik görünmez, yalnızca "Kilitli not" yazar; açmak için uygulama PIN'i sorulur, arama kilitli notların içine bakmaz. Uygulama kilidi kapalıyken not kilidi bekler (önce Ayarlar > Gizlilik'ten uygulama kilidini aç).
 - **Hızlı ekleme:** Bildirim çubuğunu aşağı çekip düzenle'den *Yeni not* kutucuğunu ekle; tek dokunuşla boş bir not açılır.

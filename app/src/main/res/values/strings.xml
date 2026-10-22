@@ -10,4 +10,5 @@
     <string name="widget_checklist_description">Bir yapılacak listesini ana ekranda gösterir; maddeler buradan işaretlenir.</string>
     <string name="widget_quick_note">Yeni not</string>
     <string name="widget_quick_note_description">Tek dokunuşla yeni not ya da liste.</string>
+    <string name="gemini_export_name">Gemini Aktarıcı</string>
 </resources>
