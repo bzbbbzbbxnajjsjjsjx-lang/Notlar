@@ -59,6 +59,12 @@ class GeminiExportActivity : ComponentActivity() {
         handleShare(intent)
     }
 
+    override fun onDestroy() {
+        // The chat text must not stay in the cache once the user is done.
+        if (isFinishing) GeminiExporter.clear(this)
+        super.onDestroy()
+    }
+
     private fun handleShare(intent: Intent?) {
         if (intent?.action != Intent.ACTION_SEND || intent.type?.startsWith("text/") != true) return
         intent.getStringExtra(Intent.EXTRA_TEXT)?.let(viewModel::onSharedText)

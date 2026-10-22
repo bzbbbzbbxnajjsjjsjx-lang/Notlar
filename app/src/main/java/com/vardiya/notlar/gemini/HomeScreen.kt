@@ -104,7 +104,7 @@ private fun LinkForm(state: ParserUiState, link: String, actions: HomeActions, p
                 leadingIcon = { Icon(Icons.Outlined.Link, contentDescription = null) },
                 supportingText = {
                     Text(
-                        if (invalid) "Geçersiz link. https://gemini.google.com/share/... biçiminde olmalı."
+                        if (invalid) "Geçersiz link"
                         else "https://gemini.google.com/share/...",
                     )
                 },

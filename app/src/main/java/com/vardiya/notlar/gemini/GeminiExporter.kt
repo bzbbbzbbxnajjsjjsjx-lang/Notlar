@@ -38,6 +38,11 @@ object GeminiExporter {
         return Intent.createChooser(send, "Markdown dosyasını paylaş")
     }
 
+    /** Removes the shared copy of the chat from the cache. */
+    fun clear(context: Context) {
+        File(context.cacheDir, FOLDER).listFiles()?.forEach { it.delete() }
+    }
+
     /** Writes [text] to a document the user picked with the system file picker. */
     fun write(context: Context, uri: Uri, text: String): Boolean = runCatching {
         context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(text.toByteArray()) } != null

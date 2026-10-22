@@ -45,10 +45,10 @@ object GeminiChat {
     fun linkIn(text: String): String? =
         urlInText.findAll(text).firstNotNullOfOrNull { validLink(it.value.trimEnd('.', ',', ')', ';')) }
 
-    /** True for the hosts a page may navigate to while it loads. */
+    /** True for the hosts a page may navigate to while it loads; page resources such as scripts are not limited by this. */
     fun isAllowedNavigation(url: String): Boolean {
         val uri = runCatching { URI(url) }.getOrNull() ?: return false
-        return uri.scheme == "https" && uri.host?.lowercase() in allowedHosts
+        return uri.scheme == "https" && uri.host?.lowercase() in allowedHosts && uri.rawUserInfo == null && uri.port == -1
     }
 
     /**
