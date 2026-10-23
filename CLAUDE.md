@@ -62,7 +62,7 @@ them when the layout is not obvious.
 - Search and dates use the Turkish locale (`tr-TR`), never the default one.
 - Accessibility: icon-only buttons have a `contentDescription`, headings are marked, touch
   targets ≥ 48dp.
-- Build: AGP 9 (built-in Kotlin), Gradle 9, compileSdk 37, targetSdk 36, material3
+- Build: AGP 9 (built-in Kotlin), Gradle 9, compileSdk 37, targetSdk 37, material3
   `1.5.0-beta01` ahead of the Compose BOM. Expressive opt-ins are set in `app/build.gradle.kts`.
   Icons come from `material-icons-extended` 1.7.8 (R8 strips unused ones).
 - Detekt config is in `config/detekt/detekt.yml`; fix findings, there is no baseline.
