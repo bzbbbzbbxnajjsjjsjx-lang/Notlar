@@ -88,7 +88,8 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     recovering = false
                     onBiometricSuccess = null
-                    promptClosed()
+                    // The system cancels the prompt when the user leaves the app: that is time away.
+                    if (errorCode == BiometricPrompt.ERROR_CANCELED) lockViewModel.onResume() else promptClosed()
                 }
             },
         )
