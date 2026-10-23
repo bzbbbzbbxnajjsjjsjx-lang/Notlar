@@ -4,6 +4,10 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.11.2)
+- **Parmak izi düzeltmesi:** Bazı telefonlarda parmak izi penceresi açılınca uygulama kendini yeniden kilitliyor, parmak izi tekrar tekrar soruluyor ve sonunda PIN'e düşüyordu. Artık parmak iziyle bir kez açılıyor.
+- **Kilitli notlarda parmak izi:** Kilitli not açarken de parmak izi soruluyor (Ayarlar > Gizlilik'te açıksa). Bir kilitli notu açınca, uygulama yeniden kilitlenene kadar diğer kilitli notlar tekrar sormuyor.
+
 ### Yenilikler (1.11.1)
 - **Android 17 uyumu:** Uygulama artık Android 17 (API 37) hedefliyor; tüm denetimler (kod tarama, lint, testler) temiz geçti.
 

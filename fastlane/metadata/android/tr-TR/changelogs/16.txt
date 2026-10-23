@@ -1,0 +1,1 @@
+Parmak izi düzeltmesi: bazı telefonlarda kilit, parmak izi penceresinin arkasında yeniden kapanıyor ve parmak izi tekrar tekrar soruluyordu. Kilitli notlar da artık parmak iziyle açılıyor; bir kilitli not açılınca uygulama yeniden kilitlenene kadar diğerleri sormuyor.
