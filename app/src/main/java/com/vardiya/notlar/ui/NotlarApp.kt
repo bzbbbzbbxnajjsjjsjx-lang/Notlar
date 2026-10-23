@@ -87,6 +87,7 @@ fun NotlarApp(
     viewModel: NotesViewModel = viewModel(),
     lockViewModel: LockViewModel = viewModel(),
     biometricAvailable: Boolean = false,
+    onBiometric: (title: String, onSuccess: () -> Unit) -> Unit = { _, _ -> },
     launchAction: LaunchAction? = null,
     onLaunchActionConsume: () -> Unit = {},
 ) {
@@ -113,10 +114,12 @@ fun NotlarApp(
         openId = note.id
     }
 
-    // A locked note asks for the PIN before it opens (once the app lock is on; until then it just opens).
+    // A locked note asks for the PIN or a fingerprint before it opens (once the app lock is on;
+    // until then it just opens). One answer opens every locked note until the app locks again.
     var noteToUnlock by remember { mutableStateOf<Note?>(null) }
+    val lockedNotesOpen by lockViewModel.lockedNotesOpen.collectAsStateWithLifecycle()
     fun openAskingPin(note: Note) {
-        if (note.locked && settings.lockEnabled) noteToUnlock = note else open(note)
+        if (note.locked && settings.lockEnabled && !lockedNotesOpen) noteToUnlock = note else open(note)
     }
 
     val currentOnConsume by rememberUpdatedState(onLaunchActionConsume)
@@ -316,17 +319,19 @@ fun NotlarApp(
     val otherStep = check != null || pinSetup || notesUnreadable
     if (unlocking != null && !otherStep) {
         BackHandler { noteToUnlock = null }
+        fun opened() {
+            lockViewModel.openedLockedNote()
+            noteToUnlock = null
+            open(unlocking)
+        }
         LockScreen(
             title = "Kilitli notu aç",
             onPin = { pin ->
-                lockViewModel.tryPin(pin).also { result ->
-                    if (result == UnlockResult.Opened) {
-                        noteToUnlock = null
-                        open(unlocking)
-                    }
-                }
+                lockViewModel.tryPin(pin).also { result -> if (result == UnlockResult.Opened) opened() }
             },
             onCancel = { noteToUnlock = null },
+            biometricAvailable = settings.biometricUnlock && biometricAvailable,
+            onBiometric = { onBiometric("Kilitli notu aç", ::opened) },
         )
         return
     }

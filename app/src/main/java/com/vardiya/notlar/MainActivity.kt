@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vardiya.notlar.domain.ThemeMode
 import com.vardiya.notlar.ui.LaunchAction
@@ -59,6 +60,9 @@ class MainActivity : FragmentActivity() {
     /** The prompt on screen is the "PIN'imi unuttum" one, which ends with a hint to set a new PIN. */
     private var recovering = false
 
+    /** What a fingerprint opens; null is the app itself (also after a rotation drops the request). */
+    private var onBiometricSuccess: (() -> Unit)? = null
+
     /** Before Android 11 the screen lock alone cannot be asked through BiometricPrompt. */
     private val confirmDeviceLock = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) openedByDeviceLock()
@@ -72,8 +76,19 @@ class MainActivity : FragmentActivity() {
             ContextCompat.getMainExecutor(this),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    if (recovering) openedByDeviceLock() else lockViewModel.openedBySystem()
+                    when {
+                        recovering -> openedByDeviceLock()
+                        else -> onBiometricSuccess?.invoke() ?: lockViewModel.openedBySystem()
+                    }
                     recovering = false
+                    onBiometricSuccess = null
+                    promptClosed()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    recovering = false
+                    onBiometricSuccess = null
+                    promptClosed()
                 }
             },
         )
@@ -105,13 +120,14 @@ class MainActivity : FragmentActivity() {
                     LockGate.LOCKED -> LockScreen(
                         onPin = { lockViewModel.tryPin(it) },
                         biometricAvailable = settings.biometricUnlock && biometricsReady,
-                        onBiometric = ::askBiometric,
+                        onBiometric = { askBiometric() },
                         onForgetPin = if (deviceLockReady) ({ askDeviceLock(settings.biometricUnlock) }) else null,
                     )
                     LockGate.OPEN -> NotlarApp(
                         viewModel = viewModel,
                         lockViewModel = lockViewModel,
                         biometricAvailable = biometricsReady,
+                        onBiometric = ::askBiometric,
                         launchAction = launchAction,
                         onLaunchActionConsume = { launchAction = null },
                     )
@@ -159,10 +175,16 @@ class MainActivity : FragmentActivity() {
         intent.toLaunchAction()?.let { launchAction = it }
     }
 
-    private fun askBiometric() {
+    /**
+     * Some phones show the system prompt as a screen of its own, which stops this activity. That is
+     * not time away: without the allowance the lock closes again behind the prompt and asks anew.
+     */
+    private fun askBiometric(title: String = "Notlar'ı aç", onSuccess: (() -> Unit)? = null) {
         recovering = false
+        onBiometricSuccess = onSuccess
+        lockViewModel.stayOpenThroughNextTrip()
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Notlar'ı aç")
+            .setTitle(title)
             .setSubtitle("Parmak izi veya yüz ile")
             .setNegativeButtonText("PIN kullan")
             .setAllowedAuthenticators(BIOMETRIC_STRONG or BIOMETRIC_WEAK)
@@ -179,6 +201,7 @@ class MainActivity : FragmentActivity() {
         val title = "PIN'imi unuttum"
         val subtitle = "Telefonunun ekran kilidiyle doğrula"
         recovering = true
+        lockViewModel.stayOpenThroughNextTrip()
         when {
             allowBiometrics -> prompt.authenticate(
                 BiometricPrompt.PromptInfo.Builder()
@@ -200,6 +223,11 @@ class MainActivity : FragmentActivity() {
                 if (intent != null) confirmDeviceLock.launch(intent)
             }
         }
+    }
+
+    /** Where the prompt did not leave the screen, its allowance must not outlive it. */
+    private fun promptClosed() {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) lockViewModel.onResume()
     }
 
     private fun openedByDeviceLock() {

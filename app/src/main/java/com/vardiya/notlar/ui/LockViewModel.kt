@@ -45,6 +45,7 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = NoteRepository.get(application)
     private val unlocked = MutableStateFlow(false)
+    private val notesOpen = MutableStateFlow(false)
     private val tries = Mutex()
     private var backgroundAt: Long? = null
     private var skipRelockUntil = 0L
@@ -59,6 +60,9 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
             else -> LockGate.OPEN
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, LockGate.LOADING)
+
+    /** A locked note was opened since the app last locked: other locked notes open without asking. */
+    val lockedNotesOpen: StateFlow<Boolean> = notesOpen
 
     init {
         // Values from before encryption are rewritten encrypted.
@@ -75,7 +79,10 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
         val away = backgroundAt
         // An own trip counts only if it left within the announced minute and came back within ten.
         val ownTrip = away != null && away <= skipRelockUntil && nowMillis - away < OWN_TRIP_MAX_MILLIS
-        if (!ownTrip && Security.shouldRelock(away, nowMillis, timeout)) unlocked.value = false
+        if (!ownTrip && Security.shouldRelock(away, nowMillis, timeout)) {
+            unlocked.value = false
+            notesOpen.value = false
+        }
         backgroundAt = null
     }
 
@@ -105,6 +112,11 @@ class LockViewModel(application: Application) : AndroidViewModel(application) {
             val next = Security.afterTry(state, correct = false, nowMillis = nowMillis)
             UnlockResult.Wrong(Security.triesLeft(next), next.lockedOutUntil)
         }
+    }
+
+    /** A locked note was opened with the PIN or a fingerprint. */
+    fun openedLockedNote() {
+        notesOpen.value = true
     }
 
     /** The system confirmed the owner with a fingerprint, face or the device's own lock. */
