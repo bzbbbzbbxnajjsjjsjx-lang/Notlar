@@ -1,0 +1,1 @@
+Tek uygulama: yanlışlıkla Notlar'ın içine giren Gemini sohbet aktarıcısı çıkarıldı; kurunca artık iki simge çıkmıyor. Notlar ve ayarlar olduğu gibi kalır. Uygulamanın internet izni de kalktı.

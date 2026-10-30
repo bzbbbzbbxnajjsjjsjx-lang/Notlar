@@ -4,15 +4,15 @@ Material 3 Expressive not ve yapılacaklar uygulaması.
 
 **Kurulum:** Aşağıdaki `Notlar-*.apk` dosyasını telefona indir ve aç (bilinmeyen kaynaklardan yüklemeye izin vermen gerekebilir). Android 8.0 ve üzeri.
 
+### Yenilikler (1.11.3)
+- **Tek uygulama:** Gemini sohbet aktarıcısı yanlışlıkla Notlar'ın içine girmişti; kurunca telefonda iki ayrı simge çıkıyordu. Aktarıcı Notlar'dan tamamen çıkarıldı, artık yalnızca Notlar kurulur. Notlara ve ayarlara dokunulmadı. Uygulamanın internet izni de kalktı.
+
 ### Yenilikler (1.11.2)
 - **Parmak izi düzeltmesi:** Bazı telefonlarda parmak izi penceresi açılınca uygulama kendini yeniden kilitliyor, parmak izi tekrar tekrar soruluyor ve sonunda PIN'e düşüyordu. Artık parmak iziyle bir kez açılıyor.
 - **Kilitli notlarda parmak izi:** Kilitli not açarken de parmak izi soruluyor (Ayarlar > Gizlilik'te açıksa). Bir kilitli notu açınca, uygulama yeniden kilitlenene kadar diğer kilitli notlar tekrar sormuyor.
 
 ### Yenilikler (1.11.1)
 - **Android 17 uyumu:** Uygulama artık Android 17 (API 37) hedefliyor; tüm denetimler (kod tarama, lint, testler) temiz geçti.
-
-### Yenilikler (1.11.0)
-- **Gemini Sohbet Aktarıcı:** Ayrı bir simgeyle açılır. Gemini'de herkese açık bir sohbet linkini yapıştır ya da paylaşım menüsünden bu uygulamayı seç; sohbetteki tüm soru ve cevaplar listelenir. Markdown olarak kopyalanır, `.md` olarak paylaşılır ya da `.json` olarak kaydedilir. Yalnızca `gemini.google.com/share/...` linkleri açılır; sayfa sunucuya gitmeden telefonda ayrıştırılır. Bunun için uygulamaya internet izni eklendi.
 
 ### Yenilikler (1.10.0)
 - **Not başına kilit:** Yazma ekranında ⋮ > *Notu kilitle*. Kilitli notun kartında içerik görünmez, yalnızca "Kilitli not" yazar; açmak için uygulama PIN'i sorulur, arama kilitli notların içine bakmaz. Uygulama kilidi kapalıyken not kilidi bekler (önce Ayarlar > Gizlilik'ten uygulama kilidini aç).
