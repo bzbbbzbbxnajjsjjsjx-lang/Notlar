@@ -78,13 +78,17 @@ with `release_tag`, publishes the release APK as a GitHub release.
 
 ## Agents
 
-`.claude/agents/` holds three subagents; use them, in this order, for every change:
+`.claude/agents/` holds four subagents; use them, in this order, for every change:
 
 - `dal-bekcisi` - at the start of a task: confirms the branch contains the latest release.
 - `tasarimci` - for any new screen or vague UI request: sketches it in M3E Canvas and returns a
   link; get the user's approval before writing code.
 - `kontrolcu` - after the change and before every push or release: detekt, lint, tests, release
   build, and a look at every changed screenshot against the request.
+- `kalite-kontrol` - before every release: everything since the last release belongs to Notlar
+  (no other app's code, launcher icon, permission or dependency), the release APK's package,
+  launchers and permissions, and the version and release notes. `ManifestTest` enforces one
+  launcher and the permission list in CI.
 
 ## Skills
 
